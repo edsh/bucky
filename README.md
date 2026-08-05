@@ -60,7 +60,7 @@ Constitution/Specs verweisen, statt Inhalte zu duplizieren.
 
 Frühe Phase, Constitution noch nicht erstellt. Offene Fragen:
 
-1. Tech-Stack (Frontend/Backend/Hosting)?
+1. Tech-Stack: Frontend steht fest (SvelteKit, siehe Constitution, Prinzip III); Backend/Hosting weiterhin offen.
 2. Authentifizierung/Rollenmodell für Vereinsmitglieder?
 3. Wahl der Datenbank?
 4. Wie fügt sich das POH-Modul (MCP-Server) sauber als eines von mehreren Modulen ein?

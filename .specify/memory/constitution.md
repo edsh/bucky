@@ -1,18 +1,31 @@
 <!--
 Sync Impact Report
-Version change: 1.0.0 → 1.1.0
-Modified principles: n/a
-Added sections: none (existing "Development Workflow" section materially expanded)
+Version change: 1.2.0 → 1.2.1
+Modified principles: III. Svelte as Frontend Standard → III. SvelteKit as
+  Frontend Standard (corrected technology choice: plain Svelte lacks routing/
+  server-route support this multi-page, growing app needs; SvelteKit is the
+  correct fit)
+Added sections: none
 Removed sections: none
-Modified guidance: Development Workflow — added GitHub-Issue-first feature
-  numbering rule (issue number is the authoritative ID allocator; feature folder
-  numbers must be created via `create-new-feature.sh --number <issue-nummer>`)
+Follow-up TODOs: none
 Templates requiring updates:
   - ⚠ .specify/templates/plan-template.md — not yet checked against this version
   - ⚠ .specify/templates/spec-template.md — not yet checked against this version
-  (both still reference generic template guidance; revisit once the first feature
-  spec is drafted with /speckit-specify)
-Follow-up TODOs: none
+
+Sync Impact Report (previous, 1.2.0)
+Version change: 1.1.0 → 1.2.0
+Modified principles: n/a
+Added sections: Core Principle III. Svelte as Frontend Standard
+Removed sections: none
+Follow-up TODOs: README.md Status section — "Tech-Stack" open question narrowed
+  to Backend/Hosting only (Frontend now decided here)
+
+Sync Impact Report (previous, 1.1.0)
+Version change: 1.0.0 → 1.1.0
+Added sections: none (existing "Development Workflow" section materially expanded)
+Modified guidance: Development Workflow — added GitHub-Issue-first feature
+  numbering rule (issue number is the authoritative ID allocator; feature folder
+  numbers must be created via `create-new-feature.sh --number <issue-nummer>`)
 
 Sync Impact Report (previous, 1.0.0 — initial ratification)
 Version change: [TEMPLATE] → 1.0.0
@@ -50,6 +63,17 @@ explizit anders entschieden wird.
 
 Rationale: Vermeidet Datenduplikate und Drift zwischen zwei Systemen und respektiert
 bestehende Vereinsprozesse rund um Vereinsflieger.
+
+### III. SvelteKit as Frontend Standard
+
+Alle Frontend-Oberflächen von Bucky Highfly MÜSSEN mit SvelteKit umgesetzt werden,
+projektübergreifend für alle Module. Eine erneute Tech-Stack-Entscheidung pro
+Feature findet nicht statt, solange diese Constitution nicht geändert wird.
+
+Rationale: Einheitlicher Frontend-Stack vermeidet Fragmentierung über mehrere
+Vereins-Module hinweg und reduziert Wartungsaufwand. SvelteKit statt reinem
+Svelte, da die App mehrseitig wächst (Routing) und serverseitige Logik
+(z. B. die deterministische POH-Interpolation aus Prinzip I) benötigt.
 
 ## Agent-Agnostic Project Knowledge
 
@@ -101,8 +125,8 @@ MAJOR für unvereinbare Streichungen/Neudefinitionen bestehender Prinzipien, MIN
 neue Prinzipien/Abschnitte, PATCH für Klarstellungen. Jede Änderung aktualisiert den
 Sync-Impact-Report am Dateianfang. Pull Requests bzw. Specs, die gegen ein
 Kernprinzip verstoßen oder es berühren, MÜSSEN das betroffene Prinzip referenzieren
-und die Abweichung begründen. Nur zwei Kernprinzipien sind aktuell definiert (I, II);
+und die Abweichung begründen. Aktuell sind drei Kernprinzipien definiert (I–III);
 weitere werden ergänzt, sobald sich echte, nicht verhandelbare Regeln aus der
 Praxis ergeben — Platzhalter für ungenutzte Prinzipien werden nicht künstlich befüllt.
 
-**Version**: 1.1.0 | **Ratified**: 2026-08-05 | **Last Amended**: 2026-08-05
+**Version**: 1.2.1 | **Ratified**: 2026-08-05 | **Last Amended**: 2026-08-05

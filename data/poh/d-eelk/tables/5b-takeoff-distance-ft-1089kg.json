@@ -1,0 +1,544 @@
+{
+  "id": "5b-takeoff-distance-ft-1089kg",
+  "kind": "takeoff_distance",
+  "figure": "Abb. 5-1d",
+  "table_name": "Roll- und Startstrecke [ft] bei Abfluggewicht 1089 kg (2400 lbs) (nur Cessna 172P)",
+  "source": {
+    "document_id": "tae125-02-114-anhang-fhb-ausgabe-2",
+    "document_title": "Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation",
+    "issue": "Ausgabe 2",
+    "revision": "Änderung -, April 2016",
+    "section": "Abschnitt 5b LEISTUNGEN",
+    "section_applicability": "Abschnitt 5b gilt laut POH (Seite 5b-1) nur fuer Flugzeuge mit Propeller MTV-6-A/190-69. D-EELK hat diesen Propeller. Der parallele Abschnitt 5a (Propeller MTV-6-A/187-129) ist fuer D-EELK NICHT anwendbar und wurde bewusst nicht digitalisiert.",
+    "poh_pages": [
+      "5b-5",
+      "5b-7"
+    ],
+    "pages": [
+      {
+        "poh_page": "5b-5",
+        "pdf_page": 131,
+        "role": "Bedingungen/Anmerkungen"
+      },
+      {
+        "poh_page": "5b-7",
+        "pdf_page": 133,
+        "role": "Tabellenwerte"
+      }
+    ],
+    "citation": "Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-5/5b-7, Abb. 5-1d – Roll- und Startstrecke [ft] bei Abfluggewicht 1089 kg (2400 lbs) (nur Cessna 172P)"
+  },
+  "applicability": {
+    "aircraft_registration": "D-EELK",
+    "engine": "TAE 125-02-114 (Technify/Continental Diesel)",
+    "propeller": "MTV-6-A/190-69",
+    "propeller_note": "Abschnitt 5b gilt laut POH (Seite 5b-1) nur fuer Flugzeuge mit Propeller MTV-6-A/190-69. D-EELK hat diesen Propeller. Der parallele Abschnitt 5a (Propeller MTV-6-A/187-129) ist fuer D-EELK NICHT anwendbar und wurde bewusst nicht digitalisiert.",
+    "models": [
+      "F172P"
+    ],
+    "weight_kg": 1089,
+    "weight_lbs": 2400
+  },
+  "conditions": [
+    "Fluggewicht 1089 kg (2400 lbs)",
+    "Klappen 10°",
+    "Vollgas vor lösen der Bremse",
+    "Befestigte, ebene, trockene Startbahn, Windstille",
+    "Abhebegeschwindigkeit: ................................48 KIAS/ 55 mph",
+    "Geschwindigkeit in 15 m / 50 ft Höhe: ...........54 KIAS/ 62 mph"
+  ],
+  "notes": [
+    "1. Kurzstartverfahren",
+    "2. Für je 9 Knoten Gegenwind Strecken um 10% verringern, bei Rückenwind bis 10 Knoten je 2 Knoten um 10% vergrößern",
+    "3. Für Start auf trockener Grasbahn Strecken um 15% des Wertes „Startlauf“ vergrößern.",
+    "4. Zusätzliche Zuschläge (min. 20%) für feuchte Grasbahn, aufgeweichten Untergrund oder Schnee berücksichtigen"
+  ],
+  "columns": [
+    {
+      "key": "pressure_altitude_ft",
+      "label": "Druckhoehe",
+      "unit": "ft"
+    },
+    {
+      "key": "oat_c",
+      "label": "Umgebungstemperatur",
+      "unit": "degC"
+    },
+    {
+      "key": "ground_roll",
+      "label": "Startlauf (Gnd Roll)",
+      "unit": "ft"
+    },
+    {
+      "key": "over_obstacle",
+      "label": "Strecke ueber Hindernis",
+      "unit": "ft"
+    }
+  ],
+  "row_count": 77,
+  "rows": [
+    {
+      "pressure_altitude_ft": 0,
+      "oat_c": -20,
+      "ground_roll": 562,
+      "over_obstacle": 879
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "oat_c": 0,
+      "ground_roll": 649,
+      "over_obstacle": 1016
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "oat_c": 10,
+      "ground_roll": 695,
+      "over_obstacle": 1087
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "oat_c": 20,
+      "ground_roll": 746,
+      "over_obstacle": 1168
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "oat_c": 30,
+      "ground_roll": 797,
+      "over_obstacle": 1247
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "oat_c": 40,
+      "ground_roll": 877,
+      "over_obstacle": 1375
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "oat_c": 50,
+      "ground_roll": 986,
+      "over_obstacle": 1554
+    },
+    {
+      "pressure_altitude_ft": 1000,
+      "oat_c": -20,
+      "ground_roll": 602,
+      "over_obstacle": 942
+    },
+    {
+      "pressure_altitude_ft": 1000,
+      "oat_c": 0,
+      "ground_roll": 696,
+      "over_obstacle": 1088
+    },
+    {
+      "pressure_altitude_ft": 1000,
+      "oat_c": 10,
+      "ground_roll": 745,
+      "over_obstacle": 1165
+    },
+    {
+      "pressure_altitude_ft": 1000,
+      "oat_c": 20,
+      "ground_roll": 800,
+      "over_obstacle": 1251
+    },
+    {
+      "pressure_altitude_ft": 1000,
+      "oat_c": 30,
+      "ground_roll": 853,
+      "over_obstacle": 1336
+    },
+    {
+      "pressure_altitude_ft": 1000,
+      "oat_c": 40,
+      "ground_roll": 939,
+      "over_obstacle": 1474
+    },
+    {
+      "pressure_altitude_ft": 1000,
+      "oat_c": 50,
+      "ground_roll": 1057,
+      "over_obstacle": 1665
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "oat_c": -20,
+      "ground_roll": 645,
+      "over_obstacle": 1009
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "oat_c": 0,
+      "ground_roll": 746,
+      "over_obstacle": 1166
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "oat_c": 10,
+      "ground_roll": 798,
+      "over_obstacle": 1249
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "oat_c": 20,
+      "ground_roll": 857,
+      "over_obstacle": 1341
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "oat_c": 30,
+      "ground_roll": 915,
+      "over_obstacle": 1431
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "oat_c": 40,
+      "ground_roll": 1007,
+      "over_obstacle": 1579
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "oat_c": 50,
+      "ground_roll": 1133,
+      "over_obstacle": 1785
+    },
+    {
+      "pressure_altitude_ft": 3000,
+      "oat_c": -20,
+      "ground_roll": 692,
+      "over_obstacle": 1082
+    },
+    {
+      "pressure_altitude_ft": 3000,
+      "oat_c": 0,
+      "ground_roll": 799,
+      "over_obstacle": 1251
+    },
+    {
+      "pressure_altitude_ft": 3000,
+      "oat_c": 10,
+      "ground_roll": 856,
+      "over_obstacle": 1339
+    },
+    {
+      "pressure_altitude_ft": 3000,
+      "oat_c": 20,
+      "ground_roll": 919,
+      "over_obstacle": 1438
+    },
+    {
+      "pressure_altitude_ft": 3000,
+      "oat_c": 30,
+      "ground_roll": 981,
+      "over_obstacle": 1535
+    },
+    {
+      "pressure_altitude_ft": 3000,
+      "oat_c": 40,
+      "ground_roll": 1080,
+      "over_obstacle": 1694
+    },
+    {
+      "pressure_altitude_ft": 3000,
+      "oat_c": 50,
+      "ground_roll": 1215,
+      "over_obstacle": 1914
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "oat_c": -20,
+      "ground_roll": 742,
+      "over_obstacle": 1161
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "oat_c": 0,
+      "ground_roll": 858,
+      "over_obstacle": 1342
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "oat_c": 10,
+      "ground_roll": 918,
+      "over_obstacle": 1437
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "oat_c": 20,
+      "ground_roll": 986,
+      "over_obstacle": 1543
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "oat_c": 30,
+      "ground_roll": 1052,
+      "over_obstacle": 1647
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "oat_c": 40,
+      "ground_roll": 1158,
+      "over_obstacle": 1817
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "oat_c": 50,
+      "ground_roll": 1303,
+      "over_obstacle": 2053
+    },
+    {
+      "pressure_altitude_ft": 5000,
+      "oat_c": -20,
+      "ground_roll": 797,
+      "over_obstacle": 1246
+    },
+    {
+      "pressure_altitude_ft": 5000,
+      "oat_c": 0,
+      "ground_roll": 921,
+      "over_obstacle": 1440
+    },
+    {
+      "pressure_altitude_ft": 5000,
+      "oat_c": 10,
+      "ground_roll": 986,
+      "over_obstacle": 1542
+    },
+    {
+      "pressure_altitude_ft": 5000,
+      "oat_c": 20,
+      "ground_roll": 1058,
+      "over_obstacle": 1656
+    },
+    {
+      "pressure_altitude_ft": 5000,
+      "oat_c": 30,
+      "ground_roll": 1130,
+      "over_obstacle": 1768
+    },
+    {
+      "pressure_altitude_ft": 5000,
+      "oat_c": 40,
+      "ground_roll": 1243,
+      "over_obstacle": 1951
+    },
+    {
+      "pressure_altitude_ft": 5000,
+      "oat_c": 50,
+      "ground_roll": 1399,
+      "over_obstacle": 2204
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "oat_c": -20,
+      "ground_roll": 856,
+      "over_obstacle": 1339
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "oat_c": 0,
+      "ground_roll": 989,
+      "over_obstacle": 1547
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "oat_c": 10,
+      "ground_roll": 1059,
+      "over_obstacle": 1656
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "oat_c": 20,
+      "ground_roll": 1137,
+      "over_obstacle": 1779
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "oat_c": 30,
+      "ground_roll": 1213,
+      "over_obstacle": 1899
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "oat_c": 40,
+      "ground_roll": 1335,
+      "over_obstacle": 2095
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "oat_c": 50,
+      "ground_roll": 1502,
+      "over_obstacle": 2367
+    },
+    {
+      "pressure_altitude_ft": 7000,
+      "oat_c": -20,
+      "ground_roll": 938,
+      "over_obstacle": 1467
+    },
+    {
+      "pressure_altitude_ft": 7000,
+      "oat_c": 0,
+      "ground_roll": 1084,
+      "over_obstacle": 1695
+    },
+    {
+      "pressure_altitude_ft": 7000,
+      "oat_c": 10,
+      "ground_roll": 1160,
+      "over_obstacle": 1815
+    },
+    {
+      "pressure_altitude_ft": 7000,
+      "oat_c": 20,
+      "ground_roll": 1246,
+      "over_obstacle": 1949
+    },
+    {
+      "pressure_altitude_ft": 7000,
+      "oat_c": 30,
+      "ground_roll": 1330,
+      "over_obstacle": 2081
+    },
+    {
+      "pressure_altitude_ft": 7000,
+      "oat_c": 40,
+      "ground_roll": 1464,
+      "over_obstacle": 2296
+    },
+    {
+      "pressure_altitude_ft": 7000,
+      "oat_c": 50,
+      "ground_roll": 1647,
+      "over_obstacle": 2594
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "oat_c": -20,
+      "ground_roll": 1028,
+      "over_obstacle": 1608
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "oat_c": 0,
+      "ground_roll": 1188,
+      "over_obstacle": 1858
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "oat_c": 10,
+      "ground_roll": 1272,
+      "over_obstacle": 1990
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "oat_c": 20,
+      "ground_roll": 1366,
+      "over_obstacle": 2137
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "oat_c": 30,
+      "ground_roll": 1458,
+      "over_obstacle": 2281
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "oat_c": 40,
+      "ground_roll": 1604,
+      "over_obstacle": 2517
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "oat_c": 50,
+      "ground_roll": 1805,
+      "over_obstacle": 2844
+    },
+    {
+      "pressure_altitude_ft": 9000,
+      "oat_c": -20,
+      "ground_roll": 1139,
+      "over_obstacle": 1782
+    },
+    {
+      "pressure_altitude_ft": 9000,
+      "oat_c": 0,
+      "ground_roll": 1316,
+      "over_obstacle": 2059
+    },
+    {
+      "pressure_altitude_ft": 9000,
+      "oat_c": 10,
+      "ground_roll": 1409,
+      "over_obstacle": 2205
+    },
+    {
+      "pressure_altitude_ft": 9000,
+      "oat_c": 20,
+      "ground_roll": 1512,
+      "over_obstacle": 2368
+    },
+    {
+      "pressure_altitude_ft": 9000,
+      "oat_c": 30,
+      "ground_roll": 1614,
+      "over_obstacle": 2528
+    },
+    {
+      "pressure_altitude_ft": 9000,
+      "oat_c": 40,
+      "ground_roll": 1777,
+      "over_obstacle": 2789
+    },
+    {
+      "pressure_altitude_ft": 9000,
+      "oat_c": 50,
+      "ground_roll": 1999,
+      "over_obstacle": 3152
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "oat_c": -20,
+      "ground_roll": 1262,
+      "over_obstacle": 1976
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "oat_c": 0,
+      "ground_roll": 1458,
+      "over_obstacle": 2283
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "oat_c": 10,
+      "ground_roll": 1561,
+      "over_obstacle": 2445
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "oat_c": 20,
+      "ground_roll": 1675,
+      "over_obstacle": 2626
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "oat_c": 30,
+      "ground_roll": 1788,
+      "over_obstacle": 2803
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "oat_c": 40,
+      "ground_roll": 1968,
+      "over_obstacle": 3093
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "oat_c": 50,
+      "ground_roll": 2215,
+      "over_obstacle": 3495
+    }
+  ],
+  "obstacle_label": "50 ft Hindernis"
+}

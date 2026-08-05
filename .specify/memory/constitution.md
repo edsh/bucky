@@ -1,16 +1,25 @@
 <!--
 Sync Impact Report
+Version change: 1.2.1 → 1.3.0
+Modified principles: I. Deterministic Safety-Critical Calculations — materially
+  expanded: digitization must capture a source reference (page number + table
+  name) per table; every answer must cite that exact reference, not just
+  "table/reference points" generically
+Added sections: none
+Removed sections: none
+Follow-up TODOs: specs/001-kraftstoffrechner-d-eelk/spec.md — FR-001/FR-005/
+  Key Entities updated in the same pass to require page+table-name capture and
+  citation, to stay consistent with this amendment
+Templates requiring updates:
+  - ⚠ .specify/templates/plan-template.md — not yet checked against this version
+  - ⚠ .specify/templates/spec-template.md — not yet checked against this version
+
+Sync Impact Report (previous, 1.2.1)
 Version change: 1.2.0 → 1.2.1
 Modified principles: III. Svelte as Frontend Standard → III. SvelteKit as
   Frontend Standard (corrected technology choice: plain Svelte lacks routing/
   server-route support this multi-page, growing app needs; SvelteKit is the
   correct fit)
-Added sections: none
-Removed sections: none
-Follow-up TODOs: none
-Templates requiring updates:
-  - ⚠ .specify/templates/plan-template.md — not yet checked against this version
-  - ⚠ .specify/templates/spec-template.md — not yet checked against this version
 
 Sync Impact Report (previous, 1.2.0)
 Version change: 1.1.0 → 1.2.0
@@ -43,15 +52,21 @@ Removed sections: none (template placeholders III–V not used)
 
 POH-Leistungsdaten (Startstrecke, Kraftstoffverbrauch, Landestrecke, Steigrate) MÜSSEN
 einmalig sorgfältig aus dem Original-Flughandbuch in strukturierte Daten (JSON/CSV)
-digitalisiert und gegen das Original doppelt geprüft werden. Die Interpolation
-zwischen Tabellenwerten (Luftdichte, Temperatur, Höhe, Gewicht) MUSS als
-deterministischer Code laufen. Ein LLM DARF Tabellenwerte niemals aus dem Gedächtnis
-oder per freier Interpolation erzeugen — es ruft die Berechnung ausschließlich als
-Tool auf. Jede Antwort MUSS die verwendete Tabelle/die Eckwerte nennen sowie den
-Hinweis enthalten, das Ergebnis vor dem Flug gegen das Original-POH gegenzuchecken.
+digitalisiert und gegen das Original doppelt geprüft werden. Bei der Digitalisierung
+MUSS zu jeder Tabelle eine Quellenreferenz (Seitenzahl und Tabellenname/-bezeichnung
+im Original-POH) mitgespeichert werden. Die Interpolation zwischen Tabellenwerten
+(Luftdichte, Temperatur, Höhe, Gewicht) MUSS als deterministischer Code laufen. Ein
+LLM DARF Tabellenwerte niemals aus dem Gedächtnis oder per freier Interpolation
+erzeugen — es ruft die Berechnung ausschließlich als Tool auf. Jede Antwort MUSS die
+verwendete(n) Tabelle(n) exakt referenzieren (Seitenzahl und Tabellenname aus dem
+Original-POH) sowie die verwendeten Eckwerte nennen und den Hinweis enthalten, das
+Ergebnis vor dem Flug gegen das Original-POH gegenzuchecken.
 
 Rationale: Startstrecke, Kraftstoffreserve etc. sind sicherheitskritisch; ein
-Interpolationsfehler des LLM ist bei diesen Werten nicht akzeptabel.
+Interpolationsfehler des LLM ist bei diesen Werten nicht akzeptabel. Eine exakte
+Quellenangabe (Seite + Tabellenname) macht die Vorflug-Prüfung gegen das
+Original-POH erst praktikabel — ohne sie müsste der Pilot das gesamte Handbuch nach
+der passenden Tabelle durchsuchen.
 
 ### II. Vereinsflieger as System of Record
 
@@ -129,4 +144,4 @@ und die Abweichung begründen. Aktuell sind drei Kernprinzipien definiert (I–I
 weitere werden ergänzt, sobald sich echte, nicht verhandelbare Regeln aus der
 Praxis ergeben — Platzhalter für ungenutzte Prinzipien werden nicht künstlich befüllt.
 
-**Version**: 1.2.1 | **Ratified**: 2026-08-05 | **Last Amended**: 2026-08-05
+**Version**: 1.3.0 | **Ratified**: 2026-08-05 | **Last Amended**: 2026-08-05

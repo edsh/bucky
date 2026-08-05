@@ -88,7 +88,9 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
 - **FR-001**: System MUSS eine aus dem Original-Flughandbuch von D-EELK
   digitalisierte, strukturierte Datengrundlage für die Kraftstoffverbrauchsrate
   bereitstellen, gestaffelt nach den im POH verwendeten Flugbedingungen
-  (u. a. Höhe, Leistungseinstellung, Temperatur/ISA-Abweichung).
+  (u. a. Höhe, Leistungseinstellung, Temperatur/ISA-Abweichung), inklusive einer
+  Quellenreferenz (Seitenzahl und Tabellenname aus dem Original-POH) je Tabelle
+  (Constitution-Prinzip I).
 - **FR-002**: Die digitalisierten Daten MÜSSEN gegen das Original-Flughandbuch
   doppelt geprüft sein, bevor sie für Berechnungen verwendet werden
   (Constitution-Prinzip I).
@@ -99,8 +101,9 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
 - **FR-004**: Piloten MÜSSEN die relevanten Flugbedingungen (Höhe,
   Leistungseinstellung, Temperatur/ISA-Abweichung) über eine Eingabemaske
   eingeben können.
-- **FR-005**: System MUSS zu jedem Berechnungsergebnis angeben, aus welcher
-  Tabelle bzw. welchen Eckwerten interpoliert wurde.
+- **FR-005**: System MUSS zu jedem Berechnungsergebnis die verwendete(n)
+  Tabelle(n) exakt referenzieren (Seitenzahl und Tabellenname aus dem
+  Original-POH) sowie die verwendeten Eckwerte nennen.
 - **FR-006**: System MUSS zu jedem Berechnungsergebnis den Hinweis anzeigen,
   das Ergebnis vor dem Flug gegen das Original-POH zu prüfen.
 - **FR-007**: System MUSS erkennen, wenn eingegebene Werte außerhalb des durch
@@ -116,8 +119,8 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
 - **POH-Kraftstoffverbrauchstabelle (D-EELK)**: Digitalisierte Tabellenwerte aus
   der Original-Flughandbuch-Ergänzung (Technify-Motor) von D-EELK für die
   Kraftstoffverbrauchsrate, gestaffelt nach Flugbedingungen (Höhe,
-  Leistungseinstellung, Temperatur/ISA-Abweichung); referenziert Quelle/Version
-  des Originaldokuments.
+  Leistungseinstellung, Temperatur/ISA-Abweichung); referenziert Quelle
+  (Seitenzahl, Tabellenname) und Version des Originaldokuments.
 - **Berechnungsanfrage**: Vom Piloten eingegebene Kombination aus Flugbedingungen
   für eine konkrete Verbrauchsraten-Berechnung.
 - **Berechnungsergebnis**: Ausgabe bestehend aus berechneter Verbrauchsrate

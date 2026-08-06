@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { computeFuelPlan, listTables } from '@edsh-bucky/deelk-poh-core';
+import { computeCruiseCapability, computeFuelPlan, listTables } from '@edsh-bucky/deelk-poh-core';
 import {
   buildInputShape,
   formatSummary,
@@ -183,5 +183,36 @@ describe('FR-006 über den MCP-Weg', () => {
     // Der Pilot beziehungsweise das Sprachmodell muss erkennen, dass der
     // Luftdruck die Ursache ist, nicht die Höhe.
     expect(antwort.content[0]?.text ?? '').toContain('1030');
+  });
+});
+
+describe('Reiseleistungs-Übersicht über den MCP-Weg (Feature 006)', () => {
+  it.each([fallA, fallB])('liefert dieselben Felder wie der unmittelbare Aufruf', (eingabe) => {
+    // Zwei Wege, eine Zahl (Prinzip IV): Der Adapter darf die Übersicht weder
+    // nachrechnen noch anders zusammensetzen als der Kern.
+    const ueberDenPlan = computeFuelPlan(eingabe).cruiseCapability;
+    const unmittelbar = computeCruiseCapability(eingabe);
+
+    expect(JSON.stringify(ueberDenPlan)).toBe(JSON.stringify(unmittelbar));
+  });
+
+  it('nennt Reichweite und Flugdauer in der Zusammenfassung, getrennt vom Bedarf', () => {
+    const text = formatSummary(computeFuelPlan(fallA));
+
+    expect(text).toContain('Reichweite');
+    expect(text).toContain('Flugdauer');
+    expect(text).toContain('Windstille');
+    // Der Satz, der die Verwechslung ausschließt, muss mit dabei sein.
+    expect(text).toContain('kein Bedarf');
+    expect(text).toContain('45 min');
+  });
+
+  it('trennt den Reserve-Hinweis des Bedarfs von dem der Übersicht', () => {
+    const text = formatSummary(computeFuelPlan(fallA));
+
+    // Beide Aussagen stehen im Text und sagen Gegensätzliches über
+    // verschiedene Zahlen — sie dürfen nicht ineinanderlaufen.
+    expect(text).toContain('Das ist keine Reserve.');
+    expect(text).toContain('45 min. Reserve');
   });
 });

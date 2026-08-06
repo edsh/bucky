@@ -33,6 +33,7 @@ export {
   USABLE_FUEL_L,
   USABLE_FUEL_US_GAL,
   getSourceReference,
+  getTableCondition,
   getTableNote,
   getTableSummary,
   listApplicableTableIds,
@@ -63,6 +64,11 @@ export {
 
 export { computeClimb, climbTemperatureFactor, type ClimbSegment } from './fuel/climb.js';
 export { computeCruise, ktasTemperatureFactor } from './fuel/cruise.js';
+export {
+  computeCruiseCapability,
+  type CruiseCapability,
+  type CruiseConditionsInput
+} from './fuel/cruiseCapability.js';
 export { buildAdvisories } from './fuel/advisories.js';
 export {
   computeFuelPlan,
@@ -75,6 +81,7 @@ export {
 
 export {
   bracketingAltitudes,
+  getCruisePressureAltitudeRange,
   getFuelPlanInputDomain,
   getPressureAltitudeRange,
   getPowerSettingsByPressureAltitude,

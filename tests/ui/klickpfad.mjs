@@ -103,7 +103,7 @@ pruefe(
 );
 
 // 5: Bedarf über der ausfliegbaren Menge ist deutlich sichtbar (FR-016)
-await fuellen(page, { dep: 1000, cruise: 6000, dist: 900, power: 100, isa: 20, wind: 40 });
+await fuellen(page, { dep: 1000, cruise: 6000, dist: 750, power: 100, isa: 20, wind: 40 });
 await page.waitForTimeout(300);
 const warnung = page.locator('.vergleich.warnung');
 const warnungSichtbar = await warnung.isVisible().catch(() => false);
@@ -164,7 +164,7 @@ const erwarteteGrenzen = {
   platzhoehe: { min: '0', max: '10000', step: '10' },
   reiseflughoehe: { min: '0', max: '18000', step: '100' },
   qnh: { min: '950', max: '1050', step: '1' },
-  strecke: { min: '1', max: '900', step: '1' },
+  strecke: { min: '1', max: '750', step: '1' },
   isa: { min: '-30', max: '40', step: '1' },
   wind: { min: '-50', max: '50', step: '1' }
 };
@@ -203,13 +203,16 @@ pruefe(
 
 // 15: Druckhöhe steht unmittelbar unter dem Regler, der sie erzeugt (FR-006/FR-007)
 await fuellen(page, { dep: 1000, cruise: 6000, qnh: 1043, dist: 400, power: 70, isa: 0, wind: 0 });
-const druckhoehenzeilen = await page.locator('form .folge').allInnerTexts();
+// Die Reiseflughoehe steht seit der neuen Gliederung oben, die Platzhoehe
+// unten -- die Reihenfolge der Folgezeilen ist deshalb umgekehrt.
+const reiseFolge = await page.locator('#reiseflughoehe').locator('..').locator('.folge').innerText();
+const platzFolgeZeile = await page.locator('#platzhoehe').locator('..').locator('.folge').innerText();
+const druckhoehenzeilen = [platzFolgeZeile, reiseFolge];
 // Bei 1043 hPa liegen beide Druckhoehen unter den eingestellten Hoehen.
 pruefe(
   15,
   'Druckhöhe steht unter beiden Höhenreglern, mit ≙ als Zeichen',
-  druckhoehenzeilen.length === 2 &&
-    druckhoehenzeilen.every((z) => z.includes('≙') && /Druckhöhe/.test(z)) &&
+  druckhoehenzeilen.every((z) => z.includes('≙') && /Druckhöhe/.test(z)) &&
     /\b2\d{2} ft/.test(druckhoehenzeilen[0]) &&
     /\b5\d{3} ft/.test(druckhoehenzeilen[1]),
   druckhoehenzeilen.join(' | ')
@@ -219,7 +222,7 @@ pruefe(
 await page.getByRole('button', { name: 'EDSH' }).click();
 await page.waitForTimeout(150);
 const platzWert = await page.locator('#platzhoehe-wert').innerText();
-const platzFolge = (await page.locator('form .folge').allInnerTexts())[0];
+const platzFolge = await page.locator('#platzhoehe').locator('..').locator('.folge').innerText();
 pruefe(
   18,
   'Schnellwahl EDSH setzt die Platzhöhe auf 971 ft',
@@ -227,12 +230,15 @@ pruefe(
   `${platzWert} — ${platzFolge}`
 );
 
-// 19: Geschwindigkeit und Stundenverbrauch stehen im Ergebnis
+// 19: im Ergebnis stehen nur noch die Groessen des konkreten Vorhabens
 const leistung = await page.locator('.leistung').innerText();
 pruefe(
   19,
-  'KTAS, Geschwindigkeit über Grund und Stundenverbrauch werden ausgewiesen',
-  /KTAS/.test(leistung) && /über Grund/.test(leistung) && /\/h/.test(leistung),
+  'im Ergebnis stehen Geschwindigkeit über Grund und Reiseflugzeit, nicht mehr KTAS und Stundenverbrauch',
+  /über Grund/.test(leistung) &&
+    /Reiseflugzeit/.test(leistung) &&
+    !/KTAS/.test(leistung) &&
+    !/\/h/.test(leistung),
   leistung.replace(/\s+/g, ' ')
 );
 
@@ -243,6 +249,76 @@ pruefe(
   20,
   'die Faustformel wird nicht mehr erwähnt',
   !/Faustformel|\b30 ft\b|ft\s*\/\s*hPa/.test(ganzeSeite)
+);
+
+// 21: die Uebersicht steht zwischen den beiden Eingabegruppen und zeigt vier Werte
+await fuellen(page, { dep: 1000, cruise: 6000, qnh: 1013, dist: 400, power: 70, isa: 10, wind: 10 });
+const reihenfolge = await page.evaluate(() => {
+  const marken = [...document.querySelectorAll('legend, .uebersicht h2')].map((e) => e.textContent.trim());
+  return marken;
+});
+const uebersichtWerte = await page.locator('.uebersicht .werte > div').count();
+pruefe(
+  21,
+  'die Übersicht steht zwischen Bedingungen und Vorhaben und zeigt vier Werte',
+  reihenfolge[0].startsWith('Bedingungen') &&
+    /Reichweite und Flugdauer/.test(reihenfolge[1]) &&
+    reihenfolge[2].startsWith('Streckenflug') &&
+    uebersichtWerte === 4,
+  `${reihenfolge.join(' > ')} — ${uebersichtWerte} Werte`
+);
+
+// 22: der Hinweis nennt alle Bestandteile und die Quelle traegt eine Seitenzahl
+const uebersichtHinweis = await page.locator('.uebersicht .hinweis').innerText();
+const uebersichtQuelle = await page.locator('.uebersicht .quelle').innerText();
+pruefe(
+  22,
+  'der Hinweis nennt 4 l, Steigflug, 45 min Reserve und Windstille, die Quelle eine Seitenzahl',
+  /4 l/.test(uebersichtHinweis) &&
+    /Steigflug/.test(uebersichtHinweis) &&
+    /45 min/.test(uebersichtHinweis) &&
+    /Windstille/.test(uebersichtHinweis) &&
+    /Abb\. 5-4a/.test(uebersichtQuelle) &&
+    /Seite 5b-14/.test(uebersichtQuelle),
+  `${uebersichtHinweis.replace(/\s+/g, ' ')} — ${uebersichtQuelle}`
+);
+
+// 23: Strecke und Wind lassen die Uebersicht unberuehrt, aendern aber den Bedarf
+const uebersichtVorher = await page.locator('.uebersicht .werte').innerText();
+const summeVorher = await page.locator('.summe').innerText();
+await regler(page, 'Streckenlänge (NM)', 250);
+await regler(page, 'Windkomponente (kt, positiv = Gegenwind)', -20);
+await page.waitForTimeout(200);
+const uebersichtNachher = await page.locator('.uebersicht .werte').innerText();
+const summeNachher = await page.locator('.summe').innerText();
+pruefe(
+  23,
+  'Strecke und Wind ändern die Übersicht nicht, den Bedarf aber schon',
+  uebersichtVorher === uebersichtNachher && summeVorher !== summeNachher,
+  `${summeVorher.replace(/\s+/g, ' ')} -> ${summeNachher.replace(/\s+/g, ' ')}`
+);
+
+// 24: der Reserve-Hinweis steht beim Bedarf, nicht bei der Uebersicht
+const vergleichstext = await page.locator('.vergleich').innerText();
+const uebersichtText = await page.locator('.uebersicht').innerText();
+pruefe(
+  24,
+  'der Hinweis „keine Reserve" steht beim Bedarf, nicht bei der Übersicht',
+  /keine Reserve/.test(vergleichstext) && !/keine Reserve/.test(uebersichtText),
+  vergleichstext.replace(/\s+/g, ' ')
+);
+
+// 25: nicht gefuehrte Lasteinstellung zeigt die Meldung des Kerns statt Werten
+await regler(page, 'Reiseflughöhe ASL (ft)', 12000);
+await regler(page, 'Lasteinstellung', 100);
+await page.waitForTimeout(200);
+const uebersichtFehler = await page.locator('.uebersicht .fehler').innerText().catch(() => '');
+const werteWeg = (await page.locator('.uebersicht .werte').count()) === 0;
+pruefe(
+  25,
+  '100 % bei 12 000 ft zeigt die Meldung des Kerns und keine Werte',
+  werteWeg && /Lasteinstellung/.test(uebersichtFehler) && /50, 60, 70, 80, 90/.test(uebersichtFehler),
+  uebersichtFehler
 );
 
 // 17: hoher Luftdruck druckt die Platzhoehe unter den Tabellenrand (SC-006)
@@ -262,7 +338,7 @@ const spaltenZaehlen = () =>
   page.evaluate(
     () =>
       new Set(
-        [...document.querySelectorAll('fieldset > .regler')].map((element) =>
+        [...document.querySelectorAll('.felder > .regler')].map((element) =>
           Math.round(element.getBoundingClientRect().left)
         )
       ).size

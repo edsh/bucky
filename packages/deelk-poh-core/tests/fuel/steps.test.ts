@@ -4,7 +4,8 @@ import type { FlightPlanInput } from '../../src/fuel/input.js';
 
 /**
  * Die Schrittfolge aus `specs/001-kraftstoffrechner-d-eelk/data-model.md`,
- * seit Feature 004 um die beiden vorgelagerten Umrechnungsschritte erweitert.
+ * seit Feature 004 um die beiden vorgelagerten Umrechnungsschritte und seit
+ * Feature 006 um die beiden Schritte der Reiseleistungs-Übersicht erweitert.
  * Sie ist Teil der Zusage an den Piloten (FR-017): jeder Schritt ist die
  * kleinste Einheit, die sich von Hand gegen das Handbuch nachrechnen lässt.
  */
@@ -22,6 +23,8 @@ const ERWARTETE_SCHRITTE = [
   'cruise.groundSpeed',
   'cruise.time',
   'cruise.fuel',
+  'capability.tableLookup',
+  'capability.temperatureCorrection',
   'total.fuel',
   'total.usableFuelComparison'
 ] as const;
@@ -57,7 +60,7 @@ const eingaben: readonly FlightPlanInput[] = [
 ];
 
 describe('Schrittfolge (FR-017)', () => {
-  it.each(eingaben)('enthält die fünfzehn Schritte in der festgelegten Reihenfolge', (input) => {
+  it.each(eingaben)('enthält die siebzehn Schritte in der festgelegten Reihenfolge', (input) => {
     const ids = computeFuelPlan(input).steps.map((step) => step.id);
 
     expect(ids).toEqual([...ERWARTETE_SCHRITTE]);

@@ -30,12 +30,15 @@ const DEPARTURE_ELEVATION_RANGE: NumericRange = { min: 0, max: 10000, unit: 'ft'
 const CRUISE_ALTITUDE_AMSL_RANGE: NumericRange = { min: 0, max: 18000, unit: 'ft', step: 100 };
 const QNH_RANGE: NumericRange = { min: 950, max: 1050, unit: 'hPa', step: 1 };
 /**
- * Die obere Grenze der Strecke ist großzügig: Die größte Reichweite der Tabelle
- * liegt darunter, ein längerer Flug scheitert ohnehin an der ausfliegbaren
- * Menge — und genau diese Rückmeldung ist erwünscht. Ein Regler braucht anders
- * als ein Textfeld aber ein Ende.
+ * Die obere Grenze der Strecke liegt knapp über der größten Reichweite, die
+ * die Reiseleistungstabelle der D-EELK überhaupt ausweist (718 NM bei 50 %
+ * Last in 18 000 ft). Etwas Luft nach oben bleibt bewusst: Ein längerer Flug
+ * scheitert dann an der ausfliegbaren Menge, und genau diese Rückmeldung ist
+ * erwünscht. Weiter zu reichen hätte keinen Sinn — dort steht nichts mehr im
+ * Handbuch, wogegen sich das Ergebnis prüfen ließe. Ein Regler braucht anders
+ * als ein Textfeld ohnehin ein Ende.
  */
-const DISTANCE_RANGE: NumericRange = { min: 1, max: 900, unit: 'NM', step: 1 };
+const DISTANCE_RANGE: NumericRange = { min: 1, max: 750, unit: 'NM', step: 1 };
 const ISA_DEVIATION_RANGE: NumericRange = { min: -30, max: 40, unit: '°C', step: 1 };
 const WIND_COMPONENT_RANGE: NumericRange = { min: -50, max: 50, unit: 'kt', step: 1 };
 
@@ -84,6 +87,25 @@ export function getPowerSettingsByPressureAltitude(): readonly PowerSettingAvail
       pressureAltitudeFt,
       powerSettingsPct: [...settings].sort((a, b) => a - b)
     }));
+}
+
+/**
+ * Das Höhenraster allein der Reiseleistungstabelle.
+ *
+ * Die Reiseleistungs-Übersicht (Feature 006) verwendet die Steigflugtabelle
+ * nicht und darf deshalb nicht an deren Rand scheitern. Beide Raster reichen
+ * derzeit von 0 bis 18 000 ft — die Unterscheidung ändert heute also keine
+ * Zahl. Sie hält aber die Abhängigkeit dort, wo sie hingehört, falls sich eine
+ * der beiden Tabellen einmal ändert.
+ */
+export function getCruisePressureAltitudeRange(): NumericRange {
+  const grid = pressureAltitudes(CRUISE_TABLE_ID);
+  return {
+    min: grid[0] as number,
+    max: grid[grid.length - 1] as number,
+    unit: 'ft',
+    step: 100
+  };
 }
 
 /**
@@ -162,7 +184,7 @@ export function bracketingAltitudes(altitude: number): readonly [number, number]
   return [lower, upper];
 }
 
-function checkRange(field: keyof FlightPlanInput, value: number, range: NumericRange): void {
+export function checkRange(field: keyof FlightPlanInput, value: number, range: NumericRange): void {
   if (value < range.min || value > range.max) {
     throw outOfRange(field, value, range);
   }
@@ -233,15 +255,18 @@ export function validateFlightPlan(input: unknown): ValidatedFlightPlan {
   checkPressureAltitude('departureElevationFt', departure, pressureRange);
   checkPressureAltitude('cruiseAltitudeAmslFt', cruise, pressureRange);
 
-  checkPowerSetting(plan, cruise.pressureAltitudeFt);
+  checkPowerSetting(plan.powerSettingPct, cruise.pressureAltitudeFt);
   return { plan, departure, cruise };
 }
 
 /**
  * FR-006: Es wird abgelehnt, nicht auf den Tabellenrand zurückgefallen. Die
  * Begründung steht bei `pressureAltitudeOutOfRange`.
+ *
+ * Ausgeführt, damit die Reiseleistungs-Übersicht dieselbe Regel anwendet und
+ * nicht eine zweite, auseinanderlaufende Fassung davon (Feature 006).
  */
-function checkPressureAltitude(
+export function checkPressureAltitude(
   field: keyof FlightPlanInput,
   result: PressureAltitudeResult,
   range: NumericRange
@@ -261,19 +286,23 @@ function checkPressureAltitude(
  * V-03: Die Lasteinstellung muss bei **beiden** die Reiseflughöhe
  * einschließenden Stützstellen belegt sein. Nur dann lässt sich zwischen zwei
  * echten Tabellenwerten interpolieren.
+ *
+ * Nimmt nur die beiden Größen entgegen, um die es geht: Die
+ * Reiseleistungs-Übersicht (Feature 006) kennt kein vollständiges
+ * Flugvorhaben, wendet aber dieselbe Regel an.
  */
-function checkPowerSetting(plan: FlightPlanInput, cruisePressureAltitudeFt: number): void {
+export function checkPowerSetting(powerSettingPct: number, cruisePressureAltitudeFt: number): void {
   const availability = getPowerSettingsByPressureAltitude();
   const [lower, upper] = bracketingAltitudes(cruisePressureAltitudeFt);
 
   for (const altitude of new Set([lower, upper])) {
     const entry = availability.find((item) => item.pressureAltitudeFt === altitude);
     const available = entry === undefined ? [] : entry.powerSettingsPct;
-    if (!available.includes(plan.powerSettingPct)) {
+    if (!available.includes(powerSettingPct)) {
       throw new PohCalculationError(
         'UNSUPPORTED_COMBINATION',
-        `Die Reiseleistungstabelle enthält bei ${altitude} ft keine Lasteinstellung von ${plan.powerSettingPct} %. Dort verfügbar: ${available.join(', ')} %.`,
-        { field: 'powerSettingPct', actual: plan.powerSettingPct, tableId: CRUISE_TABLE_ID }
+        `Die Reiseleistungstabelle enthält bei ${altitude} ft keine Lasteinstellung von ${powerSettingPct} %. Dort verfügbar: ${available.join(', ')} %.`,
+        { field: 'powerSettingPct', actual: powerSettingPct, tableId: CRUISE_TABLE_ID }
       );
     }
   }

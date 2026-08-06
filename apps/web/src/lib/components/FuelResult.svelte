@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { FuelPlanResult } from '@edsh-bucky/deelk-poh-core';
-  import { formatFuel, formatFuelFlow, formatHours, formatKnots } from '@edsh-bucky/deelk-poh-core';
+  import { formatFuel, formatHours, formatKnots } from '@edsh-bucky/deelk-poh-core';
   import CalculationSteps from './CalculationSteps.svelte';
   import SourceCitations from './SourceCitations.svelte';
 
@@ -21,25 +21,18 @@
     zweite Anzeige an dieser Stelle waere ein Duplikat und muesste bei jeder
     Aenderung mitgepflegt werden.
 
-    Geschwindigkeit und Stundenverbrauch fallen bei der Rechnung ohnehin an und
-    sind fuer sich aussagekraeftig — sie beantworten "wie lange" und "wie viel
-    pro Stunde", ohne dass der Rechenweg aufgeklappt werden muss.
+    Ebenso Eigengeschwindigkeit und Stundenverbrauch: Sie haengen allein an den
+    Bedingungen des Reiseflugs und stehen deshalb oben in der Uebersicht. Hier
+    bleiben die Groessen des konkreten Vorhabens — beide haengen an der
+    eingegebenen Strecke und am Wind und gehoeren nirgendwo sonst hin.
   -->
   <dl class="leistung">
     <div>
-      <dt>Eigengeschwindigkeit</dt>
-      <dd>{formatKnots(result.cruisePerformance.ktas)} KTAS</dd>
-    </div>
-    <div>
-      <dt>über Grund</dt>
+      <dt>Geschwindigkeit über Grund</dt>
       <dd>{formatKnots(result.cruisePerformance.groundSpeedKt)}</dd>
     </div>
     <div>
-      <dt>Verbrauch je Stunde</dt>
-      <dd>{formatFuelFlow(result.cruisePerformance.fuelFlowLph, result.cruisePerformance.fuelFlowUsGph)}</dd>
-    </div>
-    <div>
-      <dt>Reiseflugzeit</dt>
+      <dt>Reiseflugzeit dieser Strecke</dt>
       <dd>{formatHours(result.cruisePerformance.timeH)}</dd>
     </div>
   </dl>
@@ -93,6 +86,16 @@
 </section>
 
 <style>
+  /*
+    Der Bedarf ist die Folge der Angaben zum Streckenflug, keine eigene
+    Hauptsache. Die Ueberschriftebene bleibt deshalb erhalten -- sie traegt die
+    Gliederung fuer Vorlesewerkzeuge --, das optische Gewicht nicht.
+  */
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.05rem;
+  }
+
   .leistung {
     display: flex;
     flex-wrap: wrap;

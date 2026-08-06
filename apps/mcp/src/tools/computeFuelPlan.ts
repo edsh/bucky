@@ -94,6 +94,13 @@ export function formatSummary(result: FuelPlanResult): string {
     '',
     `Im Reiseflug: ${formatKnots(result.cruisePerformance.ktas)} KTAS, ${formatKnots(result.cruisePerformance.groundSpeedKt)} über Grund, ${formatFuelFlow(result.cruisePerformance.fuelFlowLph, result.cruisePerformance.fuelFlowUsGph)}, Reiseflugzeit ${formatHours(result.cruisePerformance.timeH)}.`,
     '',
+    // Sprachlich getrennt vom Bedarf: Diese Zahlen beschreiben, was die
+    // Maschine unter diesen Bedingungen leistet, und sind kein Bedarf fuer
+    // dieses Vorhaben. Sie schliessen Reserve und Steigflug bereits ein --
+    // wer sie mit der Summe oben verrechnete, zaehlte doppelt.
+    `Was die Maschine unter diesen Bedingungen leistet (unabhängig von Strecke und Wind, aus ${result.cruiseCapability.source.figure}): maximal ${formatNauticalMiles(result.cruiseCapability.maxRangeNm)} Reichweite und ${formatHours(result.cruiseCapability.enduranceH)} Flugdauer bei ${result.cruiseCapability.windlessNote} und vollen Standardtanks.`,
+    `Diese beiden Werte sind kein Bedarf und dürfen mit der Summe oben nicht verrechnet werden. Laut Handbuch, Anmerkung ${result.cruiseCapability.inclusionsNote}`,
+    '',
     result.exceedsUsableFuel
       ? `Der Bedarf erreicht oder übersteigt die ausfliegbare Menge von ${formatFuel(result.usableFuelL, result.usableFuelUsGal)}. Dieser Flug ist so nicht durchführbar.`
       : `Ausfliegbar sind ${formatFuel(result.usableFuelL, result.usableFuelUsGal)}; rechnerisch bleiben ${formatFuel(result.remainingFuelL, result.remainingFuelUsGal)} übrig. Das ist keine Reserve.`

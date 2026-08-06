@@ -2,6 +2,10 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import {
+  computeCruiseCapability,
+  type CruiseCapability
+} from '../src/fuel/cruiseCapability.js';
 
 /**
  * Prüft die Zusicherungen C-01 und C-03 am Quelltext selbst. Beides sind
@@ -172,5 +176,90 @@ describe('C-05: kein Adapter legt eigene Grenzen oder Schrittweiten fest', () =>
     for (const muster of feste) {
       expect(source, `${relative(repoRoot, path)} verstößt gegen C-05`).not.toMatch(muster);
     }
+  });
+});
+
+describe('C-06: kein Adapter greift auf die Spalten für Reichweite und Flugdauer zu', () => {
+  /**
+   * Die Tabellenwerte für Reichweite und Flugdauer schließen Rollen, Steigflug
+   * und Reserve ein und stimmen deshalb nicht mit Geschwindigkeit mal Zeit
+   * überein — bei 0 ft und 100 % Last stehen 365 NM gegen 362,5 NM aus dem
+   * Produkt. Ein Adapter, der sie selbst bildete, wiese systematisch zu wenig
+   * aus, also in die gefährliche Richtung.
+   */
+  const adapterDateien = [join(repoRoot, 'apps/web/src'), join(repoRoot, 'apps/mcp/src')].flatMap(
+    (directory) => sourceFiles(directory, ['.ts', '.svelte'])
+  );
+
+  it.each(adapterDateien)('%s liest weder range_nm noch endurance_h', (path) => {
+    const source = read(path);
+
+    expect(source, `${relative(repoRoot, path)} verstößt gegen C-06`).not.toMatch(/range_nm/);
+    expect(source, `${relative(repoRoot, path)} verstößt gegen C-06`).not.toMatch(/endurance_h/);
+  });
+
+  it.each(adapterDateien)('%s bildet keine Strecke aus Geschwindigkeit mal Zeit', (path) => {
+    const source = read(path);
+
+    // Jede Multiplikation, an der eine Geschwindigkeit oder eine Dauer
+    // beteiligt ist, wäre hier eine eigene Rechnung — und damit im Adapter
+    // fehl am Platz (C-02).
+    expect(source, `${relative(repoRoot, path)} verstößt gegen C-06`).not.toMatch(
+      /\b(?:ktas|enduranceH|timeH|groundSpeedKt)\b\s*\*/i
+    );
+  });
+});
+
+describe('FR-009: die Reiseleistung hängt nicht am Vorhaben', () => {
+  /**
+   * Mechanisch statt argumentativ: Strecke, Wind und Platzhöhe werden über
+   * ihren zulässigen Bereich variiert. Ändert sich dabei ein einziges Feld der
+   * Übersicht, ist die Trennung zwischen Auskunft und Bedarf gebrochen.
+   */
+  const grundfall = {
+    departureElevationFt: 1000,
+    cruiseAltitudeAmslFt: 6000,
+    qnhHpa: 1013.25,
+    distanceNm: 400,
+    powerSettingPct: 70,
+    isaDeviationC: 10,
+    windComponentKt: 0
+  };
+
+  const felder = (capability: CruiseCapability): string =>
+    JSON.stringify([
+      capability.tableKtas,
+      capability.ktas,
+      capability.fuelFlowLph,
+      capability.fuelFlowUsGph,
+      capability.tableRangeNm,
+      capability.maxRangeNm,
+      capability.enduranceH,
+      capability.temperatureFactor
+    ]);
+
+  it('bleibt über den gesamten Bereich von Strecke, Wind und Platzhöhe gleich', () => {
+    const erwartet = felder(computeCruiseCapability(grundfall));
+    let geprueft = 0;
+
+    for (const distanceNm of [1, 100, 400, 900]) {
+      for (const windComponentKt of [-50, -10, 0, 25, 50]) {
+        for (const departureElevationFt of [0, 500, 1000, 4000]) {
+          const capability = computeCruiseCapability({
+            ...grundfall,
+            distanceNm,
+            windComponentKt,
+            departureElevationFt
+          });
+          expect(
+            felder(capability),
+            `${distanceNm} NM / ${windComponentKt} kt / ${departureElevationFt} ft verändert die Übersicht`
+          ).toBe(erwartet);
+          geprueft += 1;
+        }
+      }
+    }
+
+    expect(geprueft).toBe(80);
   });
 });

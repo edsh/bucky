@@ -57,6 +57,30 @@ damit die einzige Größe, die nicht aus dem Flughandbuch stammt und wird deshal
 getrennt ausgewiesen: in der Oberfläche unmittelbar unter dem Regler, der sie
 erzeugt, im Rechenweg als eigener Schritt mit eigener Quellenangabe.
 
+### Reichweite und Flugdauer: eine Auskunft, kein Bedarf
+
+Über den Angaben zum Streckenflug steht, was die Maschine unter den
+eingestellten Bedingungen leistet: Eigengeschwindigkeit, Verbrauch je Stunde,
+maximale Reichweite und maximale Flugdauer. Diese vier Werte hängen allein an
+Reiseflughöhe, QNH, Lasteinstellung und Temperatur — Streckenlänge, Platzhöhe
+und Wind ändern sie nicht. Wer noch keine Strecke im Sinn hat, bekommt so schon
+eine Antwort; und wenn die Bedarfsrechnung an Wind oder Strecke scheitert,
+bleibt diese Auskunft stehen.
+
+**Sie ist ausdrücklich kein Bedarf.** Reichweite und Flugdauer stammen als
+eigene Spalten aus Abb. 5-4a und schließen laut Anmerkung 2 bereits 4 l für
+Motorstart und Rollen, den gesamten Steigflug sowie 45 Minuten Reserve ein. Der
+darunter ausgewiesene Kraftstoffbedarf enthält keine Reserve. Beide Zahlen
+dürfen nicht miteinander verrechnet werden.
+
+**Sie lässt sich nicht nachrechnen.** Geschwindigkeit mal Flugdauer ergibt
+weniger als die Reichweite der Tabelle — bei 0 ft und 100 % Last 362,5 NM
+gegenüber 365 NM, und der Abstand wächst mit der Höhe, weil die im Steigflug
+zurückgelegte Strecke in der Reichweite steckt. Deshalb werden beide Werte
+nachgeschlagen und nie gebildet: Eine eigene Rechnung wiese systematisch zu
+wenig aus, also in die gefährliche Richtung. Ein Vertragstest (C-06) hält fest,
+dass kein Adapter diese Spalten anfasst.
+
 ## Veröffentlichte Oberfläche
 
 <https://edsh.github.io/bucky/>

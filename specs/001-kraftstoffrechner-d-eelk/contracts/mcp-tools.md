@@ -32,6 +32,13 @@ Liefert den Katalog der digitalisierten Tabellen mit Quellenreferenzen und
 bekannten Anomalien. Dient der Beantwortung von Fragen wie "aus welcher Tabelle
 stammt das", nicht als Datenquelle für eigene Rechnungen des Modells.
 
+## Betrieb
+
+Der Kern ist ein Quellpaket ohne Emit; Node kann seine `.js`-Importpfade daher
+nicht selbst auflösen. `apps/mcp` wird deshalb mit esbuild zu
+`apps/mcp/dist/server.js` gebündelt (Kern und Tabellendaten eingeschlossen, SDK
+und Zod extern). Gestartet wird der Server über `node dist/server.js`.
+
 ## Zusicherungen
 
 - **M-01**: Jede erfolgreiche Antwort enthält die Quellenangaben und den

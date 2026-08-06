@@ -141,12 +141,12 @@ die Spec vollständig.
 Kern. Diese Phase gehört zu keiner einzelnen User Story, sondern macht alle drei
 über ein Sprachmodell zugänglich.
 
-- [ ] T043 Paketgerüst des MCP-Servers mit `@modelcontextprotocol/sdk` und stdio-Transport in `apps/mcp/package.json` und `apps/mcp/src/server.ts`
-- [ ] T044 Werkzeug `compute_fuel_plan`, dessen JSON-Schema aus `getFuelPlanInputDomain()` erzeugt wird statt doppelt gepflegt zu werden, in `apps/mcp/src/tools/computeFuelPlan.ts`
-- [ ] T045 Antwort als strukturierter Inhalt und als lesbare Zusammenfassung, beide mit den Quellenangaben und dem Prüfhinweis wortgleich aus dem Kern (M-01), in `apps/mcp/src/tools/computeFuelPlan.ts`
-- [ ] T046 `PohCalculationError` als Werkzeugfehler ohne jeden Zahlenwert zurückgeben, damit das Modell nichts zum Weiterrechnen erhält, in `apps/mcp/src/tools/computeFuelPlan.ts`
-- [ ] T047 [P] Werkzeug `list_poh_tables` für den Tabellenkatalog, ohne Rohtabellenzeilen herauszugeben (M-03), in `apps/mcp/src/tools/listPohTables.ts`
-- [ ] T048 Test, dass dieselbe Eingabe über den MCP-Adapter dasselbe Zahlenergebnis liefert wie der direkte Kernaufruf und dass kein Werkzeug Rohtabellen ausgibt (M-02, M-03), in `apps/mcp/tests/parity.test.ts`
+- [x] T043 Paketgerüst des MCP-Servers mit `@modelcontextprotocol/sdk` und stdio-Transport in `apps/mcp/package.json` und `apps/mcp/src/server.ts`
+- [x] T044 Werkzeug `compute_fuel_plan`, dessen JSON-Schema aus `getFuelPlanInputDomain()` erzeugt wird statt doppelt gepflegt zu werden, in `apps/mcp/src/tools/computeFuelPlan.ts`
+- [x] T045 Antwort als strukturierter Inhalt und als lesbare Zusammenfassung, beide mit den Quellenangaben und dem Prüfhinweis wortgleich aus dem Kern (M-01), in `apps/mcp/src/tools/computeFuelPlan.ts`
+- [x] T046 `PohCalculationError` als Werkzeugfehler ohne jeden Zahlenwert zurückgeben, damit das Modell nichts zum Weiterrechnen erhält, in `apps/mcp/src/tools/computeFuelPlan.ts`
+- [x] T047 [P] Werkzeug `list_poh_tables` für den Tabellenkatalog, ohne Rohtabellenzeilen herauszugeben (M-03), in `apps/mcp/src/tools/listPohTables.ts`
+- [x] T048 Test, dass dieselbe Eingabe über den MCP-Adapter dasselbe Zahlenergebnis liefert wie der direkte Kernaufruf und dass kein Werkzeug Rohtabellen ausgibt (M-02, M-03), in `apps/mcp/tests/parity.test.ts`
 
 **Checkpoint**: Beide Zugangswege liefern identische Zahlen.
 

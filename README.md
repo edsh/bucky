@@ -47,6 +47,15 @@ Beide rufen denselben Kern auf; Rechen- und Rundungslogik wird nicht dupliziert.
 Quellenangabe (Seite + Tabellenname) und Prüfhinweis kommen aus dem Kern und
 werden von beiden Zugangswegen unverändert durchgereicht.
 
+## Veröffentlichte Oberfläche
+
+<https://edsh.github.io/bucky/>
+
+Jeder Push auf `main` baut das statische Bundle und veröffentlicht es
+(`.github/workflows/pages.yml`). Der Basispfad kommt aus
+`actions/configure-pages`, damit die internen Verweise unter `/bucky/`
+ebenso tragen wie lokal unter `/`.
+
 ## Bauen und starten
 
 Voraussetzung ist Node 22 oder neuer.

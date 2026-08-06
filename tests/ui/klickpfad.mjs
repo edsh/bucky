@@ -16,7 +16,10 @@
  */
 import { chromium } from 'playwright';
 
-const BASE = 'http://localhost:8899';
+// Standardmaessig gegen den lokal ausgelieferten Bundle; mit BASE laesst sich
+// stattdessen die veroeffentlichte Seite pruefen, etwa
+// BASE=https://edsh.github.io/bucky node tests/ui/klickpfad.mjs
+const BASE = process.env.BASE ?? 'http://localhost:8899';
 const befunde = [];
 
 function pruefe(nummer, beschreibung, bestanden, detail = '') {

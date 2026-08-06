@@ -177,8 +177,8 @@ Das ist plausibel und kein Rechenfehler.
    Zahlen: in Fall A ergibt schrittweises Runden 87,3 l statt 87,6 l, beim
    5a-Beispiel dagegen 85,4 l statt 84,8 l. Die Abweichung liegt in der
    Größenordnung von ±0,6 l und hat kein festes Vorzeichen. Ein Pilot, der von
-   Hand nach dem Handbuch nachrechnet, wird diese Differenz sehen — sie sollte
-   erklärt werden, sonst wirkt sie wie ein Fehler.
+   Hand nach dem Handbuch nachrechnet, wird diese Differenz sehen. Sie wird
+   deshalb laut FR-020 in der Ausgabe erklärt.
 
 3. **Das Handbuch nennt den Restkraftstoff „Kraftstoffreserve"** (Seite 5-5:
    „Somit bleibt bei vollen Tanks eine Kraftstoffreserve von 42,0 l"). FR-018

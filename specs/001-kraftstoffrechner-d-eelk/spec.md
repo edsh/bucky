@@ -190,6 +190,12 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
   den Steigflug-Kraftstoff angewandt wird, obwohl Anmerkung 2 der Steigflugtabelle
   nur Zeit und Steigstrecke nennt. Ohne diese Offenlegung findet ein Pilot beim
   Gegenrechnen eine unerklärte Differenz.
+- **FR-020**: System MUSS offenlegen, dass es die Zwischenwerte in voller
+  Genauigkeit weiterrechnet und erst das Ergebnis rundet, während das
+  Rechenbeispiel des POH nach jedem Schritt rundet. Beide Wege sind vertretbar,
+  weichen aber in der Größenordnung von ±0,6 l voneinander ab, ohne festes
+  Vorzeichen. Ein Pilot, der von Hand nach dem Handbuch nachrechnet, MUSS diese
+  Differenz erklärt bekommen, statt sie für einen Fehler zu halten.
 
 ### Key Entities
 
@@ -286,3 +292,9 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
 - **Stetige statt stufenweiser Korrektur** (2026-08-06): Das POH rechnet selbst
   `20 °C / 10 °C × 10 % = 20 %`, also stetig. Eine stufenweise Anwendung würde
   zudem bei ISA+10 einen Sprung erzeugen.
+- **Rundung genau einmal** (2026-08-06): Die Zwischenwerte werden in voller
+  Genauigkeit weitergerechnet, gerundet wird erst das Ergebnis. Das Handbuch
+  rundet dagegen nach jedem Schritt. Die daraus entstehende Differenz ist klein
+  und richtungslos, wird aber laut FR-020 offengelegt. Einmaliges Runden ist die
+  Voraussetzung dafür, dass Web-Oberfläche und MCP-Server dieselbe Zahl liefern
+  (Constitution-Prinzip IV, Zusicherung C-03).

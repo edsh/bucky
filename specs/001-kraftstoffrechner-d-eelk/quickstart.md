@@ -43,6 +43,7 @@ npm test --workspace @edsh-bucky/deelk-poh-core
 | Flugvorhaben mit Werten genau auf Stützstellen | Ergebnis stimmt mit der von Hand aus dem Handbuch gerechneten Vorgabe überein | SC-005         |
 | Flugvorhaben mit Werten zwischen Stützstellen  | Ergebnis liegt zwischen den Ergebnissen der beiden Nachbarstützstellen        | FR-003         |
 | Jeder Rechenschritt                            | trägt Quellenreferenz und, wo Tabellenwerte einfließen, die Eckwerte          | FR-005, SC-002 |
+| Handbuch-Beispiel mit 5a-Werten                | trifft 85,4 l und jeden Zwischenwert                                          | SC-005, Fall C |
 | Reiseflughöhe 20000 ft                         | wirft `OUT_OF_RANGE`                                                          | FR-007, SC-003 |
 | 100 % Last bei 12000 ft                        | wirft `UNSUPPORTED_COMBINATION`                                               | V-03           |
 | Nur anwendbare Tabellen herangezogen           | keine Tabelle mit `applicable_to_d_eelk === false` beteiligt                  | V-04, FR-015   |

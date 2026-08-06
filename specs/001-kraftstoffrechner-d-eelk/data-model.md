@@ -51,6 +51,9 @@ Meldung.
   Ausweichflugplatz enthält (FR-018).
 - Immer → Hinweis, dass die Temperaturkorrektur zusätzlich auf den
   Steigflug-Kraftstoff wirkt, abweichend vom Wortlaut der Anmerkung 2 (FR-019).
+- Immer → Hinweis, dass nur das Ergebnis gerundet wird, das Rechenbeispiel des
+  Handbuchs dagegen nach jedem Schritt, und dass beim Nachrechnen von Hand
+  deshalb rund ±0,6 l Unterschied entstehen können (FR-020).
 - Immer → Hinweis, dass die Steigflugwerte für die maximale Abflugmasse von
   1043 kg gelten.
 

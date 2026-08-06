@@ -136,8 +136,9 @@ eine Antwort darauf.
   werden: die Tabelle weicht davon ab, und die Tabelle ist maßgeblich
   (Constitution, Prinzip I).
 - **FR-002**: Zwischenwerte MÜSSEN wie bei den übrigen Größen zwischen den
-  Stützstellen der Tabelle interpoliert werden, in beiden Richtungen (Druckhöhe
-  und Lasteinstellung). Über den Rand der Tabelle hinaus DARF NICHT
+  Stützstellen der Druckhöhe interpoliert werden. Über die Lasteinstellung wird
+  **nicht** interpoliert: Das Handbuch kennt dort nur einzelne Werte, und der
+  Regler bietet auch nur diese an. Über den Rand der Tabelle hinaus DARF NICHT
   extrapoliert werden.
 - **FR-003**: Die maximale Strecke MUSS um 1 % je 10 °C über der ISA-Temperatur
   erhöht werden, entsprechend Anmerkung 3 der Tabelle. Die Flugdauer DARF dabei

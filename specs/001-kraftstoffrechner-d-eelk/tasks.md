@@ -76,19 +76,19 @@ Warnung bei Überschreiten der ausfliegbaren Menge.
 **Independent Test**: Das Flugvorhaben aus `reference-calculation.md` (T008)
 eingeben und das Ergebnis mit dem dort von Hand gerechneten Sollwert vergleichen.
 
-- [ ] T019 [US1] Steigflug: Tabellenwerte bei Platzhöhe und Reiseflughöhe nachschlagen und als Differenz für Zeit, Strecke und Kraftstoff bilden (FR-010) in `packages/deelk-poh-core/src/fuel/climb.ts`
-- [ ] T020 [US1] Temperaturkorrektur des Steigflugs mit dem stetigen Faktor `1 + (isaDeviationC / 10) × 0,10` auf Zeit, Strecke und Kraftstoff, Faktor 1 bei ISA-Abweichung ≤ 0 (FR-012) in `packages/deelk-poh-core/src/fuel/climb.ts`
-- [ ] T021 [P] [US1] Reiseflug: KTAS und Verbrauchsrate aus Abb. 5-4a nachschlagen und die KTAS mit `1 + (isaDeviationC / 10) × 0,01` korrigieren (FR-013) in `packages/deelk-poh-core/src/fuel/cruise.ts`
-- [ ] T022 [US1] Reiseflugstrecke, Geschwindigkeit über Grund, Reiseflugzeit und Reiseflug-Kraftstoff berechnen und dabei V-05 und V-06 mit `NOT_COMPUTABLE` abbrechen (FR-014) in `packages/deelk-poh-core/src/fuel/cruise.ts`
-- [ ] T023 [US1] `computeFuelPlan` orchestrieren: Festbetrag 4 l für Anlassen/Rollen/Start (FR-011), Steigflug, Reiseflug, `breakdown` mit Gesamtsumme (FR-009) in `packages/deelk-poh-core/src/fuel/fuelPlan.ts`
-- [ ] T024 [US1] Gegenüberstellung zu 127,4 l ausfliegbar mit `remainingFuelL` und `exceedsUsableFuel` bei `totalL >= usableFuelL` (FR-016) in `packages/deelk-poh-core/src/fuel/fuelPlan.ts`
-- [ ] T025 [US1] Hinweise ohne Abbruch erzeugen: fehlende Reserve, Sinkflug und Ausweichflugplatz (FR-018), Temperaturkorrektur abweichend von Anmerkung 2 (FR-019), einmalige statt schrittweiser Rundung mit rund ±0,6 l Abweichung beim Nachrechnen von Hand (FR-020), Anmerkung 4 bei über 75 % Last, Geltung der Steigflugtabelle für 1043 kg, in `packages/deelk-poh-core/src/fuel/advisories.ts`
-- [ ] T026 [US1] `computeFuelPlan` und die zugehörigen Typen exportieren in `packages/deelk-poh-core/src/index.ts`
-- [ ] T027 [US1] Tests gegen die Sollwerte aus `reference-calculation.md`: Fall A (87,6 l, alle Eingaben auf Stützstellen) und Fall B (46,5 l, mit Interpolation), je mit den dreizehn Zwischenwerten (SC-005, FR-003), in `packages/deelk-poh-core/tests/fuel/fuelPlan.test.ts`
-- [ ] T027a [US1] Test des Verfahrens gegen die Zahlen des Herstellers: Fall C aus `reference-calculation.md` mit den 5a-Werten als Zahlenkonstanten im Test (nicht in `data/poh/`) muss 85,4 l und jeden Zwischenwert des Handbuch-Beispiels treffen, in `packages/deelk-poh-core/tests/fuel/poh-example.test.ts`
-- [ ] T028 [P] [US1] Tests der Abbruchfälle: Strecke kürzer als die Steigflugstrecke (V-05), Gegenwind größer als die KTAS (V-06), sowie zweimal dieselbe Eingabe liefert bitgleich dasselbe Ergebnis (Prinzip I), in `packages/deelk-poh-core/tests/fuel/edge-cases.test.ts`
-- [ ] T029 [US1] Eingabemaske mit den sechs Feldern aus `data-model.md`, deren Auswahllisten aus `getFuelPlanInputDomain()` stammen, in `apps/web/src/routes/+page.svelte`
-- [ ] T030 [US1] Ergebnisdarstellung mit aufgeschlüsseltem Bedarf, Gesamtsumme, Gegenüberstellung zur ausfliegbaren Menge, Hinweisen und Fehlermeldungen wortgleich aus dem Kern, ohne eigene Rechen- oder Rundungslogik (Prinzip IV, C-02, C-03), in `apps/web/src/lib/components/FuelResult.svelte`
+- [x] T019 [US1] Steigflug: Tabellenwerte bei Platzhöhe und Reiseflughöhe nachschlagen und als Differenz für Zeit, Strecke und Kraftstoff bilden (FR-010) in `packages/deelk-poh-core/src/fuel/climb.ts`
+- [x] T020 [US1] Temperaturkorrektur des Steigflugs mit dem stetigen Faktor `1 + (isaDeviationC / 10) × 0,10` auf Zeit, Strecke und Kraftstoff, Faktor 1 bei ISA-Abweichung ≤ 0 (FR-012) in `packages/deelk-poh-core/src/fuel/climb.ts`
+- [x] T021 [P] [US1] Reiseflug: KTAS und Verbrauchsrate aus Abb. 5-4a nachschlagen und die KTAS mit `1 + (isaDeviationC / 10) × 0,01` korrigieren (FR-013) in `packages/deelk-poh-core/src/fuel/cruise.ts`
+- [x] T022 [US1] Reiseflugstrecke, Geschwindigkeit über Grund, Reiseflugzeit und Reiseflug-Kraftstoff berechnen und dabei V-05 und V-06 mit `NOT_COMPUTABLE` abbrechen (FR-014) in `packages/deelk-poh-core/src/fuel/cruise.ts`
+- [x] T023 [US1] `computeFuelPlan` orchestrieren: Festbetrag 4 l für Anlassen/Rollen/Start (FR-011), Steigflug, Reiseflug, `breakdown` mit Gesamtsumme (FR-009) in `packages/deelk-poh-core/src/fuel/fuelPlan.ts`
+- [x] T024 [US1] Gegenüberstellung zu 127,4 l ausfliegbar mit `remainingFuelL` und `exceedsUsableFuel` bei `totalL >= usableFuelL` (FR-016) in `packages/deelk-poh-core/src/fuel/fuelPlan.ts`
+- [x] T025 [US1] Hinweise ohne Abbruch erzeugen: fehlende Reserve, Sinkflug und Ausweichflugplatz (FR-018), Temperaturkorrektur abweichend von Anmerkung 2 (FR-019), einmalige statt schrittweiser Rundung mit rund ±0,6 l Abweichung beim Nachrechnen von Hand (FR-020), Anmerkung 4 bei über 75 % Last, Geltung der Steigflugtabelle für 1043 kg, in `packages/deelk-poh-core/src/fuel/advisories.ts`
+- [x] T026 [US1] `computeFuelPlan` und die zugehörigen Typen exportieren in `packages/deelk-poh-core/src/index.ts`
+- [x] T027 [US1] Tests gegen die Sollwerte aus `reference-calculation.md`: Fall A (87,6 l, alle Eingaben auf Stützstellen) und Fall B (46,5 l, mit Interpolation), je mit den dreizehn Zwischenwerten (SC-005, FR-003), in `packages/deelk-poh-core/tests/fuel/fuelPlan.test.ts`
+- [x] T027a [US1] Test des Verfahrens gegen die Zahlen des Herstellers: Fall C aus `reference-calculation.md` mit den 5a-Werten als Zahlenkonstanten im Test (nicht in `data/poh/`) muss 85,4 l und jeden Zwischenwert des Handbuch-Beispiels treffen, in `packages/deelk-poh-core/tests/fuel/poh-example.test.ts`
+- [x] T028 [P] [US1] Tests der Abbruchfälle: Strecke kürzer als die Steigflugstrecke (V-05), Gegenwind größer als die KTAS (V-06), sowie zweimal dieselbe Eingabe liefert bitgleich dasselbe Ergebnis (Prinzip I), in `packages/deelk-poh-core/tests/fuel/edge-cases.test.ts`
+- [x] T029 [US1] Eingabemaske mit den sechs Feldern aus `data-model.md`, deren Auswahllisten aus `getFuelPlanInputDomain()` stammen, in `apps/web/src/routes/+page.svelte`
+- [x] T030 [US1] Ergebnisdarstellung mit aufgeschlüsseltem Bedarf, Gesamtsumme, Gegenüberstellung zur ausfliegbaren Menge, Hinweisen und Fehlermeldungen wortgleich aus dem Kern, ohne eigene Rechen- oder Rundungslogik (Prinzip IV, C-02, C-03), in `apps/web/src/lib/components/FuelResult.svelte`
 
 **Checkpoint**: Das Feature ist als MVP nutzbar — ein Pilot bekommt eine Zahl, die
 gegen den Handsollwert stimmt.

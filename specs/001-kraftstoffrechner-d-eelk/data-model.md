@@ -44,6 +44,11 @@ V-01 bis V-03 werden vor der Berechnung geprüft (FR-008), V-05 und V-06 ergeben
 sich erst während der Rechnung und führen dort zum Abbruch mit einer erklärenden
 Meldung.
 
+**V-06 ist mit gültiger Eingabe derzeit nicht erreichbar**: die kleinste KTAS der
+Reiseleistungstabelle ist 95 kt, der stärkste zulässige Gegenwind 50 kt. Die
+Prüfung bleibt als Absicherung gegen künftige Änderungen des Wertebereichs
+stehen.
+
 ### Hinweise ohne Abbruch
 
 - `powerSettingPct > 75` → Anmerkung 4 der Reiseleistungstabelle wiedergeben.
@@ -103,7 +108,7 @@ nachrechnen kann.
 | `id` | stabiler Bezeichner, z. B. `climb.temperatureCorrection` |
 | `label` | deutschsprachige Bezeichnung des Schritts |
 | `inputs` | benannte Eingangswerte mit Einheit |
-| `result` | Ergebniswert mit Einheit |
+| `results` | benannte Ergebniswerte mit Einheit — Mehrzahl, weil ein Schritt des POH-Verfahrens regelmäßig Zeit, Strecke und Kraftstoff zugleich liefert |
 | `anchors` | verwendete `TableAnchor` (leer bei rein rechnerischen Schritten) |
 | `explanation` | ein Satz, wie sich das Ergebnis aus den Eingangswerten ergibt |
 | `sources` | die `SourceReference` aller beteiligten Tabellen |
@@ -132,8 +137,9 @@ nachrechnen kann.
 | `steps` | die Folge der `CalculationStep` |
 | `breakdown` | `{ taxiTakeoffL, climbL, cruiseL, totalL }` (FR-009) |
 | `usableFuelL` | ausfliegbare Menge der Standardtanks, 127,4 l |
+| `exact` | dieselbe Aufschlüsselung ungerundet, damit Adapter nichts nachrechnen müssen |
 | `remainingFuelL` | `usableFuelL − totalL`, kann negativ sein; **keine** Reserve im betrieblichen Sinne |
-| `exceedsUsableFuel` | `true`, wenn `totalL >= usableFuelL` (FR-016) |
+| `exceedsUsableFuel` | `true`, wenn der **ungerundete** Bedarf `usableFuelL` erreicht (FR-016); ein Bedarf von 127,44 l würde gerundet genau die Warnung verschlucken, die er auslösen soll |
 | `advisories` | Hinweise ohne Abbruch, siehe oben |
 | `sources` | alle verwendeten `SourceReference`, dedupliziert (FR-005) |
 | `preflightCheckNotice` | der Prüfhinweis, im Kern erzeugt (FR-006) |

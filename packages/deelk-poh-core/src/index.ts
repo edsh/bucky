@@ -1,6 +1,7 @@
 /** Öffentliche Schnittstelle des Kernpakets (Constitution-Prinzip IV). */
 
 export type {
+  Advisory,
   CalculationStep,
   InputDomain,
   NumericRange,
@@ -37,6 +38,16 @@ export {
   roundNauticalMiles,
   roundTo
 } from './format.js';
+
+export { computeClimb, climbTemperatureFactor, type ClimbSegment } from './fuel/climb.js';
+export { computeCruise, ktasTemperatureFactor } from './fuel/cruise.js';
+export { buildAdvisories } from './fuel/advisories.js';
+export {
+  computeFuelPlan,
+  PREFLIGHT_CHECK_NOTICE,
+  type FuelBreakdown,
+  type FuelPlanResult
+} from './fuel/fuelPlan.js';
 
 export {
   bracketingAltitudes,

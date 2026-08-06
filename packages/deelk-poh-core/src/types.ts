@@ -38,7 +38,11 @@ export interface CalculationStep {
   readonly id: string;
   readonly label: string;
   readonly inputs: Readonly<Record<string, Quantity>>;
-  readonly result: Quantity;
+  /**
+   * Die Ergebnisse des Schritts. Mehrzahl, weil ein Schritt des
+   * POH-Verfahrens regelmäßig Zeit, Strecke und Kraftstoff zugleich liefert.
+   */
+  readonly results: Readonly<Record<string, Quantity>>;
   /** Leer bei rein rechnerischen Schritten. */
   readonly anchors: readonly TableAnchor[];
   readonly explanation: string;
@@ -70,6 +74,14 @@ export interface InputDomain {
   readonly isaDeviationC: NumericRange;
   readonly windComponentKt: NumericRange;
   readonly powerSettingsByPressureAltitude: readonly PowerSettingAvailability[];
+}
+
+/** Ein Hinweis, der die Berechnung nicht abbricht. */
+export interface Advisory {
+  readonly id: string;
+  readonly text: string;
+  /** Quelle, wenn der Hinweis eine Anmerkung des Handbuchs wiedergibt. */
+  readonly source?: SourceReference;
 }
 
 /** Beschreibung einer geladenen Tabelle ohne ihre Zeilen. */

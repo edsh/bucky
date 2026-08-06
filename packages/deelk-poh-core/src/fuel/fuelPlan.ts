@@ -8,7 +8,9 @@ import { formatNumber, roundLitres, roundUsGallons } from '../format.js';
 import { buildAdvisories } from './advisories.js';
 import { computeClimb } from './climb.js';
 import { computeCruise } from './cruise.js';
+import { computeCruiseCapability, type CruiseCapability } from './cruiseCapability.js';
 import { validateFlightPlan, type FlightPlanInput } from './input.js';
+import { PREFLIGHT_CHECK_NOTICE } from './notices.js';
 
 /** Kraftstoffbedarf, aufgeschlüsselt nach den drei Flugabschnitten (FR-009). */
 export interface FuelBreakdown {
@@ -62,6 +64,13 @@ export interface FuelPlanResult {
   };
   /** Geschwindigkeit und Stundenverbrauch im Reiseflug. */
   readonly cruisePerformance: CruisePerformance;
+  /**
+   * Was die Maschine unter diesen Bedingungen leistet, unabhängig vom
+   * eingegebenen Vorhaben (Feature 006). Steht neben `cruisePerformance` und
+   * nicht darin: Jene Größen gelten für die eingegebene Strecke, diese für die
+   * Maschine.
+   */
+  readonly cruiseCapability: CruiseCapability;
   readonly steps: readonly CalculationStep[];
   /** Gerundete Ausgabewerte (FR-020, FR-021). */
   readonly breakdown: FuelBreakdown;
@@ -85,8 +94,7 @@ const TAXI_TAKEOFF_L = 4;
 const TAXI_TAKEOFF_US_GAL = 1.1;
 
 /** Prüfhinweis laut FR-006; er wird im Kern erzeugt, nicht im Adapter. */
-export const PREFLIGHT_CHECK_NOTICE =
-  'Vor dem Flug gegen das Original-Flughandbuch prüfen. Dieses Ergebnis ersetzt das Handbuch nicht.';
+export { PREFLIGHT_CHECK_NOTICE } from './notices.js';
 
 /**
  * Berechnet den Kraftstoffbedarf für ein Flugvorhaben nach dem Verfahren des
@@ -97,6 +105,7 @@ export function computeFuelPlan(input: unknown): FuelPlanResult {
   const { plan } = validated;
   const climb = computeClimb(validated);
   const cruise = computeCruise(validated, climb.corrected.distanceNm);
+  const capability = computeCruiseCapability(plan);
 
   const totalL = TAXI_TAKEOFF_L + climb.corrected.fuelL + cruise.fuelL;
   const totalUsGal = TAXI_TAKEOFF_US_GAL + climb.corrected.fuelUsGal + cruise.fuelUsGal;
@@ -123,6 +132,10 @@ export function computeFuelPlan(input: unknown): FuelPlanResult {
     },
     ...climb.steps,
     ...cruise.steps,
+    // Ohne den Schritt `capability.pressureAltitude`: Er rechnet dieselbe
+    // Druckhöhe aus denselben Eingaben wie `pressureAltitude.cruise` weiter
+    // oben. Zweimal dasselbe im Rechenweg liest sich wie zwei Rechnungen.
+    ...capability.steps.filter((step) => step.id !== 'capability.pressureAltitude'),
     {
       id: 'total.fuel',
       label: 'Gesamter Kraftstoffbedarf',
@@ -161,6 +174,7 @@ export function computeFuelPlan(input: unknown): FuelPlanResult {
       fuelFlowUsGph: cruise.fuelFlowUsGph,
       timeH: cruise.timeH
     },
+    cruiseCapability: capability,
     steps,
     breakdown: {
       taxiTakeoffL: roundLitres(TAXI_TAKEOFF_L),

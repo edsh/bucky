@@ -2,6 +2,7 @@
   import { base } from '$app/paths';
   import {
     PohCalculationError,
+    computeCruiseCapability,
     computeFuelPlan,
     formatFeet,
     formatHectopascal,
@@ -10,8 +11,10 @@
     formatNumber,
     getFuelPlanInputDomain,
     toPressureAltitude,
+    type CruiseCapability,
     type FuelPlanResult
   } from '@edsh-bucky/deelk-poh-core';
+  import CruiseCapabilityView from '$lib/components/CruiseCapability.svelte';
   import FuelResult from '$lib/components/FuelResult.svelte';
   import PowerLever from '$lib/components/PowerLever.svelte';
   import RangeField from '$lib/components/RangeField.svelte';
@@ -45,6 +48,32 @@
    */
   const platzDruckhoehe = $derived(toPressureAltitude(departureElevationFt, qnhHpa));
   const reiseDruckhoehe = $derived(toPressureAltitude(cruiseAltitudeAmslFt, qnhHpa));
+
+  /**
+   * Die Reiseleistung hängt allein an den Bedingungen des Reiseflugs. Sie wird
+   * deshalb eigens ermittelt und nicht aus dem Gesamtergebnis gezogen: Sonst
+   * verschwände sie genau dann, wenn Strecke oder Wind die Bedarfsrechnung
+   * scheitern lassen — also gerade dann, wenn der Pilot sie braucht (FR-009).
+   */
+  const reiseleistung = $derived.by((): { wert?: CruiseCapability; fehler?: string } => {
+    try {
+      return {
+        wert: computeCruiseCapability({
+          cruiseAltitudeAmslFt,
+          qnhHpa,
+          powerSettingPct,
+          isaDeviationC
+        })
+      };
+    } catch (error) {
+      return {
+        fehler:
+          error instanceof PohCalculationError
+            ? error.message
+            : 'Unerwarteter Fehler beim Nachschlagen der Reiseleistung.'
+      };
+    }
+  });
 
   let result = $state<FuelPlanResult | undefined>(undefined);
   let fehler = $state<string | undefined>(undefined);
@@ -97,8 +126,8 @@
 
 <main>
   <header class="kopf">
-    <img class="maskottchen" src="{base}/bucky-maskottchen.svg" alt="Bucky, das Maskottchen" />
     <h1>Kraftstoffrechner D-EELK</h1>
+    <img class="flugzeug" src="{base}/D-EELK_pixelart_192px.png" alt="Die D-EELK als Pixelgrafik" />
   </header>
   <p class="einleitung">
     Cessna 172N mit TAE 125-02-114, Standardtanks und Propeller MTV-6-A/190-69.
@@ -106,15 +135,68 @@
     Flughandbuch-Anhangs — <a href="{base}/tabellen">die verwendeten Tabellen im Einzelnen</a>.
   </p>
 
+  <!--
+    Die Gliederung folgt dem Gedankengang: erst die Bedingungen des
+    Reiseflugs, dann was die Maschine darunter leistet, erst danach das
+    konkrete Vorhaben. Wer noch keine Strecke im Sinn hat, bekommt schon nach
+    der ersten Gruppe eine Antwort.
+  -->
   <form onsubmit={(event) => event.preventDefault()}>
-    <div class="felder">
+    <fieldset>
+      <legend>Bedingungen des Reiseflugs</legend>
+
+      <div class="felder">
+        <RangeField
+          id="reiseflughoehe"
+          label="Reiseflughöhe ASL (ft)"
+          range={domain.cruiseAltitudeAmslFt}
+          bind:value={cruiseAltitudeAmslFt}
+          format={formatFeet}
+        >
+          {#snippet folge()}
+            ≙ Druckhöhe {formatFeet(reiseDruckhoehe.pressureAltitudeFt)}
+          {/snippet}
+        </RangeField>
+
+        <RangeField
+          id="qnh"
+          label="Luftdruck QNH (hPa)"
+          range={domain.qnhHpa}
+          bind:value={qnhHpa}
+          format={formatHectopascal}
+        />
+
+        <RangeField
+          id="isa"
+          label="ISA-Abweichung (°C)"
+          range={domain.isaDeviationC}
+          bind:value={isaDeviationC}
+          format={grad}
+        />
+      </div>
+
       <!--
-        Höhen und Luftdruck stehen bewusst in einer Gruppe: Das QNH verschiebt
-        beide Druckhöhen. Stünde es zwischen Strecke und Wind, sähe es aus wie
-        eine für sich stehende Angabe.
+        Der Leistungshebel gehoert fachlich hierher: Er bestimmt gemeinsam mit
+        Hoehe, Druck und Temperatur, was die Maschine leistet. Er steht im
+        selben Rahmen, nur seitlich -- wie im Cockpit neben den Anzeigen.
       -->
-      <fieldset>
-        <legend>Höhen und Luftdruck</legend>
+      <PowerLever
+        id="last"
+        label="Lasteinstellung"
+        range={domain.powerSettingPct}
+        bind:value={powerSettingPct}
+        format={prozent}
+      />
+    </fieldset>
+  </form>
+
+  <CruiseCapabilityView capability={reiseleistung.wert} fehler={reiseleistung.fehler} />
+
+  <form onsubmit={(event) => event.preventDefault()}>
+    <fieldset>
+      <legend>Streckenflug</legend>
+
+      <div class="felder">
 
         <RangeField
           id="platzhoehe"
@@ -138,43 +220,11 @@
         </RangeField>
 
         <RangeField
-          id="reiseflughoehe"
-          label="Reiseflughöhe ASL (ft)"
-          range={domain.cruiseAltitudeAmslFt}
-          bind:value={cruiseAltitudeAmslFt}
-          format={formatFeet}
-        >
-          {#snippet folge()}
-            ≙ Druckhöhe {formatFeet(reiseDruckhoehe.pressureAltitudeFt)}
-          {/snippet}
-        </RangeField>
-
-        <RangeField
-          id="qnh"
-          label="Luftdruck QNH (hPa)"
-          range={domain.qnhHpa}
-          bind:value={qnhHpa}
-          format={formatHectopascal}
-        />
-      </fieldset>
-
-      <fieldset>
-        <legend>Strecke und Wetter</legend>
-
-        <RangeField
           id="strecke"
           label="Streckenlänge (NM)"
           range={domain.distanceNm}
           bind:value={distanceNm}
           format={formatNauticalMiles}
-        />
-
-        <RangeField
-          id="isa"
-          label="ISA-Abweichung (°C)"
-          range={domain.isaDeviationC}
-          bind:value={isaDeviationC}
-          format={grad}
         />
 
         <RangeField
@@ -184,16 +234,8 @@
           bind:value={windComponentKt}
           format={formatKnots}
         />
-      </fieldset>
-    </div>
-
-    <PowerLever
-      id="last"
-      label="Lasteinstellung"
-      range={domain.powerSettingPct}
-      bind:value={powerSettingPct}
-      format={prozent}
-    />
+      </div>
+    </fieldset>
   </form>
 
   {#if fehler}
@@ -214,32 +256,36 @@
     line-height: 1.5;
   }
 
-  /* Der Leistungshebel steht seitlich, wie im Cockpit neben den Anzeigen. */
   form {
+    margin: 0 0 1rem;
+  }
+
+  /* Der Leistungshebel steht seitlich, wie im Cockpit neben den Anzeigen. */
+  fieldset {
     display: flex;
     align-items: flex-start;
     gap: 1rem;
-  }
-
-  .felder {
-    flex: 1;
-    display: grid;
-    gap: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    padding: 0.5rem 0.75rem 0.75rem;
+    min-width: 0;
   }
 
   /*
     Die Spaltenzahl ergibt sich aus der Breite, nicht aus festen Haltepunkten
     (FR-003). Die Mindestbreite von 14 rem bestimmt selbst, wann umgebrochen
     wird: Ein Regler darunter wird zu ungenau, um ihn noch zu bedienen.
+
+    Oben ausgerichtet und nicht unten: Nur ein Teil der Regler traegt eine
+    Folgezeile mit der Druckhoehe. Bei unterer Ausrichtung saessen die uebrigen
+    Regler dadurch tiefer als ihre Nachbarn.
   */
-  fieldset {
+  .felder {
+    flex: 1;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
     gap: 0.75rem 1.5rem;
-    align-items: end;
-    border: 1px solid #ccc;
-    border-radius: 0.25rem;
-    padding: 0.5rem 0.75rem 0.75rem;
+    align-items: start;
     min-width: 0;
   }
 
@@ -262,17 +308,27 @@
   .kopf {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 1rem;
   }
 
+  /*
+    Die Ueberschrift darf umbrechen, statt das Bild aus dem Fenster zu
+    schieben: Auf 390 px Breite passen Titel und Grafik sonst nicht
+    nebeneinander (FR-027).
+  */
   .kopf h1 {
     margin: 0;
+    flex: 1;
+    min-width: 0;
   }
 
-  .maskottchen {
-    width: 4.5rem;
+  .flugzeug {
+    width: 6rem;
     height: auto;
     flex: none;
+    /* Pixelgrafik: die Kanten sollen Kanten bleiben. */
+    image-rendering: pixelated;
   }
 
   .fehler {

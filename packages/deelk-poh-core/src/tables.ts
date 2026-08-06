@@ -152,6 +152,26 @@ export function listTables(): readonly TableSummary[] {
 }
 
 /**
+ * Eine Bedingung der Tabelle im Wortlaut des Handbuchs, adressiert über ein
+ * Stichwort. Wie bei den Anmerkungen gilt: Die Oberfläche formuliert
+ * Handbuchtext nicht selbst nach (FR-005).
+ */
+export function getTableCondition(tableId: string, keyword: string): string {
+  const needle = keyword.toLowerCase();
+  const condition = getTable(tableId).conditions.find((entry) =>
+    entry.toLowerCase().includes(needle)
+  );
+  if (condition === undefined) {
+    throw new PohCalculationError(
+      'NOT_COMPUTABLE',
+      `Keine Bedingung mit "${keyword}" in der Tabelle "${tableId}".`,
+      { tableId }
+    );
+  }
+  return condition;
+}
+
+/**
  * Eine Anmerkung der Tabelle im Wortlaut des Handbuchs, adressiert über ihre
  * Nummer. Hinweistexte werden nicht im Code nachgedichtet (FR-005).
  */

@@ -94,7 +94,7 @@ export function computeCruise(
         fuelFlowUsGph: { value: fuelFlowUsGph, unit: 'US gal/h' }
       },
       anchors: lookup.anchors,
-      explanation: `Aus ${source.figure} abgelesen. Verwendet wird ausschließlich die Verbrauchsrate — die Spalten für Reichweite und Flugdauer enthalten laut Anmerkung 2 bereits Rollen, Steigflug und Reserve und dürfen hier nicht einfließen.`,
+      explanation: `Aus ${source.figure} abgelesen. In den Bedarf geht ausschließlich die Verbrauchsrate ein — die Spalten für Reichweite und Flugdauer enthalten laut Anmerkung 2 bereits Rollen, Steigflug und Reserve und dürfen in einer Bedarfsrechnung nicht auftauchen. Als Auskunft über die Maschine stehen sie im Schritt „Reiseleistung, Reichweite und Flugdauer bei Druckhöhe und Lasteinstellung".`,
       sources: [source]
     },
     {

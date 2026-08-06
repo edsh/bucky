@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { computeFuelPlan } from '../../src/fuel/fuelPlan.js';
+import { computeCruiseCapability } from '../../src/fuel/cruiseCapability.js';
 import type { CalculationStep } from '../../src/types.js';
 import type { FlightPlanInput } from '../../src/fuel/input.js';
 
@@ -165,5 +166,57 @@ describe('Fall B — mit Interpolation', () => {
     expect(cruisePerformance.fuelFlowUsGph).toBe(
       resultOf(result.steps, 'cruise.tableLookup', 'fuelFlowUsGph')
     );
+  });
+});
+
+describe('Abgrenzung von Bedarf und Auskunft (Feature 006)', () => {
+  const input: FlightPlanInput = {
+    departureElevationFt: 1000,
+    cruiseAltitudeAmslFt: 6000,
+    qnhHpa: 1013.25,
+    distanceNm: 250,
+    powerSettingPct: 70,
+    isaDeviationC: 5,
+    windComponentKt: -5
+  };
+  const result = computeFuelPlan(input);
+
+  it('liefert dieselben Zahlen wie der unmittelbare Aufruf der Übersicht', () => {
+    // Zwei Wege, eine Zahl (Prinzip IV). Ohne diese Prüfung könnte die
+    // Einbettung stillschweigend von der eigenständigen Funktion abweichen.
+    const direkt = computeCruiseCapability(input);
+
+    expect(result.cruiseCapability.ktas).toBe(direkt.ktas);
+    expect(result.cruiseCapability.fuelFlowLph).toBe(direkt.fuelFlowLph);
+    expect(result.cruiseCapability.fuelFlowUsGph).toBe(direkt.fuelFlowUsGph);
+    expect(result.cruiseCapability.maxRangeNm).toBe(direkt.maxRangeNm);
+    expect(result.cruiseCapability.enduranceH).toBe(direkt.enduranceH);
+  });
+
+  it('lässt den Hinweis unberührt, dass der Rest keine Reserve ist (FR-007)', () => {
+    const vergleich = stepOf(result.steps, 'total.usableFuelComparison');
+
+    expect(vergleich.explanation).toContain('keine Reserve');
+    expect(vergleich.explanation).toContain('45-Minuten-Reserve ist darin nicht enthalten');
+  });
+
+  it('trennt die Reserve der Übersicht von der Bedarfssumme', () => {
+    // Die 45 Minuten stecken in den Tabellenwerten für Strecke und Dauer,
+    // nicht in der aufsummierten Bedarfsmenge. Beide Aussagen stehen im
+    // Ergebnis nebeneinander und dürfen sich nicht vermischen.
+    expect(result.cruiseCapability.inclusionsNote).toContain('45 min');
+    expect(result.exact.totalL).toBeLessThan(result.usableFuelL);
+  });
+
+  it('rechnet die Übersicht nicht in den Bedarf hinein', () => {
+    expect(result.exact.totalL).toBeCloseTo(
+      result.exact.taxiTakeoffL + result.exact.climbL + result.exact.cruiseL,
+      10
+    );
+  });
+
+  it('weist die Reiseflugzeit der eingegebenen Strecke getrennt von der Flugdauer aus', () => {
+    expect(result.cruisePerformance.timeH).not.toBe(result.cruiseCapability.enduranceH);
+    expect(result.cruiseCapability.enduranceH).toBeGreaterThan(result.cruisePerformance.timeH);
   });
 });

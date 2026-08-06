@@ -23,6 +23,16 @@
     für Langstrecken- und Integraltank sind digitalisiert, aber für dieses Flugzeug gesperrt.
   </p>
 
+  <p class="einleitung">
+    Die Reiseleistungstabelle führt neben Geschwindigkeit und Verbrauch je Stunde zwei weitere
+    Spalten: die maximale Reichweite und die maximale Flugdauer. Beide gelten für volle
+    Standardtanks und schließen laut Anmerkung 2 Motorstart, Rollen, den Steigflug und 45 Minuten
+    Reserve bereits ein. Sie beantworten „wie weit käme die Maschine überhaupt", nicht „wie viel
+    Kraftstoff braucht dieser Flug" — die auf der Startseite eingegebene Streckenlänge ist etwas
+    anderes als die hier ausgewiesene Reichweite. In den Kraftstoffbedarf fließen diese beiden
+    Spalten deshalb nicht ein; sie stehen dort als eigenständige Auskunft über dem Formular.
+  </p>
+
   {#each tables as table (table.id)}
     <article>
       <h2>{table.figure} — {table.tableName}</h2>

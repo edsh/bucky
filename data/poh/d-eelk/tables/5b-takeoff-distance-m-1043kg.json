@@ -18,12 +18,14 @@
       {
         "poh_page": "5b-2",
         "pdf_page": 128,
-        "role": "Bedingungen/Anmerkungen"
+        "role": "Bedingungen/Anmerkungen",
+        "revision": "Änderung -, April 2016"
       },
       {
         "poh_page": "5b-3",
         "pdf_page": 129,
-        "role": "Tabellenwerte"
+        "role": "Tabellenwerte",
+        "revision": "Änderung -, April 2016"
       }
     ],
     "citation": "Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-2/5b-3, Abb. 5-1a – Roll- und Startstrecke [m] bei Abfluggewicht 1043 kg (2300 lbs)"

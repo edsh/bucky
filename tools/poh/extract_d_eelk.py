@@ -21,6 +21,12 @@ Aufruf:
     python3 tools/poh/extract_d_eelk.py --pdf ~/Downloads/FHB-C-172N-P-2-7.pdf
 
 Das Skript ist idempotent: gleiches PDF => bitgleiche Ausgabe.
+
+Vor dem Schreiben wird geprueft, ob das uebergebene PDF den Leistungsabschnitt
+noch in dem Stand enthaelt, der digitalisiert wurde (siehe
+EXPECTED_SECTION_REVISIONS). Diese Pruefung sitzt bewusst hier und nicht in
+verify_d_eelk.py: dieses Skript ueberschreibt die JSON-Dateien, es gibt also
+keine Referenz, gegen die ein falsches PDF spaeter noch auffallen koennte.
 """
 
 from __future__ import annotations
@@ -38,9 +44,30 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 OUT_DIR = REPO_ROOT / "data" / "poh" / "d-eelk"
 TABLES_DIR = OUT_DIR / "tables"
 
-EXPECTED_PDF_SHA256 = (
-    "ac12813c0e1ecca1e406607dc5b2beb2ec1dc3a0150d54af808c909de6d0d598"
-)
+# Gepinnt wird nicht die Datei, sondern der fachliche Stand des Abschnitts, den
+# wir lesen. Das Dokument als Ganzes steht auf "Ausgabe 2, Aenderung 7,
+# Jan. 2018"; Abschnitt 5 wurde zuletzt mit Aenderung 2/6 vom 18.04.2016
+# geaendert ("Geaenderter Abschnitt: all"), Aenderung 2/7 betrifft nur die
+# Abschnitte 1 bis 4. Eine kuenftige Aenderung, die Abschnitt 5 nicht anfasst,
+# darf diese Datengrundlage daher nicht ungueltig machen.
+#
+# Geprueft wird die "LISTE DER GUELTIGEN ABSCHNITTE" und nicht das
+# Aenderungsverzeichnis: die Liste nennt den *aktuell gueltigen* Stand jedes
+# Abschnitts und beantwortet damit unmittelbar die Frage, ob unser Abschnitt
+# zwischenzeitlich geaendert wurde. Ein spaeterer Eintrag im
+# Aenderungsverzeichnis, der Abschnitt 5 doch wieder anfasst, schlaegt sich
+# zwangslaeufig in dieser Liste nieder. Das ist hier auch der einzig gangbare
+# Weg, denn die Seite mit den Aenderungen 2/5 bis 2/7 (Seite v) ist ein
+# eingescanntes JPEG ohne Textebene und maschinell nicht lesbar.
+EXPECTED_SECTION_REVISIONS = {
+    "5": ("2/5", "18.04.2016"),
+    "5a": ("2/0", "18.04.2016"),
+    "5b": ("2/0", "18.04.2016"),
+}
+
+# Fusszeile der digitalisierten Seiten selbst. Der Gedankenstrich bedeutet,
+# dass die Seite seit der Ausgabe des Abschnitts nicht geaendert wurde.
+EXPECTED_PAGE_REVISION = "Änderung -, April 2016"
 
 DOCUMENT = {
     "id": "tae125-02-114-anhang-fhb-ausgabe-2",
@@ -54,7 +81,14 @@ DOCUMENT = {
     "approval": "EASA STC 10014287",
     "language": "de",
     "file_name": "FHB-C-172N-P-2-7.pdf",
-    "sha256": EXPECTED_PDF_SHA256,
+    "issue_revision": "Ausgabe 2, Änderung 7, Jan. 2018",
+    "section_revision": (
+        "Abschnitt 5b: Issue/Revision 2/0 vom 18.04.2016 laut 'LISTE DER "
+        "GUELTIGEN ABSCHNITTE' (Seite vi). Zuletzt geaendert durch Aenderung 2/6 "
+        "vom 18.04.2016, die alle Abschnitte ersetzt hat; die spaetere Aenderung "
+        "2/7 vom 22.01.2018 betrifft nur die Abschnitte 1 bis 4 und laesst diese "
+        "Datengrundlage unberuehrt."
+    ),
     "note": (
         "Dieser Anhang ersetzt/ergaenzt das EASA-anerkannte Original-Flughandbuch "
         "nur im hier beschriebenen Umfang. Nicht beruehrte Betriebsgrenzen, "
@@ -352,6 +386,65 @@ def revision_label(page_text: str) -> str | None:
     return m.group(1).strip() if m else None
 
 
+def parse_valid_sections(pages: list[str]) -> dict[str, tuple[str, str]]:
+    """Liest die 'LISTE DER GUELTIGEN ABSCHNITTE' (Seite vi).
+
+    Sie nennt je Abschnitt den aktuell gueltigen Stand und ist damit die
+    Stelle, an der sich jede kuenftige Aenderung an Abschnitt 5 zeigen muss.
+    """
+    for page in pages:
+        if "LISTE DER" not in page or "ABSCHNITTE" not in page:
+            continue
+        found: dict[str, tuple[str, str]] = {}
+        for line in page.split("\n"):
+            m = re.match(
+                r"\s*([0-9]+[ab]?)\s+([0-9]+/[0-9]+)\s+"
+                r"([0-9]{2}\.[0-9]{2}\.[0-9]{4})\s*$",
+                line,
+            )
+            if m:
+                found[m.group(1)] = (m.group(2), m.group(3))
+        if found:
+            return found
+    raise ValueError(
+        "Die 'LISTE DER GUELTIGEN ABSCHNITTE' wurde im PDF nicht als Text "
+        "gefunden. Ohne sie laesst sich nicht feststellen, ob Abschnitt "
+        f"{SECTION} noch dem digitalisierten Stand entspricht."
+    )
+
+
+def check_section_revision(pages: list[str]) -> dict[str, tuple[str, str]]:
+    """Prueft, dass die gelesenen Abschnitte unveraendert sind.
+
+    Geprueft wird nicht die Datei (deren Pruefsumme sich schon durch einen
+    anderen PDF-Export aendert), sondern der fachliche Stand.
+    """
+    found = parse_valid_sections(pages)
+    problems = []
+    for section, expected in EXPECTED_SECTION_REVISIONS.items():
+        actual = found.get(section)
+        if actual is None:
+            problems.append(
+                f"  Abschnitt {section}: in der Liste nicht gefunden "
+                f"(erwartet {expected[0]} vom {expected[1]})"
+            )
+        elif actual != expected:
+            problems.append(
+                f"  Abschnitt {section}: {actual[0]} vom {actual[1]} "
+                f"— digitalisiert wurde {expected[0]} vom {expected[1]}"
+            )
+    if problems:
+        raise ValueError(
+            "Der Leistungsabschnitt dieses PDF weicht vom digitalisierten Stand "
+            "ab:\n"
+            + "\n".join(problems)
+            + "\n\nDas ist kein Werkzeugfehler, sondern der Anlass, die "
+            "Digitalisierung samt menschlicher Doppelpruefung gegen das "
+            "geaenderte Handbuch zu wiederholen."
+        )
+    return found
+
+
 def extract_conditions_and_notes(page_text: str) -> tuple[list[str], list[str]]:
     conditions: list[str] = []
     notes: list[str] = []
@@ -615,8 +708,21 @@ def build_table(pages: list[str], tdef: dict) -> dict:
             role.append("Bedingungen/Anmerkungen")
         if pdf_page in data_pdfs:
             role.append("Tabellenwerte")
+        page_revision = revision_label(pages[pdf_page - 1])
+        if page_revision != EXPECTED_PAGE_REVISION:
+            raise ValueError(
+                f"{tdef['figure']}: Seite {label} traegt die Revision "
+                f"'{page_revision}', digitalisiert wurde "
+                f"'{EXPECTED_PAGE_REVISION}'. Die Seite wurde geaendert; die "
+                "Digitalisierung ist zu wiederholen."
+            )
         pages_ref.append(
-            {"poh_page": label, "pdf_page": pdf_page, "role": ", ".join(role)}
+            {
+                "poh_page": label,
+                "pdf_page": pdf_page,
+                "role": ", ".join(role),
+                "revision": page_revision,
+            }
         )
 
     caption_page = pages[data_pdfs[-1] - 1]
@@ -692,20 +798,45 @@ def build_table(pages: list[str], tdef: dict) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pdf", required=True, type=Path)
-    ap.add_argument("--allow-hash-mismatch", action="store_true")
+    ap.add_argument(
+        "--allow-revision-mismatch",
+        action="store_true",
+        help=(
+            "Abweichende Abschnittsrevision zulassen. Nur sinnvoll, wenn die "
+            "Digitalisierung bewusst auf einen neuen Handbuchstand gehoben und "
+            "erneut von Hand gegen das Original geprueft wird."
+        ),
+    )
     args = ap.parse_args()
 
     pdf = args.pdf.expanduser()
     if not pdf.is_file():
         sys.exit(f"PDF nicht gefunden: {pdf}")
-    digest = sha256_of(pdf)
-    if digest != EXPECTED_PDF_SHA256 and not args.allow_hash_mismatch:
-        sys.exit(
-            "SHA256 des PDF weicht ab — die Seitenzuordnung waere nicht mehr "
-            f"garantiert.\n  erwartet: {EXPECTED_PDF_SHA256}\n  gefunden: {digest}"
-        )
 
     pages = pdf_pages(pdf)
+    try:
+        sections = check_section_revision(pages)
+    except ValueError as exc:
+        if not args.allow_revision_mismatch:
+            sys.exit(str(exc))
+        print(f"WARNUNG (uebergangen): {exc}\n")
+        sections = parse_valid_sections(pages)
+    print(
+        f"Abschnitt {SECTION}: Revision {sections[SECTION][0]} vom "
+        f"{sections[SECTION][1]} — unveraendert gegenueber dem "
+        "digitalisierten Stand.\n"
+    )
+
+    document = dict(DOCUMENT)
+    # Die Pruefsumme wird protokolliert, aber nicht geprueft: sie aendert sich
+    # bereits durch einen anderen PDF-Export bei gleichem Inhalt.
+    document["source_file_sha256"] = sha256_of(pdf)
+    document["source_file_note"] = (
+        "Pruefsumme der Datei, aus der diese Daten erzeugt wurden. Sie dient "
+        "der Protokollierung, nicht der Pruefung — massgeblich ist die "
+        "Abschnittsrevision, siehe 'section_revision'."
+    )
+
     TABLES_DIR.mkdir(parents=True, exist_ok=True)
 
     index_entries = []
@@ -769,7 +900,7 @@ def main() -> int:
             ),
             "open_questions": [],
         },
-        "document": DOCUMENT,
+        "document": document,
         "not_digitized": [
             {
                 "figure": "Abb. 5-1",

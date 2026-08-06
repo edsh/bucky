@@ -299,19 +299,20 @@ def main() -> int:
     pdf = args.pdf.expanduser()
     if not pdf.is_file():
         sys.exit(f"PDF nicht gefunden: {pdf}")
-    digest = ex.sha256_of(pdf)
-    if digest != ex.EXPECTED_PDF_SHA256:
-        sys.exit(
-            f"SHA256 des PDF weicht ab.\n  erwartet: {ex.EXPECTED_PDF_SHA256}\n"
-            f"  gefunden: {digest}"
-        )
 
     index = json.loads((ex.OUT_DIR / "index.json").read_text(encoding="utf-8"))
     pages_layout = ex.pdf_pages(pdf)
     pages_raw = raw_pages(pdf)
 
     rep = Report()
-    print(f"PDF-SHA256 ok: {digest}")
+    # Kein Pruefsummen-Gate: dieses Skript weist den Inhalt selbst nach, indem
+    # es ein zweites Mal extrahiert und gegen die abgelegten Daten vergleicht.
+    # Ein anderes PDF faellt dabei zwangslaeufig durch den Wertevergleich auf.
+    sections = ex.check_section_revision(pages_layout)
+    print(
+        f"Abschnitt {ex.SECTION}: Revision {sections[ex.SECTION][0]} vom "
+        f"{sections[ex.SECTION][1]} ok"
+    )
     print(f"Pruefe {len(index['tables'])} Tabellen (Abschnitt 5b, "
           f"Propeller {index['aircraft']['propeller']})\n")
 

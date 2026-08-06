@@ -12,11 +12,45 @@ Grundlage für alle deterministischen Berechnungen (Constitution Prinzip I).
 | Ausgabe | Ausgabe 2 |
 | Zulassung | EASA STC 10014287 |
 | Datei | `FHB-C-172N-P-2-7.pdf` |
-| SHA-256 | `ac12813c0e1ecca1e406607dc5b2beb2ec1dc3a0150d54af808c909de6d0d598` |
+| Dokumentstand | Ausgabe 2, Änderung 7, Jan. 2018 |
+| Stand des Abschnitts 5b | Issue/Revision 2/0 vom 18.04.2016 |
 
-Das PDF selbst liegt **nicht** im Repository. Es wird über den SHA-256-Hash
-identifiziert; die Extraktion bricht ab, wenn der Hash abweicht, weil dann die
-Seitenzuordnung nicht mehr garantiert wäre.
+Das PDF selbst liegt **nicht** im Repository.
+
+## Woran der Handbuchstand festgemacht wird
+
+Maßgeblich ist nicht die Datei, sondern der Stand des Abschnitts, aus dem gelesen
+wird. Die Prüfsumme der Datei ändert sich bereits durch einen anderen PDF-Export
+bei unverändertem Inhalt; sie wird deshalb nur protokolliert
+(`document.source_file_sha256`) und nirgends verglichen.
+
+Geprüft wird stattdessen die "LISTE DER GÜLTIGEN ABSCHNITTE" auf Seite vi, die
+den aktuell gültigen Stand jedes Abschnitts nennt:
+
+| Abschnitt | Issue/Revision | Datum |
+| --- | --- | --- |
+| 5 | 2/5 | 18.04.2016 |
+| 5a | 2/0 | 18.04.2016 |
+| **5b** | **2/0** | **18.04.2016** |
+
+Der Leistungsteil wurde zuletzt mit **Änderung 2/6 vom 18.04.2016** geändert, die
+alle Abschnitte ersetzt hat. Die spätere **Änderung 2/7 vom 22.01.2018** betrifft
+laut Änderungsverzeichnis nur die Abschnitte 1 bis 4 und lässt diese
+Datengrundlage unberührt — das Dokument trägt deshalb den Stand 2/7, während die
+digitalisierten Seiten in ihrer Fußzeile weiterhin "Änderung -, April 2016"
+nennen. Auch diese Fußzeile wird je digitalisierter Seite geprüft.
+
+Die Prüfung schlägt an, sobald ein künftiges Handbuch den Abschnitt 5, 5a oder 5b
+anfasst — unabhängig davon, wie viele Änderungen zwischenzeitlich hinzugekommen
+sind, denn die Liste nennt immer den aktuellen Stand. Sie ist dann kein
+Werkzeugfehler, sondern der Anlass, die Digitalisierung samt menschlicher
+Doppelprüfung zu wiederholen.
+
+**Achtung bei der Prüfung von Hand**: Seite v mit den Änderungen 2/5 bis 2/7 ist
+ein eingescanntes JPEG ohne Textebene. Sie lässt sich weder durchsuchen noch
+maschinell auswerten und ist nur als Bild lesbar. Das Änderungsverzeichnis wird
+daher bewusst nicht ausgewertet; die Abschnittsliste auf Seite vi beantwortet
+dieselbe Frage und liegt als Text vor.
 
 ## Warum ausschließlich Abschnitt 5b
 

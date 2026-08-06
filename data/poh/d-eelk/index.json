@@ -30,8 +30,11 @@
     "approval": "EASA STC 10014287",
     "language": "de",
     "file_name": "FHB-C-172N-P-2-7.pdf",
-    "sha256": "ac12813c0e1ecca1e406607dc5b2beb2ec1dc3a0150d54af808c909de6d0d598",
-    "note": "Dieser Anhang ersetzt/ergaenzt das EASA-anerkannte Original-Flughandbuch nur im hier beschriebenen Umfang. Nicht beruehrte Betriebsgrenzen, Verfahren, Leistungen und Beladungsanweisungen des Original-Flughandbuchs bleiben gueltig (z. B. Landestrecke, siehe Seite 5-6)."
+    "issue_revision": "Ausgabe 2, Änderung 7, Jan. 2018",
+    "section_revision": "Abschnitt 5b: Issue/Revision 2/0 vom 18.04.2016 laut 'LISTE DER GUELTIGEN ABSCHNITTE' (Seite vi). Zuletzt geaendert durch Aenderung 2/6 vom 18.04.2016, die alle Abschnitte ersetzt hat; die spaetere Aenderung 2/7 vom 22.01.2018 betrifft nur die Abschnitte 1 bis 4 und laesst diese Datengrundlage unberuehrt.",
+    "note": "Dieser Anhang ersetzt/ergaenzt das EASA-anerkannte Original-Flughandbuch nur im hier beschriebenen Umfang. Nicht beruehrte Betriebsgrenzen, Verfahren, Leistungen und Beladungsanweisungen des Original-Flughandbuchs bleiben gueltig (z. B. Landestrecke, siehe Seite 5-6).",
+    "source_file_sha256": "ac12813c0e1ecca1e406607dc5b2beb2ec1dc3a0150d54af808c909de6d0d598",
+    "source_file_note": "Pruefsumme der Datei, aus der diese Daten erzeugt wurden. Sie dient der Protokollierung, nicht der Pruefung — massgeblich ist die Abschnittsrevision, siehe 'section_revision'."
   },
   "not_digitized": [
     {

@@ -23,7 +23,7 @@ Installiert die Workspaces `packages/deelk-poh-core`, `apps/web` und `apps/mcp`.
 ## Datengrundlage prüfen (optional, aber vor jeder Freigabe)
 
 ```bash
-python3 tools/poh/verify_d_eelk.py
+python3 tools/poh/verify_d_eelk.py --pdf ~/Downloads/FHB-C-172N-P-2-7.pdf
 ```
 
 **Erwartet**: 2619 Prüfungen, 0 Abweichungen. Die Prüfung extrahiert die Tabellen

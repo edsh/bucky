@@ -47,7 +47,8 @@
     "weight_lbs": 2300,
     "tank": "standard",
     "usable_fuel_l": 127.4,
-    "usable_fuel_usgal": 33.6
+    "usable_fuel_usgal": 33.6,
+    "applicable_to_d_eelk": true
   },
   "conditions": [
     "Fluggewicht 1043 kg (2300 lbs)",

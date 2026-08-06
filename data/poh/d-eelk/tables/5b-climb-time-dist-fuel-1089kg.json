@@ -37,7 +37,9 @@
       "F172P"
     ],
     "weight_kg": 1089,
-    "weight_lbs": 2400
+    "weight_lbs": 2400,
+    "applicable_to_d_eelk": false,
+    "not_applicable_reason": "Gilt laut POH nur fuer die Cessna 172P (Abfluggewicht 1089 kg); D-EELK ist eine 172N."
   },
   "conditions": [
     "Startgewicht 1089 kg (2400 lbs)",
@@ -292,7 +294,12 @@
       "kind": "vy_mismatch",
       "description": "Widerspruch im Original: die Bedingungen auf Seite 5b-12 nennen vy = 69 KIAS, die Spalte 'Vy' der Tabelle Abb. 5-3b auf Seite 5b-13 nennt 70 KIAS.",
       "digitized_value": "Uebernommen wurde der Spaltenwert der Tabelle (70 KIAS).",
-      "action": "Vor Nutzung mit dem Original-POH bzw. dem Halter klaeren."
+      "action": "Geklaert am 2026-08-06: es gilt der Spaltenwert der Tabelle. Der Widerspruch wird weiterhin mitgeliefert, damit er beim Abgleich mit dem Original nicht als Digitalisierungsfehler missverstanden wird.",
+      "resolution": {
+        "date": "2026-08-06",
+        "decided_by": "afoeder",
+        "decision": "Massgeblich ist der Spaltenwert 70 KIAS."
+      }
     }
   ]
 }

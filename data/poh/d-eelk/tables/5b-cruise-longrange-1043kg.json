@@ -47,7 +47,9 @@
     "weight_lbs": 2300,
     "tank": "long_range",
     "usable_fuel_l": 158.6,
-    "usable_fuel_usgal": 41.9
+    "usable_fuel_usgal": 41.9,
+    "applicable_to_d_eelk": false,
+    "not_applicable_reason": "Gilt fuer die Tankvariante 'long_range'; D-EELK hat Standardtanks."
   },
   "conditions": [
     "Fluggewicht 1043 kg (2300 lbs)",

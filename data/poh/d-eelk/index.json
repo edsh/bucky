@@ -1,14 +1,25 @@
 {
   "aircraft": {
     "registration": "D-EELK",
-    "type": "Reims/Cessna F172 mit TAE 125-02-114 (EASA STC 10014287)",
+    "type": "Reims/Cessna F172N mit TAE 125-02-114 (EASA STC 10014287)",
+    "model": "172N",
     "propeller": "MTV-6-A/190-69",
     "applicable_section": "5b",
     "section_choice_rationale": "Abschnitt 5b gilt laut POH (Seite 5b-1) nur fuer Flugzeuge mit Propeller MTV-6-A/190-69. D-EELK hat diesen Propeller. Der parallele Abschnitt 5a (Propeller MTV-6-A/187-129) ist fuer D-EELK NICHT anwendbar und wurde bewusst nicht digitalisiert.",
-    "open_questions": [
-      "Muster (172N oder 172P) ist zu hinterlegen: Tabellen fuer 1089 kg (2400 lbs) gelten laut POH nur fuer die 172P.",
-      "Tankkonfiguration (Standard 127,4 l / Langstrecke 158,6 l / Integral 196,8 l ausfliegbar) ist zu hinterlegen."
-    ]
+    "max_takeoff_mass_kg": 1043,
+    "max_takeoff_mass_lbs": 2300,
+    "tank": "standard",
+    "usable_fuel_l": 127.4,
+    "usable_fuel_usgal": 33.6,
+    "applicable_tables": [
+      "5b-takeoff-distance-m-1043kg",
+      "5b-takeoff-distance-ft-1043kg",
+      "5b-climb-rate-1043kg",
+      "5b-climb-time-dist-fuel-1043kg",
+      "5b-cruise-standard-1043kg"
+    ],
+    "not_applicable_rationale": "D-EELK ist eine 172N mit Standardtanks. Die Tabellen fuer 1089 kg (2400 lbs) gelten laut POH nur fuer die Cessna 172P und sind daher nicht anwendbar. Die Tabellen fuer Langstrecken- und Integraltank sind ebenfalls nicht anwendbar. Sie bleiben digitalisiert, weil sie zum selben Abschnitt 5b gehoeren und ihre Auslassung die Vollstaendigkeitspruefung gegen das Original erschweren wuerde; sie duerfen fuer D-EELK aber nicht zur Berechnung herangezogen werden.",
+    "open_questions": []
   },
   "document": {
     "id": "tae125-02-114-anhang-fhb-ausgabe-2",
@@ -61,6 +72,7 @@
         "F172N",
         "F172P"
       ],
+      "applicable_to_d_eelk": true,
       "weight_kg": 1043,
       "tank": null,
       "poh_pages": [
@@ -82,6 +94,7 @@
         "F172N",
         "F172P"
       ],
+      "applicable_to_d_eelk": true,
       "weight_kg": 1043,
       "tank": null,
       "poh_pages": [
@@ -102,6 +115,7 @@
       "models": [
         "F172P"
       ],
+      "applicable_to_d_eelk": false,
       "weight_kg": 1089,
       "tank": null,
       "poh_pages": [
@@ -122,6 +136,7 @@
       "models": [
         "F172P"
       ],
+      "applicable_to_d_eelk": false,
       "weight_kg": 1089,
       "tank": null,
       "poh_pages": [
@@ -143,6 +158,7 @@
         "F172N",
         "F172P"
       ],
+      "applicable_to_d_eelk": true,
       "weight_kg": 1043,
       "tank": null,
       "poh_pages": [
@@ -162,6 +178,7 @@
       "models": [
         "F172P"
       ],
+      "applicable_to_d_eelk": false,
       "weight_kg": 1089,
       "tank": null,
       "poh_pages": [
@@ -182,6 +199,7 @@
         "F172N",
         "F172P"
       ],
+      "applicable_to_d_eelk": true,
       "weight_kg": 1043,
       "tank": null,
       "poh_pages": [
@@ -202,6 +220,7 @@
       "models": [
         "F172P"
       ],
+      "applicable_to_d_eelk": false,
       "weight_kg": 1089,
       "tank": null,
       "poh_pages": [
@@ -223,6 +242,7 @@
         "F172N",
         "F172P"
       ],
+      "applicable_to_d_eelk": true,
       "weight_kg": 1043,
       "tank": "standard",
       "poh_pages": [
@@ -245,6 +265,7 @@
         "F172N",
         "F172P"
       ],
+      "applicable_to_d_eelk": false,
       "weight_kg": 1043,
       "tank": "long_range",
       "poh_pages": [
@@ -266,6 +287,7 @@
       "models": [
         "F172P"
       ],
+      "applicable_to_d_eelk": false,
       "weight_kg": 1089,
       "tank": "standard",
       "poh_pages": [
@@ -287,6 +309,7 @@
       "models": [
         "F172P"
       ],
+      "applicable_to_d_eelk": false,
       "weight_kg": 1089,
       "tank": "long_range",
       "poh_pages": [
@@ -308,6 +331,7 @@
       "models": [
         "F172P"
       ],
+      "applicable_to_d_eelk": false,
       "weight_kg": 1089,
       "tank": "integral",
       "poh_pages": [

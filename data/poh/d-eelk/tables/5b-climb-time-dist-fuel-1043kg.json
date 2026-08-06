@@ -38,7 +38,8 @@
       "F172P"
     ],
     "weight_kg": 1043,
-    "weight_lbs": 2300
+    "weight_lbs": 2300,
+    "applicable_to_d_eelk": true
   },
   "conditions": [
     "Startgewicht 1043 kg (2300 lbs)",
@@ -293,7 +294,12 @@
       "kind": "vy_mismatch",
       "description": "Widerspruch im Original: die Bedingungen auf Seite 5b-10 nennen vy = 69 KIAS, die Spalte 'Vy' der Tabelle Abb. 5-3a auf Seite 5b-11 nennt 70 KIAS.",
       "digitized_value": "Uebernommen wurde der Spaltenwert der Tabelle (70 KIAS).",
-      "action": "Vor Nutzung mit dem Original-POH bzw. dem Halter klaeren."
+      "action": "Geklaert am 2026-08-06: es gilt der Spaltenwert der Tabelle. Der Widerspruch wird weiterhin mitgeliefert, damit er beim Abgleich mit dem Original nicht als Digitalisierungsfehler missverstanden wird.",
+      "resolution": {
+        "date": "2026-08-06",
+        "decided_by": "afoeder",
+        "decision": "Massgeblich ist der Spaltenwert 70 KIAS."
+      }
     }
   ]
 }

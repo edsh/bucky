@@ -37,7 +37,9 @@
       "F172P"
     ],
     "weight_kg": 1089,
-    "weight_lbs": 2400
+    "weight_lbs": 2400,
+    "applicable_to_d_eelk": false,
+    "not_applicable_reason": "Gilt laut POH nur fuer die Cessna 172P (Abfluggewicht 1089 kg); D-EELK ist eine 172N."
   },
   "conditions": [
     "Fluggewicht 1089 kg (2400 lbs)",

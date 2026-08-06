@@ -46,7 +46,9 @@
     "weight_lbs": 2400,
     "tank": "integral",
     "usable_fuel_l": 196.8,
-    "usable_fuel_usgal": 52.0
+    "usable_fuel_usgal": 52.0,
+    "applicable_to_d_eelk": false,
+    "not_applicable_reason": "Gilt laut POH nur fuer die Cessna 172P (Abfluggewicht 1089 kg); D-EELK ist eine 172N. Gilt fuer die Tankvariante 'integral'; D-EELK hat Standardtanks."
   },
   "conditions": [
     "Fluggewicht 1089 kg (2400 lbs)",

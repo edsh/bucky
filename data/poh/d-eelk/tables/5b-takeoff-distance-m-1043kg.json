@@ -38,7 +38,8 @@
       "F172P"
     ],
     "weight_kg": 1043,
-    "weight_lbs": 2300
+    "weight_lbs": 2300,
+    "applicable_to_d_eelk": true
   },
   "conditions": [
     "Fluggewicht 1043 kg (2300 lbs)",

@@ -547,11 +547,51 @@ def detect_source_anomalies(table: dict) -> list[dict]:
                         f"({sorted(table_vy)[0]} KIAS)."
                     ),
                     "action": (
-                        "Vor Nutzung mit dem Original-POH bzw. dem Halter klaeren."
+                        "Geklaert am 2026-08-06: es gilt der Spaltenwert der "
+                        "Tabelle. Der Widerspruch wird weiterhin mitgeliefert, "
+                        "damit er beim Abgleich mit dem Original nicht als "
+                        "Digitalisierungsfehler missverstanden wird."
                     ),
+                    "resolution": {
+                        "date": "2026-08-06",
+                        "decided_by": "afoeder",
+                        "decision": (
+                            f"Massgeblich ist der Spaltenwert "
+                            f"{sorted(table_vy)[0]} KIAS."
+                        ),
+                    },
                 }
             )
     return anomalies
+
+
+def is_applicable_to_d_eelk(tdef: dict) -> bool:
+    """D-EELK ist eine 172N mit Standardtanks (max. Abflugmasse 1043 kg).
+
+    Tabellen fuer 1089 kg gelten laut POH nur fuer die 172P; Tabellen fuer
+    Langstrecken- und Integraltank gelten fuer eine andere Tankkonfiguration.
+    Beide bleiben digitalisiert, duerfen aber nicht zur Berechnung fuer D-EELK
+    herangezogen werden.
+    """
+    if "F172N" not in tdef["models"]:
+        return False
+    if tdef.get("tank") not in (None, "standard"):
+        return False
+    return True
+
+
+def not_applicable_reason(tdef: dict) -> str:
+    reasons = []
+    if "F172N" not in tdef["models"]:
+        reasons.append(
+            f"Gilt laut POH nur fuer die Cessna 172P (Abfluggewicht "
+            f"{tdef['weight_kg']} kg); D-EELK ist eine 172N."
+        )
+    if tdef.get("tank") not in (None, "standard"):
+        reasons.append(
+            f"Gilt fuer die Tankvariante '{tdef['tank']}'; D-EELK hat Standardtanks."
+        )
+    return " ".join(reasons)
 
 
 def build_table(pages: list[str], tdef: dict) -> dict:
@@ -599,6 +639,10 @@ def build_table(pages: list[str], tdef: dict) -> dict:
     for opt in ("tank", "usable_fuel_l", "usable_fuel_usgal"):
         if opt in tdef:
             applicability[opt] = tdef[opt]
+
+    applicability["applicable_to_d_eelk"] = is_applicable_to_d_eelk(tdef)
+    if not applicability["applicable_to_d_eelk"]:
+        applicability["not_applicable_reason"] = not_applicable_reason(tdef)
 
     columns = COLUMNS[tdef["kind"]]
     if tdef["kind"] == "takeoff_distance":
@@ -681,6 +725,7 @@ def main() -> int:
                 "section": SECTION,
                 "propeller": PROPELLER,
                 "models": table["applicability"]["models"],
+                "applicable_to_d_eelk": table["applicability"]["applicable_to_d_eelk"],
                 "weight_kg": table["applicability"]["weight_kg"],
                 "tank": table["applicability"].get("tank"),
                 "poh_pages": table["source"]["poh_pages"],
@@ -696,16 +741,33 @@ def main() -> int:
     index = {
         "aircraft": {
             "registration": "D-EELK",
-            "type": "Reims/Cessna F172 mit TAE 125-02-114 (EASA STC 10014287)",
+            "type": "Reims/Cessna F172N mit TAE 125-02-114 (EASA STC 10014287)",
+            "model": "172N",
             "propeller": PROPELLER,
             "applicable_section": SECTION,
             "section_choice_rationale": PROPELLER_NOTE,
-            "open_questions": [
-                "Muster (172N oder 172P) ist zu hinterlegen: Tabellen fuer 1089 kg "
-                "(2400 lbs) gelten laut POH nur fuer die 172P.",
-                "Tankkonfiguration (Standard 127,4 l / Langstrecke 158,6 l / "
-                "Integral 196,8 l ausfliegbar) ist zu hinterlegen.",
+            "max_takeoff_mass_kg": 1043,
+            "max_takeoff_mass_lbs": 2300,
+            "tank": "standard",
+            "usable_fuel_l": 127.4,
+            "usable_fuel_usgal": 33.6,
+            "applicable_tables": [
+                "5b-takeoff-distance-m-1043kg",
+                "5b-takeoff-distance-ft-1043kg",
+                "5b-climb-rate-1043kg",
+                "5b-climb-time-dist-fuel-1043kg",
+                "5b-cruise-standard-1043kg",
             ],
+            "not_applicable_rationale": (
+                "D-EELK ist eine 172N mit Standardtanks. Die Tabellen fuer 1089 kg "
+                "(2400 lbs) gelten laut POH nur fuer die Cessna 172P und sind daher "
+                "nicht anwendbar. Die Tabellen fuer Langstrecken- und Integraltank "
+                "sind ebenfalls nicht anwendbar. Sie bleiben digitalisiert, weil sie "
+                "zum selben Abschnitt 5b gehoeren und ihre Auslassung die "
+                "Vollstaendigkeitspruefung gegen das Original erschweren wuerde; sie "
+                "duerfen fuer D-EELK aber nicht zur Berechnung herangezogen werden."
+            ),
+            "open_questions": [],
         },
         "document": DOCUMENT,
         "not_digitized": [

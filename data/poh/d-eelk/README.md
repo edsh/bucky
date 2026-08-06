@@ -141,18 +141,39 @@ Die vier Steigflugtabellen tragen das Feld `source_anomalies`:
 > Die Bedingungen auf Seite 5b-8/5b-9/5b-10/5b-12 nennen `vy = 69 KIAS`,
 > die Spalte "Vy" der Tabellen 5-2a/5-2b/5-3a/5-3b nennt **70 KIAS**.
 
-Digitalisiert wurde der Spaltenwert der Tabelle (70 KIAS); der Widerspruch wird
-bewusst nicht stillschweigend aufgelöst, sondern mitgeliefert und ist mit dem
-Original-POH bzw. dem Halter zu klären.
+Digitalisiert wurde der Spaltenwert der Tabelle (70 KIAS). Am 2026-08-06 wurde
+entschieden, dass der Spaltenwert maßgeblich ist. Der Widerspruch wird trotzdem
+weiter mitgeliefert (Feld `source_anomalies`, jetzt mit `resolution`), damit er
+beim Abgleich mit dem Original nicht als Digitalisierungsfehler missverstanden
+wird.
+
+## Anwendbarkeit auf D-EELK
+
+D-EELK ist eine **Reims/Cessna F172N mit Standardtanks** (Stand 2026-08-06, vom
+Halter bestätigt). Daraus folgt:
+
+- Maximale Abflugmasse **1043 kg** (2300 lbs). Die Tabellen für 1089 kg gelten
+  laut POH nur für die Cessna 172P und sind für D-EELK **nicht anwendbar**.
+- Ausfliegbare Kraftstoffmenge **127,4 l** (33,6 US gal). Die Tabellen für
+  Langstrecken- und Integraltank sind **nicht anwendbar**.
+
+Damit sind von den 13 Tabellen nur diese fünf für D-EELK anwendbar:
+
+| Abbildung | Tabelle | Verwendung |
+|---|---|---|
+| 5-1a / 5-1b | Roll- und Startstrecke [m] / [ft], 1043 kg | Startstreckenberechnung |
+| 5-2a | Maximale Steigrate, 1043 kg | Steigleistung |
+| 5-3a | Steigflug: Zeit, Strecke, Kraftstoff, 1043 kg | Kraftstoffbedarf |
+| 5-4a | Reiseleistung mit Standardtanks, 1043 kg | Kraftstoffbedarf |
+
+Die übrigen acht bleiben digitalisiert, weil sie zum selben Abschnitt 5b gehören
+und ihre Auslassung die Vollständigkeitsprüfung gegen das Original erschweren
+würde. Sie sind in `index.json` und in jeder Tabellendatei unter
+`applicability.applicable_to_d_eelk` als `false` gekennzeichnet und **dürfen für
+D-EELK nicht zur Berechnung herangezogen werden**; das Feld
+`applicability.not_applicable_reason` nennt jeweils den Grund.
 
 ## Offene Punkte
 
-In `index.json` unter `aircraft.open_questions` geführt:
-
-- **Muster (172N oder 172P)**: Die Tabellen für 1089 kg (2400 lbs) gelten laut
-  POH nur für die 172P. Solange das Muster nicht hinterlegt ist, dürfen für
-  D-EELK nur die 1043-kg-Tabellen als gesichert gelten.
-- **Tankkonfiguration**: Standard (127,4 l), Langstrecke (158,6 l) oder Integral
-  (196,8 l ausfliegbar) — bestimmt, welche der Tabellen 5-4a … 5-4e für
-  Reichweite/Flugdauer gilt. Für die reine Verbrauchsrate (l/h) ist die
-  Tankwahl irrelevant, da der Verbrauch dort nur von der Lasteinstellung abhängt.
+Keine offenen Punkte zur Datengrundlage. `aircraft.open_questions` in
+`index.json` ist leer, der Vy-Widerspruch ist entschieden (siehe oben).

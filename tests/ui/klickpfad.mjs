@@ -103,7 +103,7 @@ pruefe(
 );
 
 // 5: Bedarf über der ausfliegbaren Menge ist deutlich sichtbar (FR-016)
-await fuellen(page, { dep: 1000, cruise: 6000, dist: 900, power: 100, isa: 20, wind: 40 });
+await fuellen(page, { dep: 1000, cruise: 6000, dist: 750, power: 100, isa: 20, wind: 40 });
 await page.waitForTimeout(300);
 const warnung = page.locator('.vergleich.warnung');
 const warnungSichtbar = await warnung.isVisible().catch(() => false);
@@ -164,7 +164,7 @@ const erwarteteGrenzen = {
   platzhoehe: { min: '0', max: '10000', step: '10' },
   reiseflughoehe: { min: '0', max: '18000', step: '100' },
   qnh: { min: '950', max: '1050', step: '1' },
-  strecke: { min: '1', max: '900', step: '1' },
+  strecke: { min: '1', max: '750', step: '1' },
   isa: { min: '-30', max: '40', step: '1' },
   wind: { min: '-50', max: '50', step: '1' }
 };

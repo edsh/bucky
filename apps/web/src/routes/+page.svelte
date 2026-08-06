@@ -29,10 +29,13 @@
   /** Platzhöhe von EDSH (Hohn) als Schnellwahl — der Heimatplatz der D-EELK. */
   const EDSH_ELEVATION_FT = 971;
 
-  let departureElevationFt = $state(1000);
-  let cruiseAltitudeAmslFt = $state(6000);
+  // Vorgaben eines typischen Fluges ab dem Heimatplatz: EDSH, eine Höhe unter
+  // der Transponderpflicht, eine Strecke in der Größenordnung eines
+  // Nachmittagsausflugs. Wer etwas anderes vorhat, verstellt einen Regler.
+  let departureElevationFt = $state(EDSH_ELEVATION_FT);
+  let cruiseAltitudeAmslFt = $state(4500);
   let qnhHpa = $state(1013);
-  let distanceNm = $state(400);
+  let distanceNm = $state(75);
   let powerSettingPct = $state(70);
   let isaDeviationC = $state(10);
   let windComponentKt = $state(10);

@@ -30,12 +30,15 @@ const DEPARTURE_ELEVATION_RANGE: NumericRange = { min: 0, max: 10000, unit: 'ft'
 const CRUISE_ALTITUDE_AMSL_RANGE: NumericRange = { min: 0, max: 18000, unit: 'ft', step: 100 };
 const QNH_RANGE: NumericRange = { min: 950, max: 1050, unit: 'hPa', step: 1 };
 /**
- * Die obere Grenze der Strecke ist großzügig: Die größte Reichweite der Tabelle
- * liegt darunter, ein längerer Flug scheitert ohnehin an der ausfliegbaren
- * Menge — und genau diese Rückmeldung ist erwünscht. Ein Regler braucht anders
- * als ein Textfeld aber ein Ende.
+ * Die obere Grenze der Strecke liegt knapp über der größten Reichweite, die
+ * die Reiseleistungstabelle der D-EELK überhaupt ausweist (718 NM bei 50 %
+ * Last in 18 000 ft). Etwas Luft nach oben bleibt bewusst: Ein längerer Flug
+ * scheitert dann an der ausfliegbaren Menge, und genau diese Rückmeldung ist
+ * erwünscht. Weiter zu reichen hätte keinen Sinn — dort steht nichts mehr im
+ * Handbuch, wogegen sich das Ergebnis prüfen ließe. Ein Regler braucht anders
+ * als ein Textfeld ohnehin ein Ende.
  */
-const DISTANCE_RANGE: NumericRange = { min: 1, max: 900, unit: 'NM', step: 1 };
+const DISTANCE_RANGE: NumericRange = { min: 1, max: 750, unit: 'NM', step: 1 };
 const ISA_DEVIATION_RANGE: NumericRange = { min: -30, max: 40, unit: '°C', step: 1 };
 const WIND_COMPONENT_RANGE: NumericRange = { min: -50, max: 50, unit: 'kt', step: 1 };
 

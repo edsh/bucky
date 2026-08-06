@@ -27,10 +27,13 @@ jobs:
       - name: Typen des Kerns prüfen
         run: npx tsc -p packages/deelk-poh-core/tsconfig.json
 
+      - name: Typen des MCP-Adapters prüfen
+        run: npx tsc -p apps/mcp/tsconfig.json
+
       - name: Typen der Oberfläche prüfen
         run: |
-          npx svelte-kit sync --cwd apps/web
-          npx svelte-check --workspace apps/web
+          npm exec --workspace @edsh-bucky/web -- svelte-kit sync
+          npm run check --workspace @edsh-bucky/web
 
       - name: Tests beider Workspaces
         run: npm test

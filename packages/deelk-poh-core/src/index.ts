@@ -2,6 +2,7 @@
 
 export type {
   Advisory,
+  SourceAnomaly,
   CalculationStep,
   InputDomain,
   NumericRange,
@@ -21,7 +22,8 @@ export {
   getSourceReference,
   getTableNote,
   getTableSummary,
-  listApplicableTableIds
+  listApplicableTableIds,
+  listTables
 } from './tables.js';
 
 export { interpolate, type InterpolationQuery, type InterpolationResult } from './interpolate.js';

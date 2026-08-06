@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import {
     PohCalculationError,
     computeFuelPlan,
@@ -58,7 +59,7 @@
   <h1>Kraftstoffrechner D-EELK</h1>
   <p class="einleitung">
     Reims/Cessna F172N mit TAE 125-02-114, Standardtanks. Grundlage ist Abschnitt 5b des
-    Flughandbuch-Anhangs.
+    Flughandbuch-Anhangs — <a href="{base}/tabellen">die verwendeten Tabellen im Einzelnen</a>.
   </p>
 
   <form onsubmit={berechnen}>

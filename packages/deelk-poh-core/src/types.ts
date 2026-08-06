@@ -84,6 +84,18 @@ export interface Advisory {
   readonly source?: SourceReference;
 }
 
+/**
+ * Ein beim Digitalisieren vermerkter Widerspruch des Originals. Er wird
+ * mitgeliefert, damit er beim Abgleich mit dem Handbuch nicht als
+ * Digitalisierungsfehler missverstanden wird.
+ */
+export interface SourceAnomaly {
+  readonly kind: string;
+  readonly description: string;
+  readonly digitized_value?: string;
+  readonly action?: string;
+}
+
 /** Beschreibung einer geladenen Tabelle ohne ihre Zeilen. */
 export interface TableSummary {
   readonly id: string;
@@ -94,4 +106,5 @@ export interface TableSummary {
   readonly conditions: readonly string[];
   readonly notes: readonly string[];
   readonly rowCount: number;
+  readonly anomalies: readonly SourceAnomaly[];
 }

@@ -1,4 +1,4 @@
-import type { SourceReference, TableSummary } from './types.js';
+import type { SourceAnomaly, SourceReference, TableSummary } from './types.js';
 import { PohCalculationError } from './errors.js';
 
 import catalogue from '../../../data/poh/d-eelk/index.json' with { type: 'json' };
@@ -35,6 +35,8 @@ export interface PohTable {
   readonly conditions: readonly string[];
   readonly notes: readonly string[];
   readonly rows: readonly TableRow[];
+  /** Beim Digitalisieren vermerkte Widersprüche des Originals. */
+  readonly source_anomalies?: readonly SourceAnomaly[];
 }
 
 /**
@@ -123,8 +125,18 @@ export function getTableSummary(tableId: string): TableSummary {
     source: getSourceReference(tableId),
     conditions: table.conditions,
     notes: table.notes,
-    rowCount: table.rows.length
+    rowCount: table.rows.length,
+    anomalies: table.source_anomalies ?? []
   };
+}
+
+/**
+ * Alle für D-EELK anwendbaren Tabellen mit Quellenangabe und den vermerkten
+ * Widersprüchen des Originals. Grundlage der Tabellenübersicht: der Pilot soll
+ * sehen können, worauf die Berechnung überhaupt beruht (Prinzip I).
+ */
+export function listTables(): readonly TableSummary[] {
+  return listApplicableTableIds().map((tableId) => getTableSummary(tableId));
 }
 
 /**

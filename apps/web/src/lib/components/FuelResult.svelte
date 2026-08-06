@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { FuelPlanResult } from '@edsh-bucky/deelk-poh-core';
   import { formatLitres } from '@edsh-bucky/deelk-poh-core';
+  import CalculationSteps from './CalculationSteps.svelte';
+  import SourceCitations from './SourceCitations.svelte';
 
   /**
    * Reine Darstellung. Gerechnet und gerundet wird ausschließlich im Kern
@@ -8,15 +10,12 @@
    * ruft nur dessen Formatierfunktionen auf.
    */
   let { result }: { result: FuelPlanResult } = $props();
-
-  const zahl = (value: number): string =>
-    value.toLocaleString('de-DE', { maximumFractionDigits: 4 });
 </script>
 
 <section class="ergebnis">
   <h2>Kraftstoffbedarf</h2>
 
-  <table>
+  <table class="aufschluesselung">
     <tbody>
       <tr>
         <th scope="row">Anlassen, Rollen und Start</th>
@@ -53,45 +52,15 @@
       <li>
         {advisory.text}
         {#if advisory.source}
-          <span class="quelle">{advisory.source.citation}</span>
+          <span class="quelle">{advisory.source.figure}, Seite {advisory.source.pohPages.join(', ')}</span>
         {/if}
       </li>
     {/each}
   </ul>
 
-  <h3>Rechenweg</h3>
-  <ol class="schritte">
-    {#each result.steps as step (step.id)}
-      <li>
-        <strong>{step.label}</strong>
-        <span class="werte">
-          {#each Object.entries(step.results) as [key, quantity], index (key)}
-            {index > 0 ? ' · ' : ''}{zahl(quantity.value)}{quantity.unit ? ` ${quantity.unit}` : ''}
-          {/each}
-        </span>
-        <p class="erklaerung">{step.explanation}</p>
-        {#if step.anchors.length > 0}
-          <p class="eckwerte">
-            Verwendete Tabellenwerte:
-            {#each step.anchors as anchor, index (index)}
-              {index > 0 ? ' und ' : ''}{Object.entries(anchor.at)
-                .map(([schluessel, wert]) => `${schluessel} ${zahl(wert)}`)
-                .join(', ')}
-            {/each}
-          </p>
-        {/if}
-      </li>
-    {/each}
-  </ol>
+  <SourceCitations sources={result.sources} preflightCheckNotice={result.preflightCheckNotice} />
 
-  <h3>Quellen</h3>
-  <ul class="quellen">
-    {#each result.sources as source (source.tableId)}
-      <li>{source.citation}</li>
-    {/each}
-  </ul>
-
-  <p class="pruefhinweis">{result.preflightCheckNotice}</p>
+  <CalculationSteps steps={result.steps} />
 </section>
 
 <style>
@@ -99,7 +68,7 @@
     margin-top: 2rem;
   }
 
-  table {
+  .aufschluesselung {
     border-collapse: collapse;
     width: 100%;
     max-width: 32rem;
@@ -128,26 +97,13 @@
     font-weight: 700;
   }
 
-  .pruefhinweis {
-    margin-top: 1.5rem;
-    padding: 0.75rem;
-    border: 2px solid #a00;
-    font-weight: 700;
+  .hinweise li {
+    margin-bottom: 0.5rem;
   }
 
-  .quelle,
-  .eckwerte,
-  .erklaerung {
+  .quelle {
     display: block;
-    font-size: 0.9em;
-    color: #444;
-  }
-
-  .werte {
-    font-variant-numeric: tabular-nums;
-  }
-
-  .schritte li {
-    margin-bottom: 0.75rem;
+    font-size: 0.85em;
+    color: #666;
   }
 </style>

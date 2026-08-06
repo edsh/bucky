@@ -103,11 +103,11 @@ einer Erläuterung, damit er die Rechnung gegen das Handbuch nachvollziehen kann
 **Independent Test**: Prüfen, dass jede Ausgabe die dreizehn Schritte der
 Schrittfolge aus `data-model.md` enthält — unabhängig vom konkreten Zahlenwert.
 
-- [ ] T031 [US2] Jede Rechenfunktion gibt statt eines nackten Werts einen `CalculationStep` mit `id`, `label`, `inputs`, `result` und `explanation` zurück, in `packages/deelk-poh-core/src/fuel/climb.ts` und `packages/deelk-poh-core/src/fuel/cruise.ts`
-- [ ] T032 [US2] Die dreizehn Schritte von `startup.taxiTakeoff` bis `total.usableFuelComparison` in der in `data-model.md` festgelegten Reihenfolge als `result.steps` zusammenführen (FR-017) in `packages/deelk-poh-core/src/fuel/fuelPlan.ts`
-- [ ] T033 [US2] Test, dass `result.steps` genau die dreizehn erwarteten `id` in der festgelegten Reihenfolge enthält und jeder Schritt eine nichtleere `explanation` trägt, in `packages/deelk-poh-core/tests/fuel/steps.test.ts`
-- [ ] T034 [P] [US2] Darstellung der Schrittfolge als aufklappbarer Rechenweg mit Eingangswerten, Ergebnis und Erläuterung je Schritt in `apps/web/src/lib/components/CalculationSteps.svelte`
-- [ ] T035 [US2] Rechenweg in die Ergebnisseite einbinden in `apps/web/src/lib/components/FuelResult.svelte`
+- [x] T031 [US2] Jede Rechenfunktion gibt statt eines nackten Werts einen `CalculationStep` mit `id`, `label`, `inputs`, `result` und `explanation` zurück, in `packages/deelk-poh-core/src/fuel/climb.ts` und `packages/deelk-poh-core/src/fuel/cruise.ts`
+- [x] T032 [US2] Die dreizehn Schritte von `startup.taxiTakeoff` bis `total.usableFuelComparison` in der in `data-model.md` festgelegten Reihenfolge als `result.steps` zusammenführen (FR-017) in `packages/deelk-poh-core/src/fuel/fuelPlan.ts`
+- [x] T033 [US2] Test, dass `result.steps` genau die dreizehn erwarteten `id` in der festgelegten Reihenfolge enthält und jeder Schritt eine nichtleere `explanation` trägt, in `packages/deelk-poh-core/tests/fuel/steps.test.ts`
+- [x] T034 [P] [US2] Darstellung der Schrittfolge als aufklappbarer Rechenweg mit Eingangswerten, Ergebnis und Erläuterung je Schritt in `apps/web/src/lib/components/CalculationSteps.svelte`
+- [x] T035 [US2] Rechenweg in die Ergebnisseite einbinden in `apps/web/src/lib/components/FuelResult.svelte`
 
 **Checkpoint**: Der Rechenweg ist von Hand nachvollziehbar.
 
@@ -122,13 +122,13 @@ Tabelle, die abgelesenen Eckwerte und der Prüfhinweis sichtbar
 **Independent Test**: Prüfen, dass jede Ausgabe Quellenreferenzen und Prüfhinweis
 enthält — unabhängig vom konkreten Zahlenwert.
 
-- [ ] T036 [US3] Jeder Schritt, der einen Tabellenwert verwendet, führt seine `anchors` und deren `sources` mit; rein rechnerische Schritte tragen eine leere Eckwertliste, in `packages/deelk-poh-core/src/fuel/climb.ts` und `packages/deelk-poh-core/src/fuel/cruise.ts`
-- [ ] T037 [US3] `result.sources` als deduplizierte Liste aller verwendeten `SourceReference` und `result.preflightCheckNotice` im Kern erzeugen, nicht in den Adaptern (FR-005, FR-006, C-02), in `packages/deelk-poh-core/src/fuel/fuelPlan.ts`
-- [ ] T038 [P] [US3] `listTables()` mit Quellenreferenzen und den `source_anomalies` je Tabelle in `packages/deelk-poh-core/src/tables.ts`, exportiert über `packages/deelk-poh-core/src/index.ts`
-- [ ] T039 [US3] Test, dass jeder tabellengestützte Schritt mindestens einen `TableAnchor` mit Seitenzahl und Tabellenname trägt und `preflightCheckNotice` nie leer ist (SC-002), in `packages/deelk-poh-core/tests/citations.test.ts`
-- [ ] T040 [P] [US3] Darstellung der Quellenangaben (Seitenzahl, Abbildung, Tabellenname) und des Prüfhinweises in `apps/web/src/lib/components/SourceCitations.svelte`
-- [ ] T041 [US3] Quellenangaben und Prüfhinweis in die Ergebnisseite einbinden, sodass sie ohne Aufklappen sichtbar sind, in `apps/web/src/lib/components/FuelResult.svelte`
-- [ ] T042 [P] [US3] Übersichtsseite der digitalisierten Tabellen aus `listTables()`, inklusive des vermerkten Vy-Widerspruchs, in `apps/web/src/routes/tabellen/+page.svelte`
+- [x] T036 [US3] Jeder Schritt, der einen Tabellenwert verwendet, führt seine `anchors` und deren `sources` mit; rein rechnerische Schritte tragen eine leere Eckwertliste, in `packages/deelk-poh-core/src/fuel/climb.ts` und `packages/deelk-poh-core/src/fuel/cruise.ts`
+- [x] T037 [US3] `result.sources` als deduplizierte Liste aller verwendeten `SourceReference` und `result.preflightCheckNotice` im Kern erzeugen, nicht in den Adaptern (FR-005, FR-006, C-02), in `packages/deelk-poh-core/src/fuel/fuelPlan.ts`
+- [x] T038 [P] [US3] `listTables()` mit Quellenreferenzen und den `source_anomalies` je Tabelle in `packages/deelk-poh-core/src/tables.ts`, exportiert über `packages/deelk-poh-core/src/index.ts`
+- [x] T039 [US3] Test, dass jeder tabellengestützte Schritt mindestens einen `TableAnchor` mit Seitenzahl und Tabellenname trägt und `preflightCheckNotice` nie leer ist (SC-002), in `packages/deelk-poh-core/tests/citations.test.ts`
+- [x] T040 [P] [US3] Darstellung der Quellenangaben (Seitenzahl, Abbildung, Tabellenname) und des Prüfhinweises in `apps/web/src/lib/components/SourceCitations.svelte`
+- [x] T041 [US3] Quellenangaben und Prüfhinweis in die Ergebnisseite einbinden, sodass sie ohne Aufklappen sichtbar sind, in `apps/web/src/lib/components/FuelResult.svelte`
+- [x] T042 [P] [US3] Übersichtsseite der digitalisierten Tabellen aus `listTables()`, inklusive des vermerkten Vy-Widerspruchs, in `apps/web/src/routes/tabellen/+page.svelte`
 
 **Checkpoint**: Alle drei User Stories sind umgesetzt; die Web-Oberfläche erfüllt
 die Spec vollständig.

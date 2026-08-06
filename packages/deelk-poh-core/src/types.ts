@@ -7,7 +7,8 @@
  * Quellenreferenz einer POH-Tabelle. Wird unverändert aus den JSON-Dateien
  * übernommen und nicht im Code neu formuliert (FR-005, Prinzip I).
  */
-export interface SourceReference {
+export interface PohSourceReference {
+  readonly kind: 'poh';
   readonly tableId: string;
   readonly figure: string;
   readonly tableName: string;
@@ -22,13 +23,35 @@ export interface SourceReference {
   readonly citation: string;
 }
 
+/**
+ * Quellenreferenz einer Größe, die nicht aus dem Flughandbuch stammt, sondern
+ * aus einer Norm — bislang allein die Druckhöhe. Für sie gibt es keine
+ * Handbuchseite; eine anzugeben wäre erfunden. Die Unterscheidung ist deshalb
+ * ein eigener Typ und kein Sonderfall im Code (Constitution, Prinzip I).
+ */
+export interface StandardSourceReference {
+  readonly kind: 'standard';
+  /** Die Norm selbst, z. B. „ICAO Doc 7488". */
+  readonly standard: string;
+  /** Die verwendete Formel im Klartext, damit sie nachgerechnet werden kann. */
+  readonly formula: string;
+  readonly citation: string;
+}
+
+/**
+ * Beide Ausprägungen tragen `citation`. Eine Anzeige, die nur diese liest,
+ * läuft unverändert weiter. Wer den Prüfhinweis „gegen das Original-POH
+ * gegenchecken" ausgibt, MUSS auf `kind: 'poh'` einschränken.
+ */
+export type SourceReference = PohSourceReference | StandardSourceReference;
+
 /** Ein tatsächlich aus der Tabelle gelesener Stützwert. */
 export interface TableAnchor {
   /** Die Stützstelle, z. B. `{ pressureAltitudeFt: 6000, powerSettingPct: 70 }`. */
   readonly at: Readonly<Record<string, number>>;
   /** Die dort abgelesenen Werte, z. B. `{ ktas: 116, fuelFlowLph: 22.1 }`. */
   readonly values: Readonly<Record<string, number>>;
-  readonly source: SourceReference;
+  readonly source: PohSourceReference;
 }
 
 /** Ein benannter Zahlenwert mit Einheit. */
@@ -61,6 +84,11 @@ export interface NumericRange {
   readonly min: number;
   readonly max: number;
   readonly unit: string;
+  /**
+   * Schrittweite, mit der ein Regler den Bereich durchfährt. Sie kommt aus dem
+   * Kern, damit kein Adapter sie erfindet (FR-002).
+   */
+  readonly step: number;
 }
 
 /** Die in der Reiseleistungstabelle je Druckhöhe belegten Lasteinstellungen. */
@@ -74,8 +102,12 @@ export interface PowerSettingAvailability {
  * damit ihre Formulare, statt Grenzen selbst zu kennen (Prinzip IV).
  */
 export interface InputDomain {
-  readonly departureAltitudeFt: NumericRange;
-  readonly cruiseAltitudeFt: NumericRange;
+  /** Platzhöhe über dem Meeresspiegel, wie sie auf der Karte steht. */
+  readonly departureElevationFt: NumericRange;
+  /** Reiseflughöhe über dem Meeresspiegel. */
+  readonly cruiseAltitudeAmslFt: NumericRange;
+  /** Luftdruck auf Meereshöhe aus dem Wetterbericht. */
+  readonly qnhHpa: NumericRange;
   readonly distanceNm: NumericRange;
   readonly powerSettingPct: NumericRange;
   readonly isaDeviationC: NumericRange;
@@ -88,7 +120,7 @@ export interface Advisory {
   readonly id: string;
   readonly text: string;
   /** Quelle, wenn der Hinweis eine Anmerkung des Handbuchs wiedergibt. */
-  readonly source?: SourceReference;
+  readonly source?: PohSourceReference;
 }
 
 /**
@@ -109,7 +141,7 @@ export interface TableSummary {
   readonly kind: string;
   readonly figure: string;
   readonly tableName: string;
-  readonly source: SourceReference;
+  readonly source: PohSourceReference;
   readonly conditions: readonly string[];
   readonly notes: readonly string[];
   readonly rowCount: number;

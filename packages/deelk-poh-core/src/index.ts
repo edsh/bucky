@@ -6,14 +6,26 @@ export type {
   CalculationStep,
   InputDomain,
   NumericRange,
+  PohSourceReference,
   PowerSettingAvailability,
   Quantity,
   SourceReference,
+  StandardSourceReference,
   TableAnchor,
   TableSummary
 } from './types.js';
 
-export { PohCalculationError, type PohCalculationErrorKind } from './errors.js';
+export {
+  ICAO_STANDARD_ATMOSPHERE_SOURCE,
+  toPressureAltitude,
+  type PressureAltitudeResult
+} from './atmosphere/pressureAltitude.js';
+
+export {
+  PohCalculationError,
+  pressureAltitudeOutOfRange,
+  type PohCalculationErrorKind
+} from './errors.js';
 
 export {
   CLIMB_TABLE_ID,
@@ -30,7 +42,11 @@ export {
 export { interpolate, type InterpolationQuery, type InterpolationResult } from './interpolate.js';
 
 export {
+  formatFeet,
   formatFuel,
+  formatFuelFlow,
+  formatHectopascal,
+  formatHours,
   formatKnots,
   formatLitres,
   formatUsGallons,
@@ -51,6 +67,7 @@ export { buildAdvisories } from './fuel/advisories.js';
 export {
   computeFuelPlan,
   PREFLIGHT_CHECK_NOTICE,
+  type CruisePerformance,
   type FuelBreakdown,
   type FuelBreakdownUsGal,
   type FuelPlanResult
@@ -59,7 +76,9 @@ export {
 export {
   bracketingAltitudes,
   getFuelPlanInputDomain,
+  getPressureAltitudeRange,
   getPowerSettingsByPressureAltitude,
   validateFlightPlan,
-  type FlightPlanInput
+  type FlightPlanInput,
+  type ValidatedFlightPlan
 } from './fuel/input.js';

@@ -61,7 +61,10 @@ export default tseslint.config(
         process: 'readonly',
         console: 'readonly',
         document: 'readonly',
-        window: 'readonly'
+        window: 'readonly',
+        // Kommen in den Rueckrufen vor, die im Browser ausgefuehrt werden.
+        HTMLInputElement: 'readonly',
+        Event: 'readonly'
       }
     }
   },

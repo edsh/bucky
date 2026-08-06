@@ -1,8 +1,8 @@
-import type { CalculationStep, Quantity, SourceReference } from '../types.js';
+import type { CalculationStep, PohSourceReference, Quantity } from '../types.js';
 import { interpolate, type InterpolationResult } from '../interpolate.js';
 import { CLIMB_TABLE_ID, getSourceReference } from '../tables.js';
 import { formatNumber } from '../format.js';
-import type { FlightPlanInput } from './input.js';
+import type { FlightPlanInput, ValidatedFlightPlan } from './input.js';
 
 /** Zeit, Strecke und Kraftstoff eines Steigflugabschnitts. */
 export interface ClimbSegment {
@@ -24,7 +24,7 @@ export interface ClimbComputation {
   readonly difference: ClimbSegment;
   readonly temperatureFactor: number;
   readonly steps: readonly CalculationStep[];
-  readonly source: SourceReference;
+  readonly source: PohSourceReference;
 }
 
 const CLIMB_VALUE_KEYS = ['time_min', 'distance_nm', 'fuel_l', 'fuel_usgal'] as const;
@@ -72,10 +72,15 @@ export function climbTemperatureFactor(isaDeviationC: number): number {
  * Reiseflughöhe minus Tabellenwerte bei Platzhöhe (FR-010), anschließend
  * Temperaturkorrektur (FR-012).
  */
-export function computeClimb(plan: FlightPlanInput): ClimbComputation {
+export function computeClimb(validated: ValidatedFlightPlan): ClimbComputation {
+  const { plan } = validated;
+  // Die Tabelle arbeitet mit der Druckhöhe, nicht mit der Höhe über dem
+  // Meeresspiegel. Beide Werte sind bereits geprüft (FR-006).
+  const departureAltitudeFt = validated.departure.pressureAltitudeFt;
+  const cruiseAltitudeFt = validated.cruise.pressureAltitudeFt;
   const source = getSourceReference(CLIMB_TABLE_ID);
-  const atDeparture = lookup(plan.departureAltitudeFt, 'departureAltitudeFt');
-  const atCruise = lookup(plan.cruiseAltitudeFt, 'cruiseAltitudeFt');
+  const atDeparture = lookup(departureAltitudeFt, 'departureElevationFt');
+  const atCruise = lookup(cruiseAltitudeFt, 'cruiseAltitudeAmslFt');
 
   const departure = toSegment(atDeparture.values);
   const cruise = toSegment(atCruise.values);
@@ -97,20 +102,20 @@ export function computeClimb(plan: FlightPlanInput): ClimbComputation {
   const steps: CalculationStep[] = [
     {
       id: 'climb.atDeparture',
-      label: 'Steigflugwerte bei der Platzhöhe des Startplatzes',
-      inputs: { departureAltitudeFt: { value: plan.departureAltitudeFt, unit: 'ft' } },
+      label: 'Steigflugwerte bei der Druckhöhe des Startplatzes',
+      inputs: { departureAltitudeFt: { value: departureAltitudeFt, unit: 'ft' } },
       results: segmentQuantities(departure),
       anchors: atDeparture.anchors,
-      explanation: `Aus ${source.figure} bei ${formatNumber(plan.departureAltitudeFt, 0)} ft abgelesen. Die Tabelle gibt die Werte ab dem Start an, nicht ab der Platzhöhe — deshalb wird dieser Anteil im nächsten Schritt abgezogen.`,
+      explanation: `Aus ${source.figure} bei ${formatNumber(departureAltitudeFt, 0)} ft Druckhöhe abgelesen. Die Tabelle gibt die Werte ab dem Start an, nicht ab der Platzhöhe — deshalb wird dieser Anteil im nächsten Schritt abgezogen.`,
       sources: [source]
     },
     {
       id: 'climb.atCruise',
-      label: 'Steigflugwerte bei der Reiseflughöhe',
-      inputs: { cruiseAltitudeFt: { value: plan.cruiseAltitudeFt, unit: 'ft' } },
+      label: 'Steigflugwerte bei der Druckhöhe des Reiseflugs',
+      inputs: { cruiseAltitudeFt: { value: cruiseAltitudeFt, unit: 'ft' } },
       results: segmentQuantities(cruise),
       anchors: atCruise.anchors,
-      explanation: `Aus ${source.figure} bei ${formatNumber(plan.cruiseAltitudeFt, 0)} ft abgelesen.`,
+      explanation: `Aus ${source.figure} bei ${formatNumber(cruiseAltitudeFt, 0)} ft Druckhöhe abgelesen.`,
       sources: [source]
     },
     {

@@ -1,9 +1,9 @@
-import type { CalculationStep, SourceReference } from '../types.js';
+import type { CalculationStep, PohSourceReference } from '../types.js';
 import { PohCalculationError } from '../errors.js';
 import { interpolate } from '../interpolate.js';
 import { CRUISE_TABLE_ID, getSourceReference } from '../tables.js';
 import { formatNumber } from '../format.js';
-import type { FlightPlanInput } from './input.js';
+import type { ValidatedFlightPlan } from './input.js';
 
 export interface CruiseComputation {
   /** KTAS laut Tabelle, vor der Temperaturkorrektur. */
@@ -19,7 +19,7 @@ export interface CruiseComputation {
   readonly fuelL: number;
   readonly fuelUsGal: number;
   readonly steps: readonly CalculationStep[];
-  readonly source: SourceReference;
+  readonly source: PohSourceReference;
 }
 
 /**
@@ -34,15 +34,21 @@ export function ktasTemperatureFactor(isaDeviationC: number): number {
  * Reiseflug (FR-014). Die Verbrauchsrate wird **nicht** temperaturkorrigiert:
  * Anmerkung 3 nennt ausdrücklich nur Geschwindigkeit und Reichweite.
  */
-export function computeCruise(plan: FlightPlanInput, climbDistanceNm: number): CruiseComputation {
+export function computeCruise(
+  validated: ValidatedFlightPlan,
+  climbDistanceNm: number
+): CruiseComputation {
+  const { plan } = validated;
+  // Die Tabelle arbeitet mit der Druckhöhe (siehe computeClimb).
+  const cruiseAltitudeFt = validated.cruise.pressureAltitudeFt;
   const source = getSourceReference(CRUISE_TABLE_ID);
   const lookup = interpolate({
     tableId: CRUISE_TABLE_ID,
     axisKey: 'pressure_altitude_ft',
-    axisValue: plan.cruiseAltitudeFt,
+    axisValue: cruiseAltitudeFt,
     valueKeys: ['ktas', 'fuel_flow_lph', 'fuel_flow_usgph'],
     where: { power_setting_pct: plan.powerSettingPct },
-    field: 'cruiseAltitudeFt',
+    field: 'cruiseAltitudeAmslFt',
     axisUnit: 'ft'
   });
 
@@ -77,9 +83,9 @@ export function computeCruise(plan: FlightPlanInput, climbDistanceNm: number): C
   const steps: CalculationStep[] = [
     {
       id: 'cruise.tableLookup',
-      label: 'Reiseleistung bei Reiseflughöhe und Lasteinstellung',
+      label: 'Reiseleistung bei Reiseflug-Druckhöhe und Lasteinstellung',
       inputs: {
-        cruiseAltitudeFt: { value: plan.cruiseAltitudeFt, unit: 'ft' },
+        cruiseAltitudeFt: { value: cruiseAltitudeFt, unit: 'ft' },
         powerSettingPct: { value: plan.powerSettingPct, unit: '%' }
       },
       results: {

@@ -10,8 +10,9 @@ import type { FlightPlanInput } from '../src/fuel/input.js';
  */
 
 const input: FlightPlanInput = {
-  departureAltitudeFt: 1000,
-  cruiseAltitudeFt: 6000,
+  departureElevationFt: 1000,
+  cruiseAltitudeAmslFt: 6000,
+  qnhHpa: 1013.25,
   distanceNm: 400,
   powerSettingPct: 80,
   isaDeviationC: 20,
@@ -28,6 +29,9 @@ const TABELLENGESTUETZTE_SCHRITTE = [
 
 describe('Nachvollziehbarkeit (Prinzip I, SC-002)', () => {
   const result = computeFuelPlan(input);
+
+  /** Nur die Handbuchquellen; die Norm trägt weder Seite noch Tabellennamen. */
+  const pohQuellen = () => result.sources.filter((source) => source.kind === 'poh');
 
   it('führt zu jedem tabellengestützten Schritt Eckwerte mit Seitenzahl und Tabellenname', () => {
     for (const id of TABELLENGESTUETZTE_SCHRITTE) {
@@ -47,7 +51,14 @@ describe('Nachvollziehbarkeit (Prinzip I, SC-002)', () => {
   });
 
   it('lässt rein rechnerische Schritte ohne Eckwerte', () => {
-    const rechnerisch = ['cruise.distance', 'cruise.groundSpeed', 'cruise.time', 'total.fuel'];
+    const rechnerisch = [
+      'pressureAltitude.departure',
+      'pressureAltitude.cruise',
+      'cruise.distance',
+      'cruise.groundSpeed',
+      'cruise.time',
+      'total.fuel'
+    ];
 
     for (const id of rechnerisch) {
       expect(result.steps.find((entry) => entry.id === id)?.anchors).toEqual([]);
@@ -55,19 +66,50 @@ describe('Nachvollziehbarkeit (Prinzip I, SC-002)', () => {
   });
 
   it('nennt jede verwendete Tabelle genau einmal (FR-005)', () => {
-    const ids = result.sources.map((source) => source.tableId);
+    const ids = pohQuellen().map((source) => source.tableId);
 
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).toContain('5b-climb-time-dist-fuel-1043kg');
     expect(ids).toContain('5b-cruise-standard-1043kg');
   });
 
-  it('gibt zu jeder Quelle eine vollständige Zitatzeile aus', () => {
-    for (const source of result.sources) {
+  it('gibt zu jeder Handbuchquelle eine vollständige Zitatzeile aus', () => {
+    for (const source of pohQuellen()) {
       expect(source.citation).toContain(source.figure);
       expect(source.citation).toContain('Ausgabe 2');
       for (const page of source.pohPages) {
         expect(source.citation).toContain(page);
+      }
+    }
+  });
+
+  /**
+   * Prinzip I verlangt Seitenzahl und Tabellenname — für eine Norm gibt es
+   * beides nicht. Die Druckhöhe wird deshalb als eigene Art ausgewiesen, statt
+   * eine Handbuchseite zu erfinden.
+   */
+  it('weist die Umrechnung als Norm aus, nicht als Handbuchtabelle', () => {
+    const normen = result.sources.filter((source) => source.kind === 'standard');
+
+    expect(normen).toHaveLength(1);
+    expect(normen[0]?.standard).toMatch(/ICAO Doc 7488/);
+  });
+
+  it('führt an den Umrechnungsschritten ausschließlich die Norm als Quelle', () => {
+    for (const id of ['pressureAltitude.departure', 'pressureAltitude.cruise']) {
+      const step = result.steps.find((entry) => entry.id === id);
+
+      expect(step?.sources).toHaveLength(1);
+      expect(step?.sources[0]?.kind).toBe('standard');
+    }
+  });
+
+  it('führt an allen übrigen Schritten ausschließlich Handbuchquellen', () => {
+    const uebrige = result.steps.filter((step) => !step.id.startsWith('pressureAltitude.'));
+
+    for (const step of uebrige) {
+      for (const source of step.sources) {
+        expect(source.kind, `Schritt ${step.id}`).toBe('poh');
       }
     }
   });
@@ -111,16 +153,19 @@ describe('listTables', () => {
 describe('Ausgabe und Änderungsstand', () => {
   it('führt jede Quellenreferenz Ausgabe und Änderungsstand mit (FR-005, CHK002)', () => {
     const result = computeFuelPlan({
-      departureAltitudeFt: 0,
-      cruiseAltitudeFt: 6000,
+      departureElevationFt: 0,
+      cruiseAltitudeAmslFt: 6000,
+      qnhHpa: 1013.25,
       distanceNm: 250,
       powerSettingPct: 70,
       isaDeviationC: 0,
       windComponentKt: 0
     });
 
-    expect(result.sources.length).toBeGreaterThan(0);
-    for (const source of result.sources) {
+    const poh = result.sources.filter((source) => source.kind === 'poh');
+
+    expect(poh.length).toBeGreaterThan(0);
+    for (const source of poh) {
       expect(source.issue).not.toBe('');
       expect(source.revision).not.toBe('');
     }

@@ -66,8 +66,27 @@ export function formatFuel(litres: number, usGallons: number): string {
   return `${formatLitres(litres)} (${formatUsGallons(usGallons)})`;
 }
 
+/**
+ * Verbrauch je Stunde in beiden Einheiten. Die Einheit steht bei jeder Zahl:
+ * "22,1 l (5,8 US gal)/h" liesse offen, worauf sich das /h bezieht.
+ */
+export function formatFuelFlow(litresPerHour: number, usGallonsPerHour: number): string {
+  return `${formatLitres(litresPerHour)}/h (${formatUsGallons(usGallonsPerHour)}/h)`;
+}
+
 export function formatMinutes(value: number): string {
   return `${formatNumber(value, 0)} min`;
+}
+
+/**
+ * Dezimalstunden als Stunden und Minuten. "2,09 h" laesst sich schlecht in eine
+ * Flugvorbereitung uebertragen; "2 h 05 min" schon.
+ */
+export function formatHours(value: number): string {
+  const gesamtMinuten = roundTo(value * 60, 0);
+  const stunden = Math.floor(gesamtMinuten / 60);
+  const minuten = gesamtMinuten - stunden * 60;
+  return `${formatNumber(stunden, 0)} h ${minuten < 10 ? '0' : ''}${formatNumber(minuten, 0)} min`;
 }
 
 export function formatNauticalMiles(value: number): string {
@@ -76,4 +95,14 @@ export function formatNauticalMiles(value: number): string {
 
 export function formatKnots(value: number): string {
   return `${formatNumber(value, 0)} kt`;
+}
+
+/** Höhe auf ganze Fuß. */
+export function formatFeet(value: number): string {
+  return `${formatNumber(value, 0)} ft`;
+}
+
+/** Luftdruck auf ganze hPa. Das QNH wird auch im Wetterbericht so genannt. */
+export function formatHectopascal(value: number): string {
+  return `${formatNumber(value, 0)} hPa`;
 }

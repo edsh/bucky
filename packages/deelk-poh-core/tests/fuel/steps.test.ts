@@ -3,11 +3,14 @@ import { computeFuelPlan } from '../../src/fuel/fuelPlan.js';
 import type { FlightPlanInput } from '../../src/fuel/input.js';
 
 /**
- * Die Schrittfolge aus `specs/001-kraftstoffrechner-d-eelk/data-model.md`.
+ * Die Schrittfolge aus `specs/001-kraftstoffrechner-d-eelk/data-model.md`,
+ * seit Feature 004 um die beiden vorgelagerten Umrechnungsschritte erweitert.
  * Sie ist Teil der Zusage an den Piloten (FR-017): jeder Schritt ist die
  * kleinste Einheit, die sich von Hand gegen das Handbuch nachrechnen lässt.
  */
 const ERWARTETE_SCHRITTE = [
+  'pressureAltitude.departure',
+  'pressureAltitude.cruise',
   'startup.taxiTakeoff',
   'climb.atDeparture',
   'climb.atCruise',
@@ -25,24 +28,27 @@ const ERWARTETE_SCHRITTE = [
 
 const eingaben: readonly FlightPlanInput[] = [
   {
-    departureAltitudeFt: 1000,
-    cruiseAltitudeFt: 6000,
+    departureElevationFt: 1000,
+    cruiseAltitudeAmslFt: 6000,
+    qnhHpa: 1013.25,
     distanceNm: 400,
     powerSettingPct: 70,
     isaDeviationC: 20,
     windComponentKt: 10
   },
   {
-    departureAltitudeFt: 1500,
-    cruiseAltitudeFt: 7000,
+    departureElevationFt: 1500,
+    cruiseAltitudeAmslFt: 7000,
+    qnhHpa: 1013.25,
     distanceNm: 250,
     powerSettingPct: 60,
     isaDeviationC: 5,
     windComponentKt: -5
   },
   {
-    departureAltitudeFt: 0,
-    cruiseAltitudeFt: 18000,
+    departureElevationFt: 0,
+    cruiseAltitudeAmslFt: 18000,
+    qnhHpa: 1013.25,
     distanceNm: 600,
     powerSettingPct: 50,
     isaDeviationC: -20,
@@ -51,7 +57,7 @@ const eingaben: readonly FlightPlanInput[] = [
 ];
 
 describe('Schrittfolge (FR-017)', () => {
-  it.each(eingaben)('enthält die dreizehn Schritte in der festgelegten Reihenfolge', (input) => {
+  it.each(eingaben)('enthält die fünfzehn Schritte in der festgelegten Reihenfolge', (input) => {
     const ids = computeFuelPlan(input).steps.map((step) => step.id);
 
     expect(ids).toEqual([...ERWARTETE_SCHRITTE]);

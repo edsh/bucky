@@ -1,6 +1,10 @@
 import type { Advisory, CalculationStep, SourceReference } from '../types.js';
+import {
+  ICAO_STANDARD_ATMOSPHERE_SOURCE,
+  type PressureAltitudeResult
+} from '../atmosphere/pressureAltitude.js';
 import { CLIMB_TABLE_ID, USABLE_FUEL_L, USABLE_FUEL_US_GAL, getTableNote } from '../tables.js';
-import { roundLitres, roundUsGallons } from '../format.js';
+import { formatNumber, roundLitres, roundUsGallons } from '../format.js';
 import { buildAdvisories } from './advisories.js';
 import { computeClimb } from './climb.js';
 import { computeCruise } from './cruise.js';
@@ -26,8 +30,38 @@ export interface FuelBreakdownUsGal {
   readonly totalUsGal: number;
 }
 
+/**
+ * Werte, die bei der Reiseflugrechnung ohnehin anfallen und für den Piloten
+ * eigenständig aussagekräftig sind: Wie schnell fliegt die Maschine bei dieser
+ * Lasteinstellung, und was verbraucht sie dabei in der Stunde? Sie stehen hier
+ * eigens, damit ein Adapter sie nicht aus den Rechenschritten klauben muss.
+ */
+export interface CruisePerformance {
+  /** Eigengeschwindigkeit in kt, nach der Temperaturkorrektur. */
+  readonly ktas: number;
+  /** Geschwindigkeit über Grund in kt, also KTAS abzüglich Gegenwind. */
+  readonly groundSpeedKt: number;
+  /** Verbrauch je Stunde in l, unmittelbar aus der Tabelle interpoliert. */
+  readonly fuelFlowLph: number;
+  /** Derselbe Verbrauch aus der eigenen US-gph-Spalte der Tabelle. */
+  readonly fuelFlowUsGph: number;
+  /** Reine Reiseflugzeit in h, ohne Steigflug. */
+  readonly timeH: number;
+}
+
 export interface FuelPlanResult {
   readonly input: FlightPlanInput;
+  /**
+   * Die aus Höhe und QNH errechneten Druckhöhen (FR-007). Sie stehen hier
+   * eigens, damit ein Adapter sie nicht aus den Rechenschritten heraussuchen
+   * muss — und damit er sie nicht selbst errechnet (C-04).
+   */
+  readonly pressureAltitudes: {
+    readonly departure: PressureAltitudeResult;
+    readonly cruise: PressureAltitudeResult;
+  };
+  /** Geschwindigkeit und Stundenverbrauch im Reiseflug. */
+  readonly cruisePerformance: CruisePerformance;
   readonly steps: readonly CalculationStep[];
   /** Gerundete Ausgabewerte (FR-020, FR-021). */
   readonly breakdown: FuelBreakdown;
@@ -59,9 +93,10 @@ export const PREFLIGHT_CHECK_NOTICE =
  * POH. Einziger Rechenweg des Projekts (Constitution-Prinzip IV).
  */
 export function computeFuelPlan(input: unknown): FuelPlanResult {
-  const plan = validateFlightPlan(input);
-  const climb = computeClimb(plan);
-  const cruise = computeCruise(plan, climb.corrected.distanceNm);
+  const validated = validateFlightPlan(input);
+  const { plan } = validated;
+  const climb = computeClimb(validated);
+  const cruise = computeCruise(validated, climb.corrected.distanceNm);
 
   const totalL = TAXI_TAKEOFF_L + climb.corrected.fuelL + cruise.fuelL;
   const totalUsGal = TAXI_TAKEOFF_US_GAL + climb.corrected.fuelUsGal + cruise.fuelUsGal;
@@ -75,6 +110,8 @@ export function computeFuelPlan(input: unknown): FuelPlanResult {
   };
 
   const steps: CalculationStep[] = [
+    pressureAltitudeStep('departure', 'Druckhöhe des Startplatzes', validated.departure),
+    pressureAltitudeStep('cruise', 'Druckhöhe des Reiseflugs', validated.cruise),
     {
       id: 'startup.taxiTakeoff',
       label: 'Anlassen, Rollen und Start',
@@ -116,6 +153,14 @@ export function computeFuelPlan(input: unknown): FuelPlanResult {
 
   return {
     input: plan,
+    pressureAltitudes: { departure: validated.departure, cruise: validated.cruise },
+    cruisePerformance: {
+      ktas: cruise.ktas,
+      groundSpeedKt: cruise.groundSpeedKt,
+      fuelFlowLph: cruise.fuelFlowLph,
+      fuelFlowUsGph: cruise.fuelFlowUsGph,
+      timeH: cruise.timeH
+    },
     steps,
     breakdown: {
       taxiTakeoffL: roundLitres(TAXI_TAKEOFF_L),
@@ -138,7 +183,33 @@ export function computeFuelPlan(input: unknown): FuelPlanResult {
     // gerundet auf 127,4 l genau die Warnung verschlucken, die es auslösen soll.
     exceedsUsableFuel: totalL >= USABLE_FUEL_L,
     advisories: buildAdvisories(plan),
-    sources: [climb.source, cruise.source],
+    // Die Norm-Referenz steht neben den Handbuchtabellen, aber getrennt von
+    // ihnen: Der Prüfhinweis unten bezieht sich nur auf `kind: 'poh'`.
+    sources: [ICAO_STANDARD_ATMOSPHERE_SOURCE, climb.source, cruise.source],
     preflightCheckNotice: PREFLIGHT_CHECK_NOTICE
+  };
+}
+
+/**
+ * FR-008: Die Umrechnung bekommt einen eigenen Schritt, damit die Druckhöhe
+ * nicht als unerklärte Zahl in der Tabelleninterpolation auftaucht. `anchors`
+ * bleibt leer — es ist kein Tabellenwert beteiligt.
+ */
+function pressureAltitudeStep(
+  suffix: 'departure' | 'cruise',
+  label: string,
+  result: PressureAltitudeResult
+): CalculationStep {
+  return {
+    id: `pressureAltitude.${suffix}`,
+    label,
+    inputs: {
+      elevationFt: { value: result.elevationFt, unit: 'ft' },
+      qnhHpa: { value: result.qnhHpa, unit: 'hPa' }
+    },
+    results: { pressureAltitudeFt: { value: result.pressureAltitudeFt, unit: 'ft' } },
+    anchors: [],
+    explanation: `${formatNumber(result.elevationFt, 0)} ft über dem Meeresspiegel bei einem QNH von ${formatNumber(result.qnhHpa, 2)} hPa ergeben ${formatNumber(result.pressureAltitudeFt, 0)} ft Druckhöhe. Gerechnet nach der barometrischen Höhenformel der ICAO-Standardatmosphäre: ${ICAO_STANDARD_ATMOSPHERE_SOURCE.formula}. Diese Größe stammt nicht aus dem Flughandbuch.`,
+    sources: [ICAO_STANDARD_ATMOSPHERE_SOURCE]
   };
 }

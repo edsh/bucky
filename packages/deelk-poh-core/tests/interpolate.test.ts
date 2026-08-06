@@ -7,7 +7,7 @@ const climbQuery = {
   tableId: CLIMB_TABLE_ID,
   axisKey: 'pressure_altitude_ft',
   valueKeys: ['time_min', 'distance_nm', 'fuel_l'],
-  field: 'cruiseAltitudeFt',
+  field: 'cruiseAltitudeAmslFt',
   axisUnit: 'ft'
 } as const;
 
@@ -52,7 +52,7 @@ describe('interpolate', () => {
       axisValue: 6000,
       valueKeys: ['ktas', 'fuel_flow_lph'],
       where: { power_setting_pct: 70 },
-      field: 'cruiseAltitudeFt',
+      field: 'cruiseAltitudeAmslFt',
       axisUnit: 'ft'
     });
 
@@ -72,7 +72,7 @@ describe('interpolate', () => {
     } catch (error) {
       const thrown = error as PohCalculationError;
       expect(thrown.kind).toBe('OUT_OF_RANGE');
-      expect(thrown.allowedRange).toEqual({ min: 0, max: 18000, unit: 'ft' });
+      expect(thrown.allowedRange).toEqual({ min: 0, max: 18000, unit: 'ft', step: 1 });
       expect(thrown.tableId).toBe(CLIMB_TABLE_ID);
       expect(thrown.message).toContain('18000');
     }

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { FuelPlanResult } from '@edsh-bucky/deelk-poh-core';
-  import { formatFuel } from '@edsh-bucky/deelk-poh-core';
+  import { formatFuel, formatFuelFlow, formatHours, formatKnots } from '@edsh-bucky/deelk-poh-core';
   import CalculationSteps from './CalculationSteps.svelte';
   import SourceCitations from './SourceCitations.svelte';
 
@@ -10,10 +10,39 @@
    * ruft nur dessen Formatierfunktionen auf.
    */
   let { result }: { result: FuelPlanResult } = $props();
+
 </script>
 
 <section class="ergebnis">
   <h2>Kraftstoffbedarf</h2>
+
+  <!--
+    Die Druckhöhen stehen unter den Reglern, die sie erzeugen, nicht hier. Eine
+    zweite Anzeige an dieser Stelle waere ein Duplikat und muesste bei jeder
+    Aenderung mitgepflegt werden.
+
+    Geschwindigkeit und Stundenverbrauch fallen bei der Rechnung ohnehin an und
+    sind fuer sich aussagekraeftig — sie beantworten "wie lange" und "wie viel
+    pro Stunde", ohne dass der Rechenweg aufgeklappt werden muss.
+  -->
+  <dl class="leistung">
+    <div>
+      <dt>Eigengeschwindigkeit</dt>
+      <dd>{formatKnots(result.cruisePerformance.ktas)} KTAS</dd>
+    </div>
+    <div>
+      <dt>über Grund</dt>
+      <dd>{formatKnots(result.cruisePerformance.groundSpeedKt)}</dd>
+    </div>
+    <div>
+      <dt>Verbrauch je Stunde</dt>
+      <dd>{formatFuelFlow(result.cruisePerformance.fuelFlowLph, result.cruisePerformance.fuelFlowUsGph)}</dd>
+    </div>
+    <div>
+      <dt>Reiseflugzeit</dt>
+      <dd>{formatHours(result.cruisePerformance.timeH)}</dd>
+    </div>
+  </dl>
 
   <table class="aufschluesselung">
     <tbody>
@@ -64,6 +93,25 @@
 </section>
 
 <style>
+  .leistung {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2rem;
+    margin: 0 0 1rem;
+  }
+
+  .leistung dt {
+    font-weight: 400;
+    font-size: 0.85em;
+    color: #555;
+  }
+
+  .leistung dd {
+    margin: 0;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
   .ergebnis {
     margin-top: 2rem;
   }

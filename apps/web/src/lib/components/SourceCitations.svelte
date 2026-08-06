@@ -10,13 +10,22 @@
     sources,
     preflightCheckNotice
   }: { sources: readonly SourceReference[]; preflightCheckNotice: string } = $props();
+
+  /**
+   * Handbuchquellen und Normen werden getrennt dargestellt. Der Prüfhinweis
+   * steht bei den Handbuchtabellen und bezieht sich nur auf sie: Für eine Norm
+   * gibt es keine Handbuchseite, gegen die sich etwas gegenchecken ließe
+   * (Constitution, Prinzip I).
+   */
+  const pohQuellen = $derived(sources.filter((source) => source.kind === 'poh'));
+  const normQuellen = $derived(sources.filter((source) => source.kind === 'standard'));
 </script>
 
 <section class="quellen">
   <h3>Verwendete Tabellen</h3>
 
   <ul>
-    {#each sources as source (source.tableId)}
+    {#each pohQuellen as source (source.tableId)}
       <li>
         <strong>{source.figure}</strong> — {source.tableName}
         <span class="seiten">
@@ -28,6 +37,20 @@
   </ul>
 
   <p class="pruefhinweis" role="note">{preflightCheckNotice}</p>
+
+  {#if normQuellen.length > 0}
+    <h3>Nicht aus dem Flughandbuch</h3>
+
+    <ul>
+      {#each normQuellen as source (source.standard)}
+        <li>
+          <strong>{source.standard}</strong>
+          <span class="seiten">{source.formula}</span>
+          <span class="zitat">{source.citation}</span>
+        </li>
+      {/each}
+    </ul>
+  {/if}
 </section>
 
 <style>

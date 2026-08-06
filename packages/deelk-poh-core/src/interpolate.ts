@@ -56,7 +56,10 @@ export function interpolate(query: InterpolationQuery): InterpolationResult {
   const range: NumericRange = {
     min: readCell(first, query.axisKey),
     max: readCell(last, query.axisKey),
-    unit: query.axisUnit
+    unit: query.axisUnit,
+    // Nur zur Fehlermeldung; das Tabellenraster ist nicht äquidistant und gibt
+    // keine sinnvolle Schrittweite her.
+    step: 1
   };
 
   if (query.axisValue < range.min || query.axisValue > range.max) {

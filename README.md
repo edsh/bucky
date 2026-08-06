@@ -52,11 +52,20 @@ werden von beiden Zugangswegen unverändert durchgereicht.
 Voraussetzung ist Node 22 oder neuer.
 
 ```bash
-npm ci            # Abhängigkeiten aller Workspaces
-npm test          # Tests von Kern und MCP-Adapter
+npm ci
+npm test
 npm run lint
-npm run build     # Kern-Typprüfung, statisches Web-Bundle, MCP-Bundle
+npm run build
 ```
+
+`npm ci` holt die Abhängigkeiten aller Workspaces, `npm test` prüft Kern und
+MCP-Adapter, `npm run build` erzeugt Typprüfung des Kerns, statisches
+Web-Bundle und MCP-Bundle.
+
+Die Erklärungen stehen bewusst nicht als Kommentar hinter den Befehlen. Reicht
+eine Umgebung das `#` an npm weiter, statt es als Kommentar zu verwerfen,
+landet es bei `vite build` als positionsabhängiges Argument — Vite liest es
+dann als Projektwurzel und meldet `apps/web/#`.
 
 Die Weboberfläche im Entwicklungsmodus:
 

@@ -56,5 +56,5 @@ zurückgemeldet bekommt, nicht ob die Oberfläche später funktioniert.
 - CHK067 und CHK068 sind für dieses Feature bewusst zurückgestellt und damit
   geschlossen: Barrierefreiheit und das Sichern eines Ergebnisses für die
   Flugvorbereitungsunterlagen werden als eigenes Folge-Feature aufgenommen,
-  nicht im Kraftstoffrechner nachgezogen. Bis dahin gilt für beide Punkte
+  nicht im Kraftstoffrechner nachgezogen (Issue #3). Bis dahin gilt für beide Punkte
   ausdrücklich: nicht Bestandteil von Feature 001.

@@ -30,13 +30,13 @@ generierte Datengrundlage liegt unverändert unter `data/poh/d-eelk/`.
 
 **Zweck**: Monorepo, Werkzeugkette und Paketgerüste anlegen.
 
-- [ ] T001 Wurzel-`package.json` mit npm-Workspaces (`packages/*`, `apps/*`), Node-Version 22 und den Skripten `test`, `lint`, `build` in `package.json`
-- [ ] T002 [P] Gemeinsame TypeScript-Konfiguration (strict, ES2022, `noUncheckedIndexedAccess`) in `tsconfig.base.json`
-- [ ] T003 [P] Vitest als Testrunner der Wurzel einrichten in `vitest.workspace.ts`
-- [ ] T004 [P] ESLint und Prettier mit einer Regel, die Importe aus `node:fs`, DOM und SvelteKit innerhalb von `packages/deelk-poh-core` verbietet (Zusicherung C-01), in `eslint.config.js`
-- [ ] T005 Paketgerüst des Kerns anlegen (`name: "@edsh-bucky/deelk-poh-core"`, `type: module`, Export von `src/index.ts`) in `packages/deelk-poh-core/package.json` und `packages/deelk-poh-core/tsconfig.json`
-- [ ] T006 [P] SvelteKit-Gerüst mit `@sveltejs/adapter-static` anlegen in `apps/web/package.json`, `apps/web/svelte.config.js` und `apps/web/vite.config.ts`
-- [ ] T007 [P] `.gitignore` um `node_modules/`, `dist/`, `.svelte-kit/` und `build/` ergänzen in `.gitignore`
+- [x] T001 Wurzel-`package.json` mit npm-Workspaces (`packages/*`, `apps/*`), Node-Version 22 und den Skripten `test`, `lint`, `build` in `package.json`
+- [x] T002 [P] Gemeinsame TypeScript-Konfiguration (strict, ES2022, `noUncheckedIndexedAccess`) in `tsconfig.base.json`
+- [x] T003 [P] Vitest als Testrunner der Wurzel einrichten in `vitest.config.ts` (Vitest 3 fasst die Workspace-Projekte in `test.projects` zusammen; `vitest.workspace.ts` ist abgekündigt)
+- [x] T004 [P] ESLint und Prettier mit einer Regel, die Importe aus `node:fs`, DOM und SvelteKit innerhalb von `packages/deelk-poh-core` verbietet (Zusicherung C-01), in `eslint.config.js`
+- [x] T005 Paketgerüst des Kerns anlegen (`name: "@edsh-bucky/deelk-poh-core"`, `type: module`, Export von `src/index.ts`) in `packages/deelk-poh-core/package.json` und `packages/deelk-poh-core/tsconfig.json`
+- [x] T006 [P] SvelteKit-Gerüst mit `@sveltejs/adapter-static` anlegen in `apps/web/package.json`, `apps/web/svelte.config.js`, `apps/web/vite.config.ts` sowie `apps/web/src/app.html` und `apps/web/src/routes/` (ohne Einstiegsseite lässt sich das Gerüst nicht bauen)
+- [x] T007 [P] `.gitignore` um `node_modules/`, `dist/`, `.svelte-kit/` und `build/` ergänzen in `.gitignore`
 
 **Checkpoint**: `npm install` läuft durch, `npm test` findet noch keine Tests.
 

@@ -31,7 +31,7 @@
   let qnhHpa = $state(1013);
   let distanceNm = $state(400);
   let powerSettingPct = $state(70);
-  let isaDeviationC = $state(20);
+  let isaDeviationC = $state(10);
   let windComponentKt = $state(10);
 
   const grad = (wert: number): string => `${formatNumber(wert, 0)} °C`;

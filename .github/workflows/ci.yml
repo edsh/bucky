@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  pruefen:
+    name: Lint, Typen, Tests, Bau
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typen des Kerns prüfen
+        run: npx tsc -p packages/deelk-poh-core/tsconfig.json
+
+      - name: Typen der Oberfläche prüfen
+        run: |
+          npx svelte-kit sync --cwd apps/web
+          npx svelte-check --workspace apps/web
+
+      - name: Tests beider Workspaces
+        run: npm test
+
+      - name: Bau
+        run: npm run build

@@ -1,0 +1,349 @@
+{
+  "aircraft": {
+    "registration": "D-EELK",
+    "type": "Reims/Cessna F172N mit TAE 125-02-114 (EASA STC 10014287)",
+    "model": "172N",
+    "propeller": "MTV-6-A/190-69",
+    "applicable_section": "5b",
+    "section_choice_rationale": "Abschnitt 5b gilt laut POH (Seite 5b-1) nur fuer Flugzeuge mit Propeller MTV-6-A/190-69. D-EELK hat diesen Propeller. Der parallele Abschnitt 5a (Propeller MTV-6-A/187-129) ist fuer D-EELK NICHT anwendbar und wurde bewusst nicht digitalisiert.",
+    "max_takeoff_mass_kg": 1043,
+    "max_takeoff_mass_lbs": 2300,
+    "tank": "standard",
+    "usable_fuel_l": 127.4,
+    "usable_fuel_usgal": 33.6,
+    "applicable_tables": [
+      "5b-takeoff-distance-m-1043kg",
+      "5b-takeoff-distance-ft-1043kg",
+      "5b-climb-rate-1043kg",
+      "5b-climb-time-dist-fuel-1043kg",
+      "5b-cruise-standard-1043kg"
+    ],
+    "not_applicable_rationale": "D-EELK ist eine 172N mit Standardtanks. Die Tabellen fuer 1089 kg (2400 lbs) gelten laut POH nur fuer die Cessna 172P und sind daher nicht anwendbar. Die Tabellen fuer Langstrecken- und Integraltank sind ebenfalls nicht anwendbar. Sie bleiben digitalisiert, weil sie zum selben Abschnitt 5b gehoeren und ihre Auslassung die Vollstaendigkeitspruefung gegen das Original erschweren wuerde; sie duerfen fuer D-EELK aber nicht zur Berechnung herangezogen werden.",
+    "open_questions": []
+  },
+  "document": {
+    "id": "tae125-02-114-anhang-fhb-ausgabe-2",
+    "title": "Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation",
+    "kind": "Flughandbuch-Anhang (Motorumruestung)",
+    "publisher": "Technify Motors GmbH, St. Egidien",
+    "issue": "Ausgabe 2",
+    "approval": "EASA STC 10014287",
+    "language": "de",
+    "file_name": "FHB-C-172N-P-2-7.pdf",
+    "issue_revision": "Ausgabe 2, Änderung 7, Jan. 2018",
+    "section_revision": "Abschnitt 5b: Issue/Revision 2/0 vom 18.04.2016 laut 'LISTE DER GUELTIGEN ABSCHNITTE' (Seite vi). Zuletzt geaendert durch Aenderung 2/6 vom 18.04.2016, die alle Abschnitte ersetzt hat; die spaetere Aenderung 2/7 vom 22.01.2018 betrifft nur die Abschnitte 1 bis 4 und laesst diese Datengrundlage unberuehrt.",
+    "note": "Dieser Anhang ersetzt/ergaenzt das EASA-anerkannte Original-Flughandbuch nur im hier beschriebenen Umfang. Nicht beruehrte Betriebsgrenzen, Verfahren, Leistungen und Beladungsanweisungen des Original-Flughandbuchs bleiben gueltig (z. B. Landestrecke, siehe Seite 5-6).",
+    "source_file_sha256": "ac12813c0e1ecca1e406607dc5b2beb2ec1dc3a0150d54af808c909de6d0d598",
+    "source_file_note": "Pruefsumme der Datei, aus der diese Daten erzeugt wurden. Sie dient der Protokollierung, nicht der Pruefung — massgeblich ist die Abschnittsrevision, siehe 'section_revision'."
+  },
+  "not_digitized": [
+    {
+      "figure": "Abb. 5-1",
+      "table_name": "Dichtehoehe",
+      "poh_page": "5-7",
+      "reason": "Diagramm (Kurvenschar), keine Tabelle"
+    },
+    {
+      "figure": "Abb. 5-2",
+      "table_name": "Leistung ueber Hoehe (Centurion 2.0 - 155 hp)",
+      "poh_page": "5-8",
+      "reason": "Diagramm (Kurvenschar), keine Tabelle"
+    },
+    {
+      "figure": null,
+      "table_name": "Landestrecke",
+      "poh_page": "5-6",
+      "reason": "Nicht im Anhang enthalten: 'Berechnung siehe Flughandbuch' (Original-Flughandbuch der Zelle)"
+    },
+    {
+      "figure": "Abschnitt 5a (Abb. 5-1a bis 5-4e)",
+      "table_name": "Leistungen fuer Propeller MTV-6-A/187-129",
+      "poh_page": "5a-1 bis 5a-28",
+      "reason": "Anderer Propellertyp — fuer D-EELK nicht anwendbar (D-EELK: MTV-6-A/190-69, Abschnitt 5b)"
+    }
+  ],
+  "tables": [
+    {
+      "id": "5b-takeoff-distance-m-1043kg",
+      "file": "tables/5b-takeoff-distance-m-1043kg.json",
+      "kind": "takeoff_distance",
+      "figure": "Abb. 5-1a",
+      "table_name": "Roll- und Startstrecke [m] bei Abfluggewicht 1043 kg (2300 lbs)",
+      "section": "5b",
+      "propeller": "MTV-6-A/190-69",
+      "models": [
+        "F172N",
+        "F172P"
+      ],
+      "applicable_to_d_eelk": true,
+      "weight_kg": 1043,
+      "tank": null,
+      "poh_pages": [
+        "5b-2",
+        "5b-3"
+      ],
+      "row_count": 77,
+      "source_anomalies": 0
+    },
+    {
+      "id": "5b-takeoff-distance-ft-1043kg",
+      "file": "tables/5b-takeoff-distance-ft-1043kg.json",
+      "kind": "takeoff_distance",
+      "figure": "Abb. 5-1b",
+      "table_name": "Roll- und Startstrecke [ft] bei Abfluggewicht 1043 kg (2300 lbs)",
+      "section": "5b",
+      "propeller": "MTV-6-A/190-69",
+      "models": [
+        "F172N",
+        "F172P"
+      ],
+      "applicable_to_d_eelk": true,
+      "weight_kg": 1043,
+      "tank": null,
+      "poh_pages": [
+        "5b-2",
+        "5b-4"
+      ],
+      "row_count": 77,
+      "source_anomalies": 0
+    },
+    {
+      "id": "5b-takeoff-distance-m-1089kg",
+      "file": "tables/5b-takeoff-distance-m-1089kg.json",
+      "kind": "takeoff_distance",
+      "figure": "Abb. 5-1c",
+      "table_name": "Roll- und Startstrecke [m] bei Abfluggewicht 1089 kg (2400 lbs) (nur Cessna 172P)",
+      "section": "5b",
+      "propeller": "MTV-6-A/190-69",
+      "models": [
+        "F172P"
+      ],
+      "applicable_to_d_eelk": false,
+      "weight_kg": 1089,
+      "tank": null,
+      "poh_pages": [
+        "5b-5",
+        "5b-6"
+      ],
+      "row_count": 77,
+      "source_anomalies": 0
+    },
+    {
+      "id": "5b-takeoff-distance-ft-1089kg",
+      "file": "tables/5b-takeoff-distance-ft-1089kg.json",
+      "kind": "takeoff_distance",
+      "figure": "Abb. 5-1d",
+      "table_name": "Roll- und Startstrecke [ft] bei Abfluggewicht 1089 kg (2400 lbs) (nur Cessna 172P)",
+      "section": "5b",
+      "propeller": "MTV-6-A/190-69",
+      "models": [
+        "F172P"
+      ],
+      "applicable_to_d_eelk": false,
+      "weight_kg": 1089,
+      "tank": null,
+      "poh_pages": [
+        "5b-5",
+        "5b-7"
+      ],
+      "row_count": 77,
+      "source_anomalies": 0
+    },
+    {
+      "id": "5b-climb-rate-1043kg",
+      "file": "tables/5b-climb-rate-1043kg.json",
+      "kind": "climb_rate",
+      "figure": "Abb. 5-2a",
+      "table_name": "Maximale Steigrate bei Abfluggewicht 1043 kg (2300 lbs)",
+      "section": "5b",
+      "propeller": "MTV-6-A/190-69",
+      "models": [
+        "F172N",
+        "F172P"
+      ],
+      "applicable_to_d_eelk": true,
+      "weight_kg": 1043,
+      "tank": null,
+      "poh_pages": [
+        "5b-8"
+      ],
+      "row_count": 95,
+      "source_anomalies": 1
+    },
+    {
+      "id": "5b-climb-rate-1089kg",
+      "file": "tables/5b-climb-rate-1089kg.json",
+      "kind": "climb_rate",
+      "figure": "Abb. 5-2b",
+      "table_name": "Maximale Steigrate bei 1089 kg (2400 lbs) (nur Cessna 172P)",
+      "section": "5b",
+      "propeller": "MTV-6-A/190-69",
+      "models": [
+        "F172P"
+      ],
+      "applicable_to_d_eelk": false,
+      "weight_kg": 1089,
+      "tank": null,
+      "poh_pages": [
+        "5b-9"
+      ],
+      "row_count": 95,
+      "source_anomalies": 1
+    },
+    {
+      "id": "5b-climb-time-dist-fuel-1043kg",
+      "file": "tables/5b-climb-time-dist-fuel-1043kg.json",
+      "kind": "climb_time_distance_fuel",
+      "figure": "Abb. 5-3a",
+      "table_name": "Zeit, Strecke und Kraftstoffmenge fuer den Steigflug, Abfluggewicht 1043 kg (2300 lbs)",
+      "section": "5b",
+      "propeller": "MTV-6-A/190-69",
+      "models": [
+        "F172N",
+        "F172P"
+      ],
+      "applicable_to_d_eelk": true,
+      "weight_kg": 1043,
+      "tank": null,
+      "poh_pages": [
+        "5b-10",
+        "5b-11"
+      ],
+      "row_count": 19,
+      "source_anomalies": 1
+    },
+    {
+      "id": "5b-climb-time-dist-fuel-1089kg",
+      "file": "tables/5b-climb-time-dist-fuel-1089kg.json",
+      "kind": "climb_time_distance_fuel",
+      "figure": "Abb. 5-3b",
+      "table_name": "Zeit, Strecke und Kraftstoffmenge fuer den Steigflug, Abfluggewicht 1089 kg (2400 lbs) (nur Cessna 172P)",
+      "section": "5b",
+      "propeller": "MTV-6-A/190-69",
+      "models": [
+        "F172P"
+      ],
+      "applicable_to_d_eelk": false,
+      "weight_kg": 1089,
+      "tank": null,
+      "poh_pages": [
+        "5b-12",
+        "5b-13"
+      ],
+      "row_count": 19,
+      "source_anomalies": 1
+    },
+    {
+      "id": "5b-cruise-standard-1043kg",
+      "file": "tables/5b-cruise-standard-1043kg.json",
+      "kind": "cruise_performance",
+      "figure": "Abb. 5-4a",
+      "table_name": "Reiseleistung, Reichweite und Flugdauer mit Standardtanks, Fluggewicht 1043 kg (2300 lbs)",
+      "section": "5b",
+      "propeller": "MTV-6-A/190-69",
+      "models": [
+        "F172N",
+        "F172P"
+      ],
+      "applicable_to_d_eelk": true,
+      "weight_kg": 1043,
+      "tank": "standard",
+      "poh_pages": [
+        "5b-14",
+        "5b-15",
+        "5b-16"
+      ],
+      "row_count": 53,
+      "source_anomalies": 0
+    },
+    {
+      "id": "5b-cruise-longrange-1043kg",
+      "file": "tables/5b-cruise-longrange-1043kg.json",
+      "kind": "cruise_performance",
+      "figure": "Abb. 5-4b",
+      "table_name": "Reiseleistung, Reichweite und Flugdauer mit Langstreckentanks, Fluggewicht 1043 kg (2300 lbs)",
+      "section": "5b",
+      "propeller": "MTV-6-A/190-69",
+      "models": [
+        "F172N",
+        "F172P"
+      ],
+      "applicable_to_d_eelk": false,
+      "weight_kg": 1043,
+      "tank": "long_range",
+      "poh_pages": [
+        "5b-17",
+        "5b-18",
+        "5b-19"
+      ],
+      "row_count": 53,
+      "source_anomalies": 0
+    },
+    {
+      "id": "5b-cruise-standard-1089kg",
+      "file": "tables/5b-cruise-standard-1089kg.json",
+      "kind": "cruise_performance",
+      "figure": "Abb. 5-4c",
+      "table_name": "Reiseleistung, Reichweite und Flugdauer mit Standardtanks, Fluggewicht 1089 kg (2400 lbs) (nur Cessna 172P)",
+      "section": "5b",
+      "propeller": "MTV-6-A/190-69",
+      "models": [
+        "F172P"
+      ],
+      "applicable_to_d_eelk": false,
+      "weight_kg": 1089,
+      "tank": "standard",
+      "poh_pages": [
+        "5b-20",
+        "5b-21",
+        "5b-22"
+      ],
+      "row_count": 53,
+      "source_anomalies": 0
+    },
+    {
+      "id": "5b-cruise-longrange-1089kg",
+      "file": "tables/5b-cruise-longrange-1089kg.json",
+      "kind": "cruise_performance",
+      "figure": "Abb. 5-4d",
+      "table_name": "Reiseleistung, Reichweite und Flugdauer mit Langstreckentanks, Fluggewicht 1089 kg (2400 lbs) (nur Cessna 172P)",
+      "section": "5b",
+      "propeller": "MTV-6-A/190-69",
+      "models": [
+        "F172P"
+      ],
+      "applicable_to_d_eelk": false,
+      "weight_kg": 1089,
+      "tank": "long_range",
+      "poh_pages": [
+        "5b-23",
+        "5b-24",
+        "5b-25"
+      ],
+      "row_count": 53,
+      "source_anomalies": 0
+    },
+    {
+      "id": "5b-cruise-integral-1089kg",
+      "file": "tables/5b-cruise-integral-1089kg.json",
+      "kind": "cruise_performance",
+      "figure": "Abb. 5-4e",
+      "table_name": "Reiseleistung, Reichweite und Flugdauer mit Integraltanks, Fluggewicht 1089 kg (2400 lbs) (nur Cessna 172P)",
+      "section": "5b",
+      "propeller": "MTV-6-A/190-69",
+      "models": [
+        "F172P"
+      ],
+      "applicable_to_d_eelk": false,
+      "weight_kg": 1089,
+      "tank": "integral",
+      "poh_pages": [
+        "5b-26",
+        "5b-27",
+        "5b-28"
+      ],
+      "row_count": 53,
+      "source_anomalies": 0
+    }
+  ]
+}

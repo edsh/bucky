@@ -1,0 +1,657 @@
+{
+  "id": "5b-climb-rate-1043kg",
+  "kind": "climb_rate",
+  "figure": "Abb. 5-2a",
+  "table_name": "Maximale Steigrate bei Abfluggewicht 1043 kg (2300 lbs)",
+  "source": {
+    "document_id": "tae125-02-114-anhang-fhb-ausgabe-2",
+    "document_title": "Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation",
+    "issue": "Ausgabe 2",
+    "revision": "Änderung -, April 2016",
+    "section": "Abschnitt 5b LEISTUNGEN",
+    "section_applicability": "Abschnitt 5b gilt laut POH (Seite 5b-1) nur fuer Flugzeuge mit Propeller MTV-6-A/190-69. D-EELK hat diesen Propeller. Der parallele Abschnitt 5a (Propeller MTV-6-A/187-129) ist fuer D-EELK NICHT anwendbar und wurde bewusst nicht digitalisiert.",
+    "poh_pages": [
+      "5b-8"
+    ],
+    "pages": [
+      {
+        "poh_page": "5b-8",
+        "pdf_page": 134,
+        "role": "Bedingungen/Anmerkungen, Tabellenwerte",
+        "revision": "Änderung -, April 2016"
+      }
+    ],
+    "citation": "Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-8, Abb. 5-2a – Maximale Steigrate bei Abfluggewicht 1043 kg (2300 lbs)"
+  },
+  "applicability": {
+    "aircraft_registration": "D-EELK",
+    "engine": "TAE 125-02-114 (Technify/Continental Diesel)",
+    "propeller": "MTV-6-A/190-69",
+    "propeller_note": "Abschnitt 5b gilt laut POH (Seite 5b-1) nur fuer Flugzeuge mit Propeller MTV-6-A/190-69. D-EELK hat diesen Propeller. Der parallele Abschnitt 5a (Propeller MTV-6-A/187-129) ist fuer D-EELK NICHT anwendbar und wurde bewusst nicht digitalisiert.",
+    "models": [
+      "F172N",
+      "F172P"
+    ],
+    "weight_kg": 1043,
+    "weight_lbs": 2300,
+    "applicable_to_d_eelk": true
+  },
+  "conditions": [
+    "Fluggewicht 1043 kg (2300 lbs)",
+    "Geschwindigkeit im Steigflug vy = 69 KIAS / 79 mph",
+    "Klappen eingefahren",
+    "Vollgas"
+  ],
+  "notes": [
+    "1. Für Flüge bei niedrigeren Temperaturen als in der Tabelle angezeigt, die Daten für die niedrigste Temperatur der Tabelle verwenden.",
+    "2. Für Flüge bei höheren Temperaturen als in der Tabelle angezeigt, kann die Steigleistung sehr niedrig sein."
+  ],
+  "columns": [
+    {
+      "key": "pressure_altitude_ft",
+      "label": "Druckhoehe",
+      "unit": "ft"
+    },
+    {
+      "key": "vy_kias",
+      "label": "Vy",
+      "unit": "KIAS"
+    },
+    {
+      "key": "oat_c",
+      "label": "Umgebungstemperatur",
+      "unit": "degC"
+    },
+    {
+      "key": "rate_of_climb_fpm",
+      "label": "Steiggeschwindigkeit",
+      "unit": "ft/min"
+    }
+  ],
+  "row_count": 95,
+  "rows": [
+    {
+      "pressure_altitude_ft": 0,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 938
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 924
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 911
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 796
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 659
+    },
+    {
+      "pressure_altitude_ft": 1000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 932
+    },
+    {
+      "pressure_altitude_ft": 1000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 917
+    },
+    {
+      "pressure_altitude_ft": 1000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 904
+    },
+    {
+      "pressure_altitude_ft": 1000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 789
+    },
+    {
+      "pressure_altitude_ft": 1000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 651
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 925
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 910
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 897
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 782
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 644
+    },
+    {
+      "pressure_altitude_ft": 3000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 918
+    },
+    {
+      "pressure_altitude_ft": 3000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 903
+    },
+    {
+      "pressure_altitude_ft": 3000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 889
+    },
+    {
+      "pressure_altitude_ft": 3000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 774
+    },
+    {
+      "pressure_altitude_ft": 3000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 636
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 911
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 896
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 881
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 766
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 628
+    },
+    {
+      "pressure_altitude_ft": 5000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 904
+    },
+    {
+      "pressure_altitude_ft": 5000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 888
+    },
+    {
+      "pressure_altitude_ft": 5000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 874
+    },
+    {
+      "pressure_altitude_ft": 5000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 758
+    },
+    {
+      "pressure_altitude_ft": 5000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 620
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 896
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 881
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 866
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 750
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 611
+    },
+    {
+      "pressure_altitude_ft": 7000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 888
+    },
+    {
+      "pressure_altitude_ft": 7000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 873
+    },
+    {
+      "pressure_altitude_ft": 7000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 857
+    },
+    {
+      "pressure_altitude_ft": 7000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 741
+    },
+    {
+      "pressure_altitude_ft": 7000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 603
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 881
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 864
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 849
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 732
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 594
+    },
+    {
+      "pressure_altitude_ft": 9000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 847
+    },
+    {
+      "pressure_altitude_ft": 9000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 830
+    },
+    {
+      "pressure_altitude_ft": 9000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 814
+    },
+    {
+      "pressure_altitude_ft": 9000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 700
+    },
+    {
+      "pressure_altitude_ft": 9000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 563
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 812
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 796
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 779
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 666
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 533
+    },
+    {
+      "pressure_altitude_ft": 11000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 778
+    },
+    {
+      "pressure_altitude_ft": 11000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 761
+    },
+    {
+      "pressure_altitude_ft": 11000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 744
+    },
+    {
+      "pressure_altitude_ft": 11000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 633
+    },
+    {
+      "pressure_altitude_ft": 11000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 502
+    },
+    {
+      "pressure_altitude_ft": 12000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 743
+    },
+    {
+      "pressure_altitude_ft": 12000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 726
+    },
+    {
+      "pressure_altitude_ft": 12000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 709
+    },
+    {
+      "pressure_altitude_ft": 12000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 599
+    },
+    {
+      "pressure_altitude_ft": 12000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 471
+    },
+    {
+      "pressure_altitude_ft": 13000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 708
+    },
+    {
+      "pressure_altitude_ft": 13000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 691
+    },
+    {
+      "pressure_altitude_ft": 13000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 673
+    },
+    {
+      "pressure_altitude_ft": 13000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 566
+    },
+    {
+      "pressure_altitude_ft": 13000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 439
+    },
+    {
+      "pressure_altitude_ft": 14000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 673
+    },
+    {
+      "pressure_altitude_ft": 14000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 655
+    },
+    {
+      "pressure_altitude_ft": 14000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 638
+    },
+    {
+      "pressure_altitude_ft": 14000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 531
+    },
+    {
+      "pressure_altitude_ft": 14000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 408
+    },
+    {
+      "pressure_altitude_ft": 15000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 638
+    },
+    {
+      "pressure_altitude_ft": 15000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 619
+    },
+    {
+      "pressure_altitude_ft": 15000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 601
+    },
+    {
+      "pressure_altitude_ft": 15000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 497
+    },
+    {
+      "pressure_altitude_ft": 15000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 376
+    },
+    {
+      "pressure_altitude_ft": 16000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 602
+    },
+    {
+      "pressure_altitude_ft": 16000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 583
+    },
+    {
+      "pressure_altitude_ft": 16000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 565
+    },
+    {
+      "pressure_altitude_ft": 16000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 462
+    },
+    {
+      "pressure_altitude_ft": 16000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 343
+    },
+    {
+      "pressure_altitude_ft": 17000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 566
+    },
+    {
+      "pressure_altitude_ft": 17000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 547
+    },
+    {
+      "pressure_altitude_ft": 17000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 528
+    },
+    {
+      "pressure_altitude_ft": 17000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 427
+    },
+    {
+      "pressure_altitude_ft": 17000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 311
+    },
+    {
+      "pressure_altitude_ft": 18000,
+      "vy_kias": 70,
+      "oat_c": -20,
+      "rate_of_climb_fpm": 530
+    },
+    {
+      "pressure_altitude_ft": 18000,
+      "vy_kias": 70,
+      "oat_c": 0,
+      "rate_of_climb_fpm": 510
+    },
+    {
+      "pressure_altitude_ft": 18000,
+      "vy_kias": 70,
+      "oat_c": 20,
+      "rate_of_climb_fpm": 491
+    },
+    {
+      "pressure_altitude_ft": 18000,
+      "vy_kias": 70,
+      "oat_c": 40,
+      "rate_of_climb_fpm": 392
+    },
+    {
+      "pressure_altitude_ft": 18000,
+      "vy_kias": 70,
+      "oat_c": 50,
+      "rate_of_climb_fpm": 278
+    }
+  ],
+  "source_anomalies": [
+    {
+      "kind": "vy_mismatch",
+      "description": "Widerspruch im Original: die Bedingungen auf Seite 5b-8 nennen vy = 69 KIAS, die Spalte 'Vy' der Tabelle Abb. 5-2a auf Seite 5b-8 nennt 70 KIAS.",
+      "digitized_value": "Uebernommen wurde der Spaltenwert der Tabelle (70 KIAS).",
+      "action": "Geklaert am 2026-08-06: es gilt der Spaltenwert der Tabelle. Der Widerspruch wird weiterhin mitgeliefert, damit er beim Abgleich mit dem Original nicht als Digitalisierungsfehler missverstanden wird.",
+      "resolution": {
+        "date": "2026-08-06",
+        "decided_by": "afoeder",
+        "decision": "Massgeblich ist der Spaltenwert 70 KIAS."
+      }
+    }
+  ]
+}

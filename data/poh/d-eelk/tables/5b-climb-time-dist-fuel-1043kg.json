@@ -1,0 +1,307 @@
+{
+  "id": "5b-climb-time-dist-fuel-1043kg",
+  "kind": "climb_time_distance_fuel",
+  "figure": "Abb. 5-3a",
+  "table_name": "Zeit, Strecke und Kraftstoffmenge fuer den Steigflug, Abfluggewicht 1043 kg (2300 lbs)",
+  "source": {
+    "document_id": "tae125-02-114-anhang-fhb-ausgabe-2",
+    "document_title": "Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation",
+    "issue": "Ausgabe 2",
+    "revision": "Änderung -, April 2016",
+    "section": "Abschnitt 5b LEISTUNGEN",
+    "section_applicability": "Abschnitt 5b gilt laut POH (Seite 5b-1) nur fuer Flugzeuge mit Propeller MTV-6-A/190-69. D-EELK hat diesen Propeller. Der parallele Abschnitt 5a (Propeller MTV-6-A/187-129) ist fuer D-EELK NICHT anwendbar und wurde bewusst nicht digitalisiert.",
+    "poh_pages": [
+      "5b-10",
+      "5b-11"
+    ],
+    "pages": [
+      {
+        "poh_page": "5b-10",
+        "pdf_page": 136,
+        "role": "Bedingungen/Anmerkungen",
+        "revision": "Änderung -, April 2016"
+      },
+      {
+        "poh_page": "5b-11",
+        "pdf_page": 137,
+        "role": "Tabellenwerte",
+        "revision": "Änderung -, April 2016"
+      }
+    ],
+    "citation": "Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-10/5b-11, Abb. 5-3a – Zeit, Strecke und Kraftstoffmenge fuer den Steigflug, Abfluggewicht 1043 kg (2300 lbs)"
+  },
+  "applicability": {
+    "aircraft_registration": "D-EELK",
+    "engine": "TAE 125-02-114 (Technify/Continental Diesel)",
+    "propeller": "MTV-6-A/190-69",
+    "propeller_note": "Abschnitt 5b gilt laut POH (Seite 5b-1) nur fuer Flugzeuge mit Propeller MTV-6-A/190-69. D-EELK hat diesen Propeller. Der parallele Abschnitt 5a (Propeller MTV-6-A/187-129) ist fuer D-EELK NICHT anwendbar und wurde bewusst nicht digitalisiert.",
+    "models": [
+      "F172N",
+      "F172P"
+    ],
+    "weight_kg": 1043,
+    "weight_lbs": 2300,
+    "applicable_to_d_eelk": true
+  },
+  "conditions": [
+    "Startgewicht 1043 kg (2300 lbs)",
+    "Steiggeschwindigkeit vy = 69 KIAS / 79 mph",
+    "Klappen eingefahren",
+    "Vollgas",
+    "Normtemperatur (ISA)"
+  ],
+  "notes": [
+    "1. Für Anlassen, Rollen und Start 4 l (1,1 US gal) hinzurechnen.",
+    "2. Pro 10°C über Normtemperatur sind die Werte für Zeit und Steigstrecke um ca. 10% zu erhöhen.",
+    "3. Die angegebenen Strecken gelten bei Windstille.",
+    "4. Erforderliche Zeit, Strecke und Kraftstoffmenge gelten erst ab dem Punkt, an dem mit vy = 69 KIAS gestiegen wird."
+  ],
+  "columns": [
+    {
+      "key": "pressure_altitude_ft",
+      "label": "Druckhoehe",
+      "unit": "ft"
+    },
+    {
+      "key": "oat_c",
+      "label": "OAT (ISA)",
+      "unit": "degC"
+    },
+    {
+      "key": "vy_kias",
+      "label": "Vy",
+      "unit": "KIAS"
+    },
+    {
+      "key": "rate_of_climb_fpm",
+      "label": "Steigrate",
+      "unit": "ft/min"
+    },
+    {
+      "key": "time_min",
+      "label": "Zeit",
+      "unit": "min"
+    },
+    {
+      "key": "distance_nm",
+      "label": "Strecke",
+      "unit": "NM"
+    },
+    {
+      "key": "fuel_l",
+      "label": "Verbrauchter Kraftstoff",
+      "unit": "l"
+    },
+    {
+      "key": "fuel_usgal",
+      "label": "Verbrauchter Kraftstoff",
+      "unit": "US gal"
+    }
+  ],
+  "row_count": 19,
+  "rows": [
+    {
+      "pressure_altitude_ft": 0,
+      "oat_c": 15,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 914,
+      "time_min": 0.0,
+      "distance_nm": 0.0,
+      "fuel_l": 0.0,
+      "fuel_usgal": 0.0
+    },
+    {
+      "pressure_altitude_ft": 1000,
+      "oat_c": 13,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 908,
+      "time_min": 1.1,
+      "distance_nm": 1.3,
+      "fuel_l": 0.6,
+      "fuel_usgal": 0.2
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "oat_c": 11,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 903,
+      "time_min": 2.2,
+      "distance_nm": 2.6,
+      "fuel_l": 1.2,
+      "fuel_usgal": 0.3
+    },
+    {
+      "pressure_altitude_ft": 3000,
+      "oat_c": 9,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 897,
+      "time_min": 3.3,
+      "distance_nm": 4.0,
+      "fuel_l": 1.9,
+      "fuel_usgal": 0.5
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "oat_c": 7,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 891,
+      "time_min": 4.4,
+      "distance_nm": 5.4,
+      "fuel_l": 2.5,
+      "fuel_usgal": 0.7
+    },
+    {
+      "pressure_altitude_ft": 5000,
+      "oat_c": 5,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 885,
+      "time_min": 5.6,
+      "distance_nm": 6.9,
+      "fuel_l": 3.1,
+      "fuel_usgal": 0.8
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "oat_c": 3,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 878,
+      "time_min": 6.7,
+      "distance_nm": 8.5,
+      "fuel_l": 3.7,
+      "fuel_usgal": 1.0
+    },
+    {
+      "pressure_altitude_ft": 7000,
+      "oat_c": 1,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 872,
+      "time_min": 7.8,
+      "distance_nm": 10.1,
+      "fuel_l": 4.4,
+      "fuel_usgal": 1.2
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "oat_c": -1,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 865,
+      "time_min": 9.0,
+      "distance_nm": 11.8,
+      "fuel_l": 5.0,
+      "fuel_usgal": 1.3
+    },
+    {
+      "pressure_altitude_ft": 9000,
+      "oat_c": -3,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 832,
+      "time_min": 10.2,
+      "distance_nm": 13.5,
+      "fuel_l": 5.6,
+      "fuel_usgal": 1.5
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "oat_c": -5,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 800,
+      "time_min": 11.4,
+      "distance_nm": 15.4,
+      "fuel_l": 6.1,
+      "fuel_usgal": 1.6
+    },
+    {
+      "pressure_altitude_ft": 11000,
+      "oat_c": -7,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 767,
+      "time_min": 12.7,
+      "distance_nm": 17.4,
+      "fuel_l": 6.6,
+      "fuel_usgal": 1.7
+    },
+    {
+      "pressure_altitude_ft": 12000,
+      "oat_c": -9,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 733,
+      "time_min": 14.0,
+      "distance_nm": 19.5,
+      "fuel_l": 7.1,
+      "fuel_usgal": 1.9
+    },
+    {
+      "pressure_altitude_ft": 13000,
+      "oat_c": -11,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 700,
+      "time_min": 15.4,
+      "distance_nm": 21.8,
+      "fuel_l": 7.6,
+      "fuel_usgal": 2.0
+    },
+    {
+      "pressure_altitude_ft": 14000,
+      "oat_c": -13,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 667,
+      "time_min": 16.9,
+      "distance_nm": 24.3,
+      "fuel_l": 8.1,
+      "fuel_usgal": 2.1
+    },
+    {
+      "pressure_altitude_ft": 15000,
+      "oat_c": -15,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 633,
+      "time_min": 18.4,
+      "distance_nm": 27.0,
+      "fuel_l": 8.6,
+      "fuel_usgal": 2.3
+    },
+    {
+      "pressure_altitude_ft": 16000,
+      "oat_c": -17,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 599,
+      "time_min": 20.0,
+      "distance_nm": 29.8,
+      "fuel_l": 9.1,
+      "fuel_usgal": 2.4
+    },
+    {
+      "pressure_altitude_ft": 17000,
+      "oat_c": -19,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 565,
+      "time_min": 21.7,
+      "distance_nm": 32.9,
+      "fuel_l": 9.6,
+      "fuel_usgal": 2.5
+    },
+    {
+      "pressure_altitude_ft": 18000,
+      "oat_c": -21,
+      "vy_kias": 70,
+      "rate_of_climb_fpm": 530,
+      "time_min": 23.6,
+      "distance_nm": 36.3,
+      "fuel_l": 10.1,
+      "fuel_usgal": 2.7
+    }
+  ],
+  "source_anomalies": [
+    {
+      "kind": "vy_mismatch",
+      "description": "Widerspruch im Original: die Bedingungen auf Seite 5b-10 nennen vy = 69 KIAS, die Spalte 'Vy' der Tabelle Abb. 5-3a auf Seite 5b-11 nennt 70 KIAS.",
+      "digitized_value": "Uebernommen wurde der Spaltenwert der Tabelle (70 KIAS).",
+      "action": "Geklaert am 2026-08-06: es gilt der Spaltenwert der Tabelle. Der Widerspruch wird weiterhin mitgeliefert, damit er beim Abgleich mit dem Original nicht als Digitalisierungsfehler missverstanden wird.",
+      "resolution": {
+        "date": "2026-08-06",
+        "decided_by": "afoeder",
+        "decision": "Massgeblich ist der Spaltenwert 70 KIAS."
+      }
+    }
+  ]
+}

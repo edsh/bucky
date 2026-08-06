@@ -1,0 +1,643 @@
+{
+  "id": "5b-cruise-longrange-1043kg",
+  "kind": "cruise_performance",
+  "figure": "Abb. 5-4b",
+  "table_name": "Reiseleistung, Reichweite und Flugdauer mit Langstreckentanks, Fluggewicht 1043 kg (2300 lbs)",
+  "source": {
+    "document_id": "tae125-02-114-anhang-fhb-ausgabe-2",
+    "document_title": "Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation",
+    "issue": "Ausgabe 2",
+    "revision": "Änderung -, April 2016",
+    "section": "Abschnitt 5b LEISTUNGEN",
+    "section_applicability": "Abschnitt 5b gilt laut POH (Seite 5b-1) nur fuer Flugzeuge mit Propeller MTV-6-A/190-69. D-EELK hat diesen Propeller. Der parallele Abschnitt 5a (Propeller MTV-6-A/187-129) ist fuer D-EELK NICHT anwendbar und wurde bewusst nicht digitalisiert.",
+    "poh_pages": [
+      "5b-17",
+      "5b-18",
+      "5b-19"
+    ],
+    "pages": [
+      {
+        "poh_page": "5b-17",
+        "pdf_page": 143,
+        "role": "Bedingungen/Anmerkungen",
+        "revision": "Änderung -, April 2016"
+      },
+      {
+        "poh_page": "5b-18",
+        "pdf_page": 144,
+        "role": "Tabellenwerte",
+        "revision": "Änderung -, April 2016"
+      },
+      {
+        "poh_page": "5b-19",
+        "pdf_page": 145,
+        "role": "Tabellenwerte",
+        "revision": "Änderung -, April 2016"
+      }
+    ],
+    "citation": "Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-17/5b-18/5b-19, Abb. 5-4b – Reiseleistung, Reichweite und Flugdauer mit Langstreckentanks, Fluggewicht 1043 kg (2300 lbs)"
+  },
+  "applicability": {
+    "aircraft_registration": "D-EELK",
+    "engine": "TAE 125-02-114 (Technify/Continental Diesel)",
+    "propeller": "MTV-6-A/190-69",
+    "propeller_note": "Abschnitt 5b gilt laut POH (Seite 5b-1) nur fuer Flugzeuge mit Propeller MTV-6-A/190-69. D-EELK hat diesen Propeller. Der parallele Abschnitt 5a (Propeller MTV-6-A/187-129) ist fuer D-EELK NICHT anwendbar und wurde bewusst nicht digitalisiert.",
+    "models": [
+      "F172N",
+      "F172P"
+    ],
+    "weight_kg": 1043,
+    "weight_lbs": 2300,
+    "tank": "long_range",
+    "usable_fuel_l": 158.6,
+    "usable_fuel_usgal": 41.9,
+    "applicable_to_d_eelk": false,
+    "not_applicable_reason": "Gilt fuer die Tankvariante 'long_range'; D-EELK hat Standardtanks."
+  },
+  "conditions": [
+    "Fluggewicht 1043 kg (2300 lbs)",
+    "Klappen einfahren",
+    "Windstille"
+  ],
+  "notes": [
+    "1. Flugdauerangaben basieren auf Langstreckentank mit 158,6 l (41,9 US gal) ausfliegbarem Kraftstoff.",
+    "2. Die Tabelle berücksichtigt 4 l für Motorstart und Rollen, Zeit, Kraftstoff und Strecke für den Steigflug sowie 45 min. Reserve.",
+    "3. Je 10°C über ISA Temperatur erhöhen sich die wahre Fluggeschwindigkeit (KTAS) und die maximale Reichweite (NM) um 1%.",
+    "4. Für Reiseflug Lasteinstellung über 75% wird nicht empfohlen. Für wirtschaftlichen Reiseflug die Last auf 70% oder weniger einstellen."
+  ],
+  "columns": [
+    {
+      "key": "pressure_altitude_ft",
+      "label": "Druckhoehe",
+      "unit": "ft"
+    },
+    {
+      "key": "power_setting_pct",
+      "label": "Last",
+      "unit": "%"
+    },
+    {
+      "key": "ktas",
+      "label": "Geschwindigkeit",
+      "unit": "KTAS"
+    },
+    {
+      "key": "mph",
+      "label": "Geschwindigkeit",
+      "unit": "mph"
+    },
+    {
+      "key": "fuel_flow_lph",
+      "label": "Kraftstoffverbrauch",
+      "unit": "l/h"
+    },
+    {
+      "key": "fuel_flow_usgph",
+      "label": "Kraftstoffverbrauch",
+      "unit": "US gal/h"
+    },
+    {
+      "key": "range_nm",
+      "label": "Strecke",
+      "unit": "NM"
+    },
+    {
+      "key": "endurance_h",
+      "label": "Zeit",
+      "unit": "h"
+    }
+  ],
+  "row_count": 53,
+  "rows": [
+    {
+      "pressure_altitude_ft": 0,
+      "power_setting_pct": 100,
+      "ktas": 125,
+      "mph": 144,
+      "fuel_flow_lph": 33.6,
+      "fuel_flow_usgph": 8.9,
+      "range_nm": 482,
+      "endurance_h": 3.9
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "power_setting_pct": 90,
+      "ktas": 120,
+      "mph": 139,
+      "fuel_flow_lph": 29.6,
+      "fuel_flow_usgph": 7.8,
+      "range_nm": 539,
+      "endurance_h": 4.5
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "power_setting_pct": 80,
+      "ktas": 115,
+      "mph": 133,
+      "fuel_flow_lph": 25.8,
+      "fuel_flow_usgph": 6.8,
+      "range_nm": 605,
+      "endurance_h": 5.2
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "power_setting_pct": 70,
+      "ktas": 110,
+      "mph": 126,
+      "fuel_flow_lph": 22.1,
+      "fuel_flow_usgph": 5.8,
+      "range_nm": 685,
+      "endurance_h": 6.2
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "power_setting_pct": 60,
+      "ktas": 103,
+      "mph": 119,
+      "fuel_flow_lph": 18.6,
+      "fuel_flow_usgph": 4.9,
+      "range_nm": 781,
+      "endurance_h": 7.6
+    },
+    {
+      "pressure_altitude_ft": 0,
+      "power_setting_pct": 50,
+      "ktas": 95,
+      "mph": 110,
+      "fuel_flow_lph": 15.3,
+      "fuel_flow_usgph": 4.0,
+      "range_nm": 893,
+      "endurance_h": 9.4
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "power_setting_pct": 100,
+      "ktas": 127,
+      "mph": 147,
+      "fuel_flow_lph": 33.6,
+      "fuel_flow_usgph": 8.9,
+      "range_nm": 488,
+      "endurance_h": 3.8
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "power_setting_pct": 90,
+      "ktas": 123,
+      "mph": 141,
+      "fuel_flow_lph": 29.6,
+      "fuel_flow_usgph": 7.8,
+      "range_nm": 546,
+      "endurance_h": 4.4
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "power_setting_pct": 80,
+      "ktas": 118,
+      "mph": 135,
+      "fuel_flow_lph": 25.8,
+      "fuel_flow_usgph": 6.8,
+      "range_nm": 612,
+      "endurance_h": 5.1
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "power_setting_pct": 70,
+      "ktas": 112,
+      "mph": 129,
+      "fuel_flow_lph": 22.1,
+      "fuel_flow_usgph": 5.8,
+      "range_nm": 693,
+      "endurance_h": 6.1
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "power_setting_pct": 60,
+      "ktas": 105,
+      "mph": 121,
+      "fuel_flow_lph": 18.6,
+      "fuel_flow_usgph": 4.9,
+      "range_nm": 789,
+      "endurance_h": 7.4
+    },
+    {
+      "pressure_altitude_ft": 2000,
+      "power_setting_pct": 50,
+      "ktas": 97,
+      "mph": 112,
+      "fuel_flow_lph": 15.3,
+      "fuel_flow_usgph": 4.0,
+      "range_nm": 900,
+      "endurance_h": 9.2
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "power_setting_pct": 100,
+      "ktas": 130,
+      "mph": 149,
+      "fuel_flow_lph": 33.6,
+      "fuel_flow_usgph": 8.9,
+      "range_nm": 495,
+      "endurance_h": 3.7
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "power_setting_pct": 90,
+      "ktas": 125,
+      "mph": 144,
+      "fuel_flow_lph": 29.6,
+      "fuel_flow_usgph": 7.8,
+      "range_nm": 553,
+      "endurance_h": 4.3
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "power_setting_pct": 80,
+      "ktas": 120,
+      "mph": 138,
+      "fuel_flow_lph": 25.8,
+      "fuel_flow_usgph": 6.8,
+      "range_nm": 620,
+      "endurance_h": 5.0
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "power_setting_pct": 70,
+      "ktas": 114,
+      "mph": 131,
+      "fuel_flow_lph": 22.1,
+      "fuel_flow_usgph": 5.8,
+      "range_nm": 701,
+      "endurance_h": 6.0
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "power_setting_pct": 60,
+      "ktas": 107,
+      "mph": 123,
+      "fuel_flow_lph": 18.6,
+      "fuel_flow_usgph": 4.9,
+      "range_nm": 797,
+      "endurance_h": 7.3
+    },
+    {
+      "pressure_altitude_ft": 4000,
+      "power_setting_pct": 50,
+      "ktas": 98,
+      "mph": 113,
+      "fuel_flow_lph": 15.3,
+      "fuel_flow_usgph": 4.0,
+      "range_nm": 907,
+      "endurance_h": 9.1
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "power_setting_pct": 100,
+      "ktas": 132,
+      "mph": 152,
+      "fuel_flow_lph": 33.6,
+      "fuel_flow_usgph": 8.9,
+      "range_nm": 502,
+      "endurance_h": 3.6
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "power_setting_pct": 90,
+      "ktas": 127,
+      "mph": 147,
+      "fuel_flow_lph": 29.6,
+      "fuel_flow_usgph": 7.8,
+      "range_nm": 560,
+      "endurance_h": 4.2
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "power_setting_pct": 80,
+      "ktas": 122,
+      "mph": 140,
+      "fuel_flow_lph": 25.8,
+      "fuel_flow_usgph": 6.8,
+      "range_nm": 628,
+      "endurance_h": 4.9
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "power_setting_pct": 70,
+      "ktas": 116,
+      "mph": 133,
+      "fuel_flow_lph": 22.1,
+      "fuel_flow_usgph": 5.8,
+      "range_nm": 710,
+      "endurance_h": 5.9
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "power_setting_pct": 60,
+      "ktas": 109,
+      "mph": 125,
+      "fuel_flow_lph": 18.6,
+      "fuel_flow_usgph": 4.9,
+      "range_nm": 806,
+      "endurance_h": 7.2
+    },
+    {
+      "pressure_altitude_ft": 6000,
+      "power_setting_pct": 50,
+      "ktas": 100,
+      "mph": 115,
+      "fuel_flow_lph": 15.3,
+      "fuel_flow_usgph": 4.0,
+      "range_nm": 914,
+      "endurance_h": 8.9
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "power_setting_pct": 100,
+      "ktas": 135,
+      "mph": 155,
+      "fuel_flow_lph": 33.6,
+      "fuel_flow_usgph": 8.9,
+      "range_nm": 509,
+      "endurance_h": 3.5
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "power_setting_pct": 90,
+      "ktas": 130,
+      "mph": 150,
+      "fuel_flow_lph": 29.6,
+      "fuel_flow_usgph": 7.8,
+      "range_nm": 568,
+      "endurance_h": 4.1
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "power_setting_pct": 80,
+      "ktas": 124,
+      "mph": 143,
+      "fuel_flow_lph": 25.8,
+      "fuel_flow_usgph": 6.8,
+      "range_nm": 635,
+      "endurance_h": 4.8
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "power_setting_pct": 70,
+      "ktas": 118,
+      "mph": 136,
+      "fuel_flow_lph": 22.1,
+      "fuel_flow_usgph": 5.8,
+      "range_nm": 718,
+      "endurance_h": 5.8
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "power_setting_pct": 60,
+      "ktas": 111,
+      "mph": 127,
+      "fuel_flow_lph": 18.6,
+      "fuel_flow_usgph": 4.9,
+      "range_nm": 813,
+      "endurance_h": 7.0
+    },
+    {
+      "pressure_altitude_ft": 8000,
+      "power_setting_pct": 50,
+      "ktas": 101,
+      "mph": 117,
+      "fuel_flow_lph": 15.3,
+      "fuel_flow_usgph": 4.0,
+      "range_nm": 920,
+      "endurance_h": 8.8
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "power_setting_pct": 90,
+      "ktas": 133,
+      "mph": 153,
+      "fuel_flow_lph": 29.6,
+      "fuel_flow_usgph": 7.8,
+      "range_nm": 575,
+      "endurance_h": 4.0
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "power_setting_pct": 80,
+      "ktas": 127,
+      "mph": 146,
+      "fuel_flow_lph": 25.8,
+      "fuel_flow_usgph": 6.8,
+      "range_nm": 643,
+      "endurance_h": 4.7
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "power_setting_pct": 70,
+      "ktas": 120,
+      "mph": 138,
+      "fuel_flow_lph": 22.1,
+      "fuel_flow_usgph": 5.8,
+      "range_nm": 726,
+      "endurance_h": 5.6
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "power_setting_pct": 60,
+      "ktas": 113,
+      "mph": 130,
+      "fuel_flow_lph": 18.6,
+      "fuel_flow_usgph": 4.9,
+      "range_nm": 821,
+      "endurance_h": 6.9
+    },
+    {
+      "pressure_altitude_ft": 10000,
+      "power_setting_pct": 50,
+      "ktas": 103,
+      "mph": 118,
+      "fuel_flow_lph": 15.3,
+      "fuel_flow_usgph": 4.0,
+      "range_nm": 926,
+      "endurance_h": 8.6
+    },
+    {
+      "pressure_altitude_ft": 12000,
+      "power_setting_pct": 90,
+      "ktas": 135,
+      "mph": 156,
+      "fuel_flow_lph": 29.6,
+      "fuel_flow_usgph": 7.8,
+      "range_nm": 583,
+      "endurance_h": 3.8
+    },
+    {
+      "pressure_altitude_ft": 12000,
+      "power_setting_pct": 80,
+      "ktas": 129,
+      "mph": 149,
+      "fuel_flow_lph": 25.8,
+      "fuel_flow_usgph": 6.8,
+      "range_nm": 651,
+      "endurance_h": 4.6
+    },
+    {
+      "pressure_altitude_ft": 12000,
+      "power_setting_pct": 70,
+      "ktas": 123,
+      "mph": 141,
+      "fuel_flow_lph": 22.1,
+      "fuel_flow_usgph": 5.8,
+      "range_nm": 733,
+      "endurance_h": 5.5
+    },
+    {
+      "pressure_altitude_ft": 12000,
+      "power_setting_pct": 60,
+      "ktas": 115,
+      "mph": 132,
+      "fuel_flow_lph": 18.6,
+      "fuel_flow_usgph": 4.9,
+      "range_nm": 828,
+      "endurance_h": 6.7
+    },
+    {
+      "pressure_altitude_ft": 12000,
+      "power_setting_pct": 50,
+      "ktas": 104,
+      "mph": 120,
+      "fuel_flow_lph": 15.3,
+      "fuel_flow_usgph": 4.0,
+      "range_nm": 930,
+      "endurance_h": 8.4
+    },
+    {
+      "pressure_altitude_ft": 14000,
+      "power_setting_pct": 90,
+      "ktas": 138,
+      "mph": 159,
+      "fuel_flow_lph": 29.6,
+      "fuel_flow_usgph": 7.8,
+      "range_nm": 590,
+      "endurance_h": 3.7
+    },
+    {
+      "pressure_altitude_ft": 14000,
+      "power_setting_pct": 80,
+      "ktas": 132,
+      "mph": 152,
+      "fuel_flow_lph": 25.8,
+      "fuel_flow_usgph": 6.8,
+      "range_nm": 659,
+      "endurance_h": 4.4
+    },
+    {
+      "pressure_altitude_ft": 14000,
+      "power_setting_pct": 70,
+      "ktas": 125,
+      "mph": 144,
+      "fuel_flow_lph": 22.1,
+      "fuel_flow_usgph": 5.8,
+      "range_nm": 741,
+      "endurance_h": 5.4
+    },
+    {
+      "pressure_altitude_ft": 14000,
+      "power_setting_pct": 60,
+      "ktas": 117,
+      "mph": 134,
+      "fuel_flow_lph": 18.6,
+      "fuel_flow_usgph": 4.9,
+      "range_nm": 835,
+      "endurance_h": 6.6
+    },
+    {
+      "pressure_altitude_ft": 14000,
+      "power_setting_pct": 50,
+      "ktas": 105,
+      "mph": 121,
+      "fuel_flow_lph": 15.3,
+      "fuel_flow_usgph": 4.0,
+      "range_nm": 933,
+      "endurance_h": 8.2
+    },
+    {
+      "pressure_altitude_ft": 16000,
+      "power_setting_pct": 80,
+      "ktas": 134,
+      "mph": 155,
+      "fuel_flow_lph": 25.8,
+      "fuel_flow_usgph": 6.8,
+      "range_nm": 667,
+      "endurance_h": 4.3
+    },
+    {
+      "pressure_altitude_ft": 16000,
+      "power_setting_pct": 70,
+      "ktas": 127,
+      "mph": 146,
+      "fuel_flow_lph": 22.1,
+      "fuel_flow_usgph": 5.8,
+      "range_nm": 749,
+      "endurance_h": 5.2
+    },
+    {
+      "pressure_altitude_ft": 16000,
+      "power_setting_pct": 60,
+      "ktas": 118,
+      "mph": 136,
+      "fuel_flow_lph": 18.6,
+      "fuel_flow_usgph": 4.9,
+      "range_nm": 842,
+      "endurance_h": 6.4
+    },
+    {
+      "pressure_altitude_ft": 16000,
+      "power_setting_pct": 50,
+      "ktas": 107,
+      "mph": 123,
+      "fuel_flow_lph": 15.3,
+      "fuel_flow_usgph": 4.0,
+      "range_nm": 935,
+      "endurance_h": 8.0
+    },
+    {
+      "pressure_altitude_ft": 18000,
+      "power_setting_pct": 80,
+      "ktas": 137,
+      "mph": 158,
+      "fuel_flow_lph": 25.8,
+      "fuel_flow_usgph": 6.8,
+      "range_nm": 678,
+      "endurance_h": 4.1
+    },
+    {
+      "pressure_altitude_ft": 18000,
+      "power_setting_pct": 70,
+      "ktas": 130,
+      "mph": 149,
+      "fuel_flow_lph": 22.1,
+      "fuel_flow_usgph": 5.8,
+      "range_nm": 760,
+      "endurance_h": 5.0
+    },
+    {
+      "pressure_altitude_ft": 18000,
+      "power_setting_pct": 60,
+      "ktas": 120,
+      "mph": 139,
+      "fuel_flow_lph": 18.6,
+      "fuel_flow_usgph": 4.9,
+      "range_nm": 851,
+      "endurance_h": 6.2
+    },
+    {
+      "pressure_altitude_ft": 18000,
+      "power_setting_pct": 50,
+      "ktas": 107,
+      "mph": 124,
+      "fuel_flow_lph": 15.3,
+      "fuel_flow_usgph": 4.0,
+      "range_nm": 937,
+      "endurance_h": 7.8
+    }
+  ]
+}

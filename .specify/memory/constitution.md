@@ -1,5 +1,21 @@
 <!--
 Sync Impact Report
+Version change: 1.3.0 → 1.4.0
+Modified principles: none renamed or redefined
+Added sections: Core Principle IV. Shared Deterministic Core, Multiple Access
+  Paths — die deterministische Berechnungslogik ist ein eigenständiges Kernmodul;
+  SvelteKit-Server-Routes und ein MCP-Endpunkt sind dünne Adapter darüber
+Removed sections: none
+Follow-up TODOs:
+  - README.md — Architektur- und Status-Abschnitt im selben Durchgang auf
+    Prinzip IV nachgezogen (erledigt)
+  - specs/001-kraftstoffrechner-d-eelk/plan.md — noch nicht erstellt; legt das
+    konkrete Grundgerüst (Projektstruktur, Backend/Hosting, Testansatz) fest
+Templates requiring updates:
+  - ⚠ .specify/templates/plan-template.md — not yet checked against this version
+  - ⚠ .specify/templates/spec-template.md — not yet checked against this version
+
+Sync Impact Report (previous, 1.3.0)
 Version change: 1.2.1 → 1.3.0
 Modified principles: I. Deterministic Safety-Critical Calculations — materially
   expanded: digitization must capture a source reference (page number + table
@@ -90,6 +106,25 @@ Vereins-Module hinweg und reduziert Wartungsaufwand. SvelteKit statt reinem
 Svelte, da die App mehrseitig wächst (Routing) und serverseitige Logik
 (z. B. die deterministische POH-Interpolation aus Prinzip I) benötigt.
 
+### IV. Shared Deterministic Core, Multiple Access Paths
+
+Die deterministische Berechnungslogik (POH-Tabellenzugriff und Interpolation nach
+Prinzip I) MUSS als eigenständiges, UI-freies Kernmodul implementiert werden, das
+weder von SvelteKit noch von einem Chat-Protokoll abhängt. Zugangswege — mindestens
+die SvelteKit-Oberfläche (Prinzip III) und ein MCP-Endpunkt für Chat-Agenten —
+MÜSSEN dünne Adapter über genau diesem Kern sein. Ein Zugangsweg DARF Rechen-,
+Interpolations- oder Rundungslogik weder duplizieren noch abweichend
+reimplementieren. Die Quellenreferenz und der Prüfhinweis aus Prinzip I MÜSSEN vom
+Kern geliefert und von jedem Zugangsweg unverändert an den Nutzer durchgereicht
+werden.
+
+Rationale: Beide Zugangswege sind gewollt — der MCP-Endpunkt macht die Funktion
+sofort mobil im Chat nutzbar, die SvelteKit-App trägt Branding und die weiteren
+Vereinsmodule. Sicherheitskritisch ist dabei, dass es nur *eine* Wahrheit für die
+Berechnung gibt: zwei Implementierungen derselben Interpolation würden früher oder
+später auseinanderlaufen und genau den Fehler erzeugen, den Prinzip I ausschließen
+soll.
+
 ## Agent-Agnostic Project Knowledge
 
 Verbindliches Projektwissen (Prinzipien, Specs, Pläne) MUSS als werkzeugneutrales
@@ -140,8 +175,8 @@ MAJOR für unvereinbare Streichungen/Neudefinitionen bestehender Prinzipien, MIN
 neue Prinzipien/Abschnitte, PATCH für Klarstellungen. Jede Änderung aktualisiert den
 Sync-Impact-Report am Dateianfang. Pull Requests bzw. Specs, die gegen ein
 Kernprinzip verstoßen oder es berühren, MÜSSEN das betroffene Prinzip referenzieren
-und die Abweichung begründen. Aktuell sind drei Kernprinzipien definiert (I–III);
+und die Abweichung begründen. Aktuell sind vier Kernprinzipien definiert (I–IV);
 weitere werden ergänzt, sobald sich echte, nicht verhandelbare Regeln aus der
 Praxis ergeben — Platzhalter für ungenutzte Prinzipien werden nicht künstlich befüllt.
 
-**Version**: 1.3.0 | **Ratified**: 2026-08-05 | **Last Amended**: 2026-08-05
+**Version**: 1.4.0 | **Ratified**: 2026-08-05 | **Last Amended**: 2026-08-05

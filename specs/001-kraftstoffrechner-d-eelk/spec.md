@@ -196,6 +196,11 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
   weichen aber in der Größenordnung von ±0,6 l voneinander ab, ohne festes
   Vorzeichen. Ein Pilot, der von Hand nach dem Handbuch nachrechnet, MUSS diese
   Differenz erklärt bekommen, statt sie für einen Fehler zu halten.
+- **FR-021**: System MUSS gerundete Werte einheitlich mit diesen Stellen
+  ausgeben: Kraftstoffmengen auf 0,1 l, Zeiten auf ganze Minuten, Strecken auf
+  0,1 NM, Geschwindigkeiten auf ganze Knoten. Diese Stellen entsprechen der
+  Darstellung im POH, sodass Ergebnis und Handbuch unmittelbar vergleichbar
+  sind.
 
 ### Key Entities
 
@@ -298,3 +303,8 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
   und richtungslos, wird aber laut FR-020 offengelegt. Einmaliges Runden ist die
   Voraussetzung dafür, dass Web-Oberfläche und MCP-Server dieselbe Zahl liefern
   (Constitution-Prinzip IV, Zusicherung C-03).
+- **Rundungsstellen wie im POH** (2026-08-06): Kraftstoff auf 0,1 l, Zeiten auf
+  ganze Minuten, Strecken auf 0,1 NM, Geschwindigkeiten auf ganze Knoten
+  (FR-021). Das Handbuch stellt seine Werte genauso dar — im Rechenbeispiel
+  etwa 122 kt statt 122,4 —, sodass beim Vergleich keine Scheingenauigkeit
+  entsteht, die es in der Quelle gar nicht gibt.

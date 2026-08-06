@@ -56,4 +56,4 @@ erhalten würden.
   gemeinsam entschieden werden, damit die Anforderungen konsistent bleiben.
 - CHK047 ist der kritischste Punkt dieser Liste: ein Erfolgskriterium, das sich
   nicht eindeutig entscheiden lässt, ist als Gate wertlos.
-- [ ] CHK048 Ist die Rundungsregel selbst spezifiziert — auf wie viele Nachkommastellen Liter, Zeiten und Strecken gerundet werden? FR-020 legt fest, *wann* gerundet wird, nicht *wie genau*. [Gap, Spec §FR-020]
+- [x] CHK048 Ist die Rundungsregel selbst spezifiziert — auf wie viele Nachkommastellen Liter, Zeiten und Strecken gerundet werden? FR-020 legt fest, *wann* gerundet wird, FR-021 *wie genau*. [Gelöst, Spec §FR-021]

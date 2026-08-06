@@ -57,6 +57,18 @@ Meldung.
 - Immer → Hinweis, dass die Steigflugwerte für die maximale Abflugmasse von
   1043 kg gelten.
 
+## Rundungsstellen der Ausgabe (FR-021)
+
+Gerundet wird ausschließlich in `format.ts`, und zwar erst am Ende der
+Schrittfolge:
+
+| Größe | Stelle | Beispiel |
+|---|---|---|
+| Kraftstoffmenge | 0,1 l | `87,6 l` |
+| Zeit | ganze Minuten | `24 min` |
+| Strecke | 0,1 NM | `36,8 NM` |
+| Geschwindigkeit | ganze Knoten | `122 kt` |
+
 ## Quellenreferenz (`SourceReference`)
 
 Wird unverändert aus den JSON-Dateien übernommen und nicht im Code neu formuliert.

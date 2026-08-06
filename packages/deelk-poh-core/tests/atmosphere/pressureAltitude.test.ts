@@ -63,19 +63,6 @@ describe('nachgerechnete Randwerte (research.md, Punkt 4)', () => {
   }
 });
 
-describe('Abstand zur Faustformel', () => {
-  it('ist bei Standarddruck null', () => {
-    expect(toPressureAltitude(1000, STANDARDDRUCK).deviationFromRuleOfThumbFt).toBeCloseTo(0, 9);
-  });
-
-  it('beträgt bei 6000 ft und QNH 1043 rund 123 ft', () => {
-    // Der Wert aus research.md. Er belegt, dass die Faustformel keine
-    // Rundungsfrage ist, sondern in der Größenordnung einer Stützstelle irrt.
-    const ergebnis = toPressureAltitude(6000, 1043);
-    expect(Math.round(Math.abs(ergebnis.deviationFromRuleOfThumbFt))).toBe(123);
-  });
-});
-
 describe('Quellenangabe', () => {
   it('weist sich als Norm aus, nicht als Handbuchtabelle', () => {
     expect(ICAO_STANDARD_ATMOSPHERE_SOURCE.kind).toBe('standard');

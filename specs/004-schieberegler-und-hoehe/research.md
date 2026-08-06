@@ -30,6 +30,8 @@ Zusicherung lässt sich schärfer testen als eine ungefähre.
 **Verworfene Alternativen**:
 
 - *Faustformel `h + (1013,25 − QNH) · 30 ft/hPa`*: höhenabhängig zu ungenau.
+  Auch als nebenher ausgewiesener Vergleichswert verworfen — ein zweiter
+  Zahlenwert neben dem maßgeblichen lenkt von ihm ab, statt ihn einzuordnen.
   Bei QNH 1043 und 6000 ft weicht sie um 123 ft ab, bei QNH 983 und 6000 ft um
   106 ft in die andere Richtung. Hinzu kommt, dass die Faustformel selbst nicht
   eindeutig ist — je nach Quelle kursieren 27 ft/hPa und 30 ft/hPa. Genau

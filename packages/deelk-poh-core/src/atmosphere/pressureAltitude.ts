@@ -33,9 +33,6 @@ const LAPSE_RATE_K_PER_FT = LAPSE_RATE_K_PER_M * M_PER_FT;
 /** Höhe der Troposphärenskala T₀/L in ft. */
 const SCALE_HEIGHT_FT = T0_K / LAPSE_RATE_K_PER_FT;
 
-/** Die verbreitete Faustformel, gegen die viele Piloten im Kopf überschlagen. */
-const RULE_OF_THUMB_FT_PER_HPA = 30;
-
 export const ICAO_STANDARD_ATMOSPHERE_SOURCE: StandardSourceReference = {
   kind: 'standard',
   standard: 'ICAO Doc 7488, Manual of the ICAO Standard Atmosphere, 3. Auflage 1993',
@@ -53,12 +50,6 @@ export interface PressureAltitudeResult {
   readonly qnhHpa: number;
   /** Die errechnete Druckhöhe in ft, ungerundet. */
   readonly pressureAltitudeFt: number;
-  /**
-   * Abstand zur Faustformel 30 ft/hPa. Ein Pilot, der im Kopf überschlägt,
-   * erhält eine andere Zahl und muss erkennen können, dass das kein Fehler ist
-   * (FR-009).
-   */
-  readonly deviationFromRuleOfThumbFt: number;
 }
 
 /**
@@ -84,12 +75,5 @@ export function toPressureAltitude(elevationFt: number, qnhHpa: number): Pressur
   // Nachbarintervall der Tabelle — und damit die verwendeten Eckwerte.
   const pressureAltitudeFt = elevationFt * ratio + SCALE_HEIGHT_FT * (1 - ratio);
 
-  const ruleOfThumbFt = elevationFt + (P0_HPA - qnhHpa) * RULE_OF_THUMB_FT_PER_HPA;
-
-  return {
-    elevationFt,
-    qnhHpa,
-    pressureAltitudeFt,
-    deviationFromRuleOfThumbFt: pressureAltitudeFt - ruleOfThumbFt
-  };
+  return { elevationFt, qnhHpa, pressureAltitudeFt };
 }

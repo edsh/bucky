@@ -9,9 +9,11 @@
     formatNauticalMiles,
     formatNumber,
     getFuelPlanInputDomain,
+    toPressureAltitude,
     type FuelPlanResult
   } from '@edsh-bucky/deelk-poh-core';
   import FuelResult from '$lib/components/FuelResult.svelte';
+  import PowerLever from '$lib/components/PowerLever.svelte';
   import RangeField from '$lib/components/RangeField.svelte';
 
   /**
@@ -21,9 +23,8 @@
    */
   const domain = getFuelPlanInputDomain();
 
-  const alleLasteinstellungen = [
-    ...new Set(domain.powerSettingsByPressureAltitude.flatMap((eintrag) => eintrag.powerSettingsPct))
-  ].sort((a, b) => a - b);
+  /** Platzhöhe von EDSH (Hohn) als Schnellwahl — der Heimatplatz der D-EELK. */
+  const EDSH_ELEVATION_FT = 971;
 
   let departureElevationFt = $state(1000);
   let cruiseAltitudeAmslFt = $state(6000);
@@ -35,6 +36,15 @@
 
   const grad = (wert: number): string => `${formatNumber(wert, 0)} °C`;
   const prozent = (wert: number): string => `${formatNumber(wert, 0)} %`;
+
+  /**
+   * Die Druckhöhe zu beiden Höhen, unabhängig von der Gesamtrechnung. Sie soll
+   * auch dann unter dem Regler stehen, wenn die Rechnung scheitert — gerade
+   * dann erklärt sie nämlich, warum. Gerechnet wird dabei nicht selbst: die
+   * Funktion stammt aus dem Kern (Zusicherung C-04).
+   */
+  const platzDruckhoehe = $derived(toPressureAltitude(departureElevationFt, qnhHpa));
+  const reiseDruckhoehe = $derived(toPressureAltitude(cruiseAltitudeAmslFt, qnhHpa));
 
   let result = $state<FuelPlanResult | undefined>(undefined);
   let fehler = $state<string | undefined>(undefined);
@@ -96,67 +106,93 @@
   </p>
 
   <form onsubmit={(event) => event.preventDefault()}>
-    <RangeField
-      id="platzhoehe"
-      label="Platzhöhe ASL (ft)"
-      range={domain.departureElevationFt}
-      bind:value={departureElevationFt}
-      format={formatFeet}
-    />
+    <div class="felder">
+      <!--
+        Höhen und Luftdruck stehen bewusst in einer Gruppe: Das QNH verschiebt
+        beide Druckhöhen. Stünde es zwischen Strecke und Wind, sähe es aus wie
+        eine für sich stehende Angabe.
+      -->
+      <fieldset>
+        <legend>Höhen und Luftdruck</legend>
 
-    <RangeField
-      id="reiseflughoehe"
-      label="Reiseflughöhe ASL (ft)"
-      range={domain.cruiseAltitudeAmslFt}
-      bind:value={cruiseAltitudeAmslFt}
-      format={formatFeet}
-    />
+        <RangeField
+          id="platzhoehe"
+          label="Platzhöhe ASL (ft)"
+          range={domain.departureElevationFt}
+          bind:value={departureElevationFt}
+          format={formatFeet}
+        >
+          {#snippet neben()}
+            <button
+              type="button"
+              class="schnellwahl"
+              onclick={() => (departureElevationFt = EDSH_ELEVATION_FT)}
+            >
+              EDSH
+            </button>
+          {/snippet}
+          {#snippet folge()}
+            ≙ Druckhöhe {formatFeet(platzDruckhoehe.pressureAltitudeFt)}
+          {/snippet}
+        </RangeField>
 
-    <RangeField
-      id="qnh"
-      label="Luftdruck QNH (hPa)"
-      range={domain.qnhHpa}
-      bind:value={qnhHpa}
-      format={formatHectopascal}
-    />
+        <RangeField
+          id="reiseflughoehe"
+          label="Reiseflughöhe ASL (ft)"
+          range={domain.cruiseAltitudeAmslFt}
+          bind:value={cruiseAltitudeAmslFt}
+          format={formatFeet}
+        >
+          {#snippet folge()}
+            ≙ Druckhöhe {formatFeet(reiseDruckhoehe.pressureAltitudeFt)}
+          {/snippet}
+        </RangeField>
 
-    <RangeField
-      id="strecke"
-      label="Streckenlänge (NM)"
-      range={domain.distanceNm}
-      bind:value={distanceNm}
-      format={formatNauticalMiles}
-    />
+        <RangeField
+          id="qnh"
+          label="Luftdruck QNH (hPa)"
+          range={domain.qnhHpa}
+          bind:value={qnhHpa}
+          format={formatHectopascal}
+        />
+      </fieldset>
 
-    <RangeField
-      id="isa"
-      label="ISA-Abweichung (°C)"
-      range={domain.isaDeviationC}
-      bind:value={isaDeviationC}
-      format={grad}
-    />
+      <fieldset>
+        <legend>Strecke und Wetter</legend>
 
-    <RangeField
-      id="wind"
-      label="Windkomponente (kt, positiv = Gegenwind)"
-      range={domain.windComponentKt}
-      bind:value={windComponentKt}
-      format={formatKnots}
-    />
+        <RangeField
+          id="strecke"
+          label="Streckenlänge (NM)"
+          range={domain.distanceNm}
+          bind:value={distanceNm}
+          format={formatNauticalMiles}
+        />
 
-    <!--
-      Die Lasteinstellung bleibt eine Auswahl: Das Handbuch kennt dafür nur
-      einzelne Werte, Zwischenwerte existieren fachlich nicht (FR-011). Sie
-      darf nicht der Einheitlichkeit halber in einen Regler überführt werden.
-    -->
-    <label class="auswahl" for="last">
-      Lasteinstellung (%)
-      <select id="last" bind:value={powerSettingPct}>
-        {#each alleLasteinstellungen as einstellung (einstellung)}
-          <option value={einstellung}>{prozent(einstellung)}</option>
-        {/each}
-      </select>
-    </label>
+        <RangeField
+          id="isa"
+          label="ISA-Abweichung (°C)"
+          range={domain.isaDeviationC}
+          bind:value={isaDeviationC}
+          format={grad}
+        />
+
+        <RangeField
+          id="wind"
+          label="Windkomponente (kt, positiv = Gegenwind)"
+          range={domain.windComponentKt}
+          bind:value={windComponentKt}
+          format={formatKnots}
+        />
+      </fieldset>
+    </div>
+
+    <PowerLever
+      id="last"
+      label="Lasteinstellung"
+      range={domain.powerSettingPct}
+      bind:value={powerSettingPct}
+      format={prozent}
+    />
   </form>
 
   {#if fehler}
@@ -177,16 +213,49 @@
     line-height: 1.5;
   }
 
+  /* Der Leistungshebel steht seitlich, wie im Cockpit neben den Anzeigen. */
+  form {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .felder {
+    flex: 1;
+    display: grid;
+    gap: 1rem;
+  }
+
   /*
     Die Spaltenzahl ergibt sich aus der Breite, nicht aus festen Haltepunkten
     (FR-003). Die Mindestbreite von 14 rem bestimmt selbst, wann umgebrochen
     wird: Ein Regler darunter wird zu ungenau, um ihn noch zu bedienen.
   */
-  form {
+  fieldset {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
     gap: 0.75rem 1.5rem;
     align-items: end;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    padding: 0.5rem 0.75rem 0.75rem;
+    min-width: 0;
+  }
+
+  legend {
+    padding: 0 0.35rem;
+    font-size: 0.85em;
+    color: #555;
+  }
+
+  .schnellwahl {
+    padding: 0.05rem 0.4rem;
+    font: inherit;
+    color: #036;
+    background: none;
+    border: 1px solid #036;
+    border-radius: 0.75rem;
+    cursor: pointer;
   }
 
   .kopf {
@@ -203,17 +272,6 @@
     width: 4.5rem;
     height: auto;
     flex: none;
-  }
-
-  .auswahl {
-    display: grid;
-    gap: 0.25rem;
-    align-content: end;
-  }
-
-  select {
-    padding: 0.4rem;
-    font-size: 1rem;
   }
 
   .fehler {

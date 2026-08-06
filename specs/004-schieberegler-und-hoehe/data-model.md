@@ -47,11 +47,9 @@ Das Ergebnis der Umrechnung, je Höhe einmal.
 | `elevationFt` | die eingegebene Höhe über dem Meeresspiegel | ft |
 | `qnhHpa` | der verwendete Luftdruck | hPa |
 | `pressureAltitudeFt` | die errechnete Druckhöhe | ft |
-| `deviationFromRuleOfThumbFt` | Abstand zur Faustformel 30 ft/hPa | ft |
 
-`deviationFromRuleOfThumbFt` erfüllt FR-009: Ein Pilot, der im Kopf
-überschlägt, erhält eine andere Zahl und muss erkennen können, dass das kein
-Fehler ist.
+Die Faustformel 30 ft/hPa wird nicht mitgeführt (FR-009): Ein zweiter
+Zahlenwert daneben lenkt vom maßgeblichen ab, statt ihn einzuordnen.
 
 ## Geänderter Typ: Quellenangabe
 
@@ -105,10 +103,10 @@ Anfang, je einer für Startplatz und Reiseflug:
 | `id` | `pressureAltitude.departure` bzw. `pressureAltitude.cruise` |
 | `label` | „Druckhöhe Startplatz" bzw. „Druckhöhe Reiseflug" |
 | `inputs` | Höhe über dem Meeresspiegel, QNH |
-| `results` | Druckhöhe, Abstand zur Faustformel |
+| `results` | Druckhöhe |
 | `anchors` | leer — kein Tabellenwert beteiligt |
 | `sources` | die Norm-Referenz |
-| `explanation` | Formel, eingesetzte Werte und der Hinweis auf die Faustformel |
+| `explanation` | Formel und eingesetzte Werte |
 
 Alle bestehenden Schritte bleiben unverändert; sie rechnen weiterhin mit
 Druckhöhen, die sie nun aus diesen beiden Schritten beziehen.

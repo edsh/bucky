@@ -91,10 +91,6 @@
       <dt>Formel</dt>
       <dd>{ICAO_STANDARD_ATMOSPHERE_SOURCE.formula}</dd>
     </dl>
-    <p>
-      Die verbreitete Faustformel von 30 ft je hPa ist eine Näherung für Meereshöhe. Mit zunehmender
-      Höhe wächst der Abstand zur Norm; das Ergebnis weist ihn deshalb bei jeder Berechnung aus.
-    </p>
   </section>
 
   <p class="zurueck"><a href="{base}/">Zurück zum Kraftstoffrechner</a></p>

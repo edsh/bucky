@@ -53,11 +53,9 @@ Angegeben werden Platzhöhe und Reiseflughöhe über dem Meeresspiegel sowie das
 QNH — beides steht auf der Karte bzw. im Wetterbericht. Die Druckhöhe, mit der
 die Handbuchtabellen arbeiten, errechnet der Kern daraus nach der
 barometrischen Höhenformel der ICAO-Standardatmosphäre (ICAO Doc 7488). Sie ist
-damit die einzige Größe, die nicht aus dem Flughandbuch stammt; das Ergebnis
-weist sie deshalb getrennt aus, zusammen mit dem Abstand zur verbreiteten
-Faustformel von 30 ft je hPa. Aus dieser Faustformel entsteht in größerer Höhe
-ein Unterschied von über hundert Fuß — wer im Kopf überschlägt, soll das nicht
-für einen Rechenfehler halten.
+damit die einzige Größe, die nicht aus dem Flughandbuch stammt und wird deshalb
+getrennt ausgewiesen: in der Oberfläche unmittelbar unter dem Regler, der sie
+erzeugt, im Rechenweg als eigener Schritt mit eigener Quellenangabe.
 
 ## Veröffentlichte Oberfläche
 

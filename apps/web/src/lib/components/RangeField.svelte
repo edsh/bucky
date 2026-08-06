@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
   import type { NumericRange } from '@edsh-bucky/deelk-poh-core';
 
   /**
@@ -16,18 +17,27 @@
     label,
     range,
     value = $bindable(),
-    format
+    format,
+    neben,
+    folge
   }: {
     id: string;
     label: string;
     range: NumericRange;
     value: number;
     format: (value: number) => string;
+    /** Kleiner Zusatz neben der Beschriftung, etwa eine Schnellwahl. */
+    neben?: Snippet;
+    /** Zeile unter dem Regler, etwa eine daraus errechnete Größe. */
+    folge?: Snippet;
   } = $props();
 </script>
 
 <div class="regler">
-  <label for={id}>{label}</label>
+  <span class="beschriftung">
+    <label for={id}>{label}</label>
+    {#if neben}<span class="neben">{@render neben()}</span>{/if}
+  </span>
 
   <input
     {id}
@@ -45,6 +55,10 @@
     Regler nicht — die Pfeiltasten bedienen ihn von Haus aus (FR-013).
   -->
   <output id="{id}-wert" for={id}>{format(value)}</output>
+
+  {#if folge}
+    <p class="folge">{@render folge()}</p>
+  {/if}
 </div>
 
 <style>
@@ -55,8 +69,27 @@
     gap: 0.25rem 0.75rem;
   }
 
-  label {
+  .beschriftung {
     grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .neben {
+    font-size: 0.8em;
+  }
+
+  /*
+    Die abgeleitete Groesse steht unter dem Regler, der sie erzeugt — nicht
+    erst im Ergebnisblock. Wer am Regler zieht, sieht die Wirkung dort, wo er
+    hinschaut.
+  */
+  .folge {
+    grid-column: 1 / -1;
+    margin: 0.1rem 0 0;
+    font-size: 0.85em;
+    color: #555;
   }
 
   input {

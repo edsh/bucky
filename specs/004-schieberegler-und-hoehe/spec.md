@@ -149,26 +149,39 @@ Bildschirm ohne waagerechtes Scrollen untereinander rutschen.
   Platzhöhe verkleinert diese Differenz und weist damit **weniger** Kraftstoff
   aus, als der Flug tatsächlich benötigt — eine Abweichung zur unsicheren
   Seite. Der Betrag ist mit rund 0,2 l klein, die Richtung aber falsch.
-- **FR-007**: Das Ergebnis MUSS zu jeder Höhe beide Werte nennen — die
-  eingegebene Höhe über dem Meeresspiegel und die daraus errechnete Druckhöhe —,
-  damit der Pilot die Umrechnung nachvollziehen kann.
+- **FR-007**: Zu jeder Höhe MÜSSEN beide Werte sichtbar sein — die eingegebene
+  Höhe über dem Meeresspiegel und die daraus errechnete Druckhöhe. Die
+  Druckhöhe MUSS unmittelbar bei der Eingabe erscheinen, aus der sie entsteht,
+  und nicht erst im Ergebnisblock: Wer am Regler zieht, sieht die Wirkung dort,
+  wo er hinschaut. Sie MUSS auch dann erscheinen, wenn die Gesamtrechnung
+  scheitert — gerade dann erklärt sie den Grund.
 - **FR-008**: Der Rechenweg MUSS einen eigenen Schritt für die Umrechnung
   enthalten, der Eingangswerte, verwendete Formel und Ergebnis zeigt.
 - **FR-009**: Da das POH für die Druckhöhe keine Tabelle enthält, MUSS die
   Herkunft der Formel ausgewiesen werden (ICAO-Standardatmosphäre) statt einer
-  Seitenzahl. Der Unterschied zur verbreiteten Faustformel MUSS benannt sein,
-  damit eine abweichende Überschlagsrechnung nicht für einen Fehler gehalten
-  wird.
+  Seitenzahl. Die verbreitete Faustformel 30 ft/hPa wird **nicht** als
+  Vergleichswert ausgewiesen: Sie ist als Näherung für Meereshöhe gedacht, und
+  ein zweiter, danebenstehender Zahlenwert lenkt vom maßgeblichen ab, statt ihn
+  einzuordnen.
 - **FR-010**: Der zulässige Bereich für den Luftdruck MUSS die im Flugbetrieb
   vorkommenden Werte abdecken und an beiden Enden begrenzt sein.
-- **FR-011**: Eingaben mit einer festen Auswahl an Werten, für die es keine
-  Zwischenwerte gibt, MÜSSEN weiterhin als Auswahl erscheinen und DÜRFEN NICHT
-  in einen stufenlosen Regler überführt werden.
+- **FR-011**: Eingaben, für die es fachlich keine Zwischenwerte gibt, DÜRFEN
+  NICHT stufenlos einstellbar sein. Ihre Schrittweite MUSS dem tatsächlichen
+  Raster der Datengrundlage entsprechen und aus ihr abgeleitet werden, nicht
+  angenommen. Ob sie als Auswahlliste oder als gerasterter Regler erscheinen,
+  ist eine Frage der Darstellung.
 - **FR-012**: Die Prüfung der Eingaben im Rechenkern MUSS unverändert bestehen
   bleiben, auch wenn die Regler unzulässige Werte bereits verhindern — andere
   Zugangswege liefern dieselben Eingaben ohne Regler.
 - **FR-013**: Jeder Regler MUSS per Tastatur bedienbar sein und eine
   Beschriftung tragen, die ihn eindeutig benennt.
+- **FR-014**: Häufig gebrauchte Werte MÜSSEN sich mit einem Griff setzen
+  lassen, ohne die Eingabe über den Regler zu ersetzen — für die Platzhöhe der
+  Heimatplatz EDSH.
+- **FR-015**: Größen, die bei der Rechnung ohnehin anfallen und für sich
+  aussagekräftig sind, MÜSSEN im Ergebnis erscheinen, ohne dass der Rechenweg
+  aufgeklappt werden muss: Eigengeschwindigkeit (KTAS), Geschwindigkeit über
+  Grund, Verbrauch je Stunde und Reiseflugzeit.
 
 ### Key Entities
 
@@ -195,8 +208,8 @@ Bildschirm ohne waagerechtes Scrollen untereinander rutschen.
   als unzulässig zurückweist.
 - **SC-004**: Bei einer Fensterbreite von 390 px entsteht kein waagerechtes
   Scrollen; ab 1024 px stehen die Regler in mindestens zwei Spalten.
-- **SC-005**: Jede Höhe erscheint im Ergebnis mit beiden Werten — eingegebene
-  Höhe und errechnete Druckhöhe.
+- **SC-005**: Unter jedem Höhenregler steht die daraus errechnete Druckhöhe,
+  auch wenn die Gesamtrechnung scheitert.
 - **SC-006**: Führt eine Eingabe auf eine Druckhöhe außerhalb des
   Tabellenbereichs, erscheint kein Ergebnis, sondern eine Meldung, die
   errechnete Druckhöhe, überschrittene Grenze und die verursachenden Eingaben

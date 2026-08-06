@@ -44,7 +44,9 @@ export { interpolate, type InterpolationQuery, type InterpolationResult } from '
 export {
   formatFeet,
   formatFuel,
+  formatFuelFlow,
   formatHectopascal,
+  formatHours,
   formatKnots,
   formatLitres,
   formatUsGallons,
@@ -65,6 +67,7 @@ export { buildAdvisories } from './fuel/advisories.js';
 export {
   computeFuelPlan,
   PREFLIGHT_CHECK_NOTICE,
+  type CruisePerformance,
   type FuelBreakdown,
   type FuelBreakdownUsGal,
   type FuelPlanResult

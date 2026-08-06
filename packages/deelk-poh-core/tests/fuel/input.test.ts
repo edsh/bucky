@@ -115,7 +115,15 @@ describe('getFuelPlanInputDomain', () => {
     expect(domain.cruiseAltitudeAmslFt).toEqual({ min: 0, max: 18000, unit: 'ft', step: 100 });
     expect(domain.departureElevationFt).toEqual({ min: 0, max: 10000, unit: 'ft', step: 10 });
     expect(domain.qnhHpa).toEqual({ min: 950, max: 1050, unit: 'hPa', step: 1 });
-    expect(domain.powerSettingPct).toEqual({ min: 50, max: 100, unit: '%', step: 5 });
+    // Die Schrittweite ist 10, nicht 5: Das Handbuch führt nur 50, 60, 70, 80,
+    // 90 und 100 %. Ein Regler mit Schritt 5 böte Werte an, die es dort nicht
+    // gibt und die die Prüfung anschließend ablehnen müsste.
+    expect(domain.powerSettingPct).toEqual({ min: 50, max: 100, unit: '%', step: 10 });
+
+    const alleWerte = [
+      ...new Set(domain.powerSettingsByPressureAltitude.flatMap((eintrag) => eintrag.powerSettingsPct))
+    ].sort((a, b) => a - b);
+    expect(alleWerte).toStrictEqual([50, 60, 70, 80, 90, 100]);
     expect(domain.isaDeviationC).toEqual({ min: -30, max: 40, unit: '°C', step: 1 });
     expect(getPressureAltitudeRange()).toEqual({ min: 0, max: 18000, unit: 'ft', step: 100 });
   });

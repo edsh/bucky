@@ -67,7 +67,7 @@ QNH 1030 erscheint kein Ergebnis, sondern die Meldung aus FR-006.
 
 - [X] T009 [US1] Norm-Quellenreferenz `ICAO_STANDARD_ATMOSPHERE_SOURCE` als `StandardSourceReference` in neuer Datei `packages/deelk-poh-core/src/atmosphere/pressureAltitude.ts` anlegen: `standard` = „ICAO Doc 7488, Manual of the ICAO Standard Atmosphere, 3. Auflage 1993", `formula` im Klartext, `citation` als vollständige Angabe für die Anzeige
 - [X] T010 [US1] `toPressureAltitude(elevationFt, qnhHpa): PressureAltitudeResult` in `packages/deelk-poh-core/src/atmosphere/pressureAltitude.ts` umsetzen: `p = qnh · (1 − L·h/T₀)^5.25588`, dann `H_p = (T₀/L) · (1 − (p/1013.25)^(1/5.25588))`, mit `T₀ = 288.15 K`, `L = 0.0065 K/m`, `0.3048 m/ft`. Der zweite Exponent MUSS als `1 / 5.25588` gerechnet werden, nicht als Literal `0.190263` — sonst ist die Probe bei 18 000 ft nur auf 0,01 ft genau (research.md, Punkt 1). Nicht runden (C-03), Tabellenbereich nicht prüfen
-- [X] T011 [US1] `deviationFromRuleOfThumbFt` in derselben Datei mitliefern: Abstand zur Faustformel `elevationFt + (1013.25 − qnhHpa) · 30`, damit ein Pilot seine Überschlagsrechnung einordnen kann (FR-009)
+- [X] T011 [US1] Kein Vergleichswert zur Faustformel im Ergebnis (FR-009). Ein zweiter Zahlenwert neben dem maßgeblichen lenkt von ihm ab, statt ihn einzuordnen
 - [X] T012 [P] [US1] Test `packages/deelk-poh-core/tests/atmosphere/pressureAltitude.test.ts`: Probe bei QNH 1013,25 für 0, 85, 6000 und 18 000 ft auf exakte Gleichheit (SC-002); Monotonie in beide Richtungen; die vier nachgerechneten Randwerte aus research.md Punkt 4 (0 ft/1050 → −989 ft; 85 ft/1030 → −369 ft; 16 000 ft/950 → 17 578 ft; 18 000 ft/950 → 19 553 ft), je auf 1 ft gerundet verglichen
 - [X] T013 [P] [US1] Test in derselben Datei, der das gerundete Literal ausschließt: die Umrechnung bei 18 000 ft und Standarddruck muss exakt 18 000 ergeben, nicht 17 999,99
 - [X] T014 [US1] `toPressureAltitude`, `PressureAltitudeResult` und die Norm-Referenz in `packages/deelk-poh-core/src/index.ts` exportieren
@@ -81,7 +81,7 @@ QNH 1030 erscheint kein Ergebnis, sondern die Meldung aus FR-006.
 - [X] T019 [US1] Die Prüfung der Lasteinstellung in `packages/deelk-poh-core/src/fuel/input.ts` arbeitet weiterhin auf der Druckhöhe. Deshalb `validateFlightPlan` so erweitern, dass es die beiden Druckhöhen errechnet, gegen `getPressureAltitudeRange()` prüft (sonst `PRESSURE_ALTITUDE_OUT_OF_RANGE`) und erst danach `checkPowerSetting` mit der errechneten Reiseflug-Druckhöhe aufruft. Die errechneten Druckhöhen als Ergebnis mitgeben, damit `computeFuelPlan` sie nicht ein zweites Mal errechnet
 - [X] T020 [US1] `packages/deelk-poh-core/src/fuel/climb.ts` auf die errechneten Druckhöhen umstellen statt auf `plan.departureAltitudeFt`/`plan.cruiseAltitudeFt`; die Beschriftungen der Schritte nennen weiterhin die Druckhöhe, weil die Tabelle damit arbeitet
 - [X] T021 [US1] `packages/deelk-poh-core/src/fuel/cruise.ts` ebenso auf die errechnete Reiseflug-Druckhöhe umstellen
-- [X] T022 [US1] Zwei neue Rechenschritte an den Anfang von `steps` in `packages/deelk-poh-core/src/fuel/fuelPlan.ts` setzen: `pressureAltitude.departure` und `pressureAltitude.cruise`, mit Höhe ASL und QNH als `inputs`, Druckhöhe und Abstand zur Faustformel als `results`, leeren `anchors` und der Norm-Referenz als `sources`. Die `explanation` nennt die Formel, die eingesetzten Werte und den Hinweis auf die Faustformel (FR-008, FR-009). Der Rechenweg wächst damit von 13 auf 15 Schritte
+- [X] T022 [US1] Zwei neue Rechenschritte an den Anfang von `steps` in `packages/deelk-poh-core/src/fuel/fuelPlan.ts` setzen: `pressureAltitude.departure` und `pressureAltitude.cruise`, mit Höhe ASL und QNH als `inputs`, Druckhöhe als `results`, leeren `anchors` und der Norm-Referenz als `sources`. Die `explanation` nennt die Formel und die eingesetzten Werte (FR-008, FR-009). Der Rechenweg wächst damit von 13 auf 15 Schritte
 - [X] T023 [US1] In `packages/deelk-poh-core/src/fuel/fuelPlan.ts` sicherstellen, dass `result.sources` die Norm-Referenz enthält, `result.preflightCheckNotice` sich aber unverändert nur auf die POH-Referenzen bezieht (Vertrag `SourceReference`, Constitution Prinzip I)
 
 ### Kern: Tests
@@ -98,7 +98,7 @@ QNH 1030 erscheint kein Ergebnis, sondern die Meldung aus FR-006.
 - [X] T030 [US1] `apps/mcp/tests/parity.test.ts` auf die neuen Felder umstellen und um einen Fall erweitern, der `PRESSURE_ALTITUDE_OUT_OF_RANGE` über den MCP-Weg auslöst
 - [X] T031 [US1] `apps/web/src/routes/+page.svelte`: Zustandsvariablen und Beschriftungen auf „Platzhöhe ASL (ft)", „Reiseflughöhe ASL (ft)" und „Luftdruck QNH (hPa)" umstellen; die Felder bleiben in diesem Schritt noch Zahlenfelder, damit sich die Umstellung getrennt von den Reglern prüfen lässt
 - [X] T032 [US1] `apps/web/src/lib/components/SourceCitations.svelte`: Norm-Referenzen darstellen — ohne Seitenzahl, ohne Ausgabe/Revision, als Norm gekennzeichnet. Der Prüfhinweis erscheint weiterhin genau einmal und bezieht sich sichtbar auf die POH-Tabellen (Vertrag web-ui.md)
-- [X] T033 [US1] `apps/web/src/lib/components/FuelResult.svelte`: zu jeder Höhe beide Werte anzeigen — eingestellte Höhe ASL und errechnete Druckhöhe, letztere als errechnet gekennzeichnet, dazu der Abstand zur Faustformel (FR-007, FR-009, SC-005)
+- [X] T033 [US1] Die errechnete Druckhöhe unmittelbar unter dem Regler anzeigen, der sie erzeugt, mit „≙" als Zeichen — nicht im Ergebnisblock (FR-007, SC-005). Sie erscheint auch dann, wenn die Gesamtrechnung scheitert
 
 **Checkpoint**: Der Rechner ist ohne Druckhöhe im Kopf bedienbar. Alle Tests
 grün, beide Typprüfungen grün.
@@ -193,3 +193,16 @@ falschen Wert nicht mehr unterscheiden, ob der Regler oder die Formel schuld ist
 **Der riskanteste Punkt** ist T024: Die Sollwerte aus Feature 001 müssen die
 Umstellung unverändert überstehen. Sie sind der einzige Beleg dafür, dass die
 Umstellung nichts an der Rechnung selbst verschoben hat.
+
+## Phase 7: Nachkorrekturen aus der Abnahme
+
+Aus der Durchsicht der fertigen Oberfläche.
+
+- [X] T052 Faustformel vollständig entfernen: `deviationFromRuleOfThumbFt` aus `PressureAltitudeResult`, aus dem Rechenschritt, aus `FuelResult.svelte`, aus der Tabellenseite und aus `README.md`. Klickpfad-Prüfung ergänzen, die ihr Wiederauftauchen meldet
+- [X] T053 Die Druckhöhe unter den jeweiligen Höhenregler setzen (`≙ Druckhöhe … ft`). `RangeField.svelte` bekommt dafür ein Snippet `folge`; gerechnet wird mit `toPressureAltitude` aus dem Kern, nicht selbst (C-04)
+- [X] T054 Höhen und QNH in eine Gruppe `<fieldset>` fassen, Strecke und Wetter in eine zweite. Sichtbar machen, dass das QNH beide Druckhöhen verschiebt
+- [X] T055 Schnellwahl „EDSH" hinter der Beschriftung der Platzhöhe, setzt 971 ft (FR-014). `RangeField.svelte` bekommt dafür ein Snippet `neben`
+- [X] T056 `CruisePerformance` im Kernergebnis: KTAS, Geschwindigkeit über Grund, Verbrauch je Stunde und Reiseflugzeit. In Weboberfläche und MCP-Zusammenfassung anzeigen (FR-015). Test, der die Kurzfassung gegen die Rechenschritte hält
+- [X] T057 Lasteinstellung als senkrechter Regler (`PowerLever.svelte`), dem Leistungshebel nachempfunden. Die Schrittweite kommt aus dem Kern
+- [X] T058 Schrittweite der Lasteinstellung aus dem Raster der Tabelle ableiten statt sie mit 5 anzunehmen — das Handbuch führt nur 50 bis 100 in Zehnerschritten
+- [X] T059 `formatFuelFlow` und `formatHours` im Kern ergänzen; im MCP-Adapter die Einheiten `ft`, `hPa`, `l/h`, `US gal/h` und `h` behandeln, damit Druckhöhen im Rechenweg nicht ungerundet erscheinen

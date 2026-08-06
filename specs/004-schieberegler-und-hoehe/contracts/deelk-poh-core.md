@@ -65,7 +65,7 @@ neben einer Norm-Referenz anzeigt, verletzt diesen Vertrag.
 
 | Kennung | Zusicherung |
 |---|---|
-| C-04 | Kein Adapter enthält eine eigene Umrechnung zwischen Höhe und Druckhöhe. Die Faustformel 30 ft/hPa darf nirgends als Rechenweg auftauchen, nur als benannter Vergleichswert aus dem Kern. |
+| C-04 | Kein Adapter enthält eine eigene Umrechnung zwischen Höhe und Druckhöhe. Die Faustformel 30 ft/hPa darf nirgends auftauchen — weder als Rechenweg noch als Vergleichswert. |
 | C-05 | Kein Adapter legt Grenzen oder Schrittweiten seiner Eingabefelder selbst fest; sie stammen ausschließlich aus `getFuelPlanInputDomain()`. |
 
 Beide sind wie C-01 und C-03 am Quelltext prüfbar und gehören in

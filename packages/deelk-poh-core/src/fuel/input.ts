@@ -101,6 +101,24 @@ export function getPressureAltitudeRange(): NumericRange {
 }
 
 /**
+ * Schrittweite der Lasteinstellung, aus dem Raster der Tabelle abgeleitet und
+ * nicht angenommen. Ein festes Literal war hier zunächst 5 — das Handbuch führt
+ * jedoch nur 50, 60, 70, 80, 90 und 100 %. Solange die Lasteinstellung eine
+ * Auswahlliste war, fiel das nicht auf; als Regler böte sie sonst Werte an, die
+ * in keiner Tabelle stehen und die der Kern anschließend ablehnen müsste.
+ *
+ * Ist das Raster ungleichmäßig, wird 1 zurückgegeben: Ein Regler, der Werte
+ * überspringt, wäre irreführender als einer, der zu feine anbietet — und der
+ * Kern prüft ohnehin gegen die Liste der tatsächlich verfügbaren Werte.
+ */
+function powerSettingStep(settings: readonly number[]): number {
+  const eindeutig = [...new Set(settings)].sort((a, b) => a - b);
+  const abstaende = eindeutig.slice(1).map((wert, index) => wert - (eindeutig[index] as number));
+  const erster = abstaende[0];
+  return erster !== undefined && abstaende.every((abstand) => abstand === erster) ? erster : 1;
+}
+
+/**
  * Die Wertebereiche der Eingabe, aus der Datengrundlage abgeleitet. Adapter
  * bauen ihre Formulare daraus, statt Grenzen selbst zu kennen (Prinzip IV).
  */
@@ -116,7 +134,7 @@ export function getFuelPlanInputDomain(): InputDomain {
       min: Math.min(...allSettings),
       max: Math.max(...allSettings),
       unit: '%',
-      step: 5
+      step: powerSettingStep(allSettings)
     },
     isaDeviationC: ISA_DEVIATION_RANGE,
     windComponentKt: WIND_COMPONENT_RANGE,

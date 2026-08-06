@@ -42,12 +42,11 @@ Platzhöhe 85 ft, Reiseflughöhe 6000 ft, QNH 983 hPa einstellen.
 
 **Erwartet**:
 
-- Beide Druckhöhen liegen über den eingestellten Höhen (rund 921 ft und
-  6802 ft).
+- Beide Druckhöhen stehen unmittelbar unter dem jeweiligen Regler, mit „≙" als
+  Zeichen, und liegen über den eingestellten Höhen (rund 921 ft und 6802 ft).
 - Der Rechenweg beginnt mit zwei Schritten für die Umrechnung, jeweils mit
   Formel und eingesetzten Werten (FR-008).
 - Diese Schritte tragen die Norm-Referenz, nicht den POH-Prüfhinweis.
-- Der Abstand zur Faustformel ist genannt (FR-009).
 
 ## 3. Hochdruck führt zur Ablehnung
 

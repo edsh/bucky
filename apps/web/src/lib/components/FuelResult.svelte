@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { FuelPlanResult } from '@edsh-bucky/deelk-poh-core';
-  import { formatFeet, formatFuel, formatHectopascal } from '@edsh-bucky/deelk-poh-core';
+  import { formatFuel, formatFuelFlow, formatHours, formatKnots } from '@edsh-bucky/deelk-poh-core';
   import CalculationSteps from './CalculationSteps.svelte';
   import SourceCitations from './SourceCitations.svelte';
 
@@ -11,52 +11,38 @@
    */
   let { result }: { result: FuelPlanResult } = $props();
 
-  /**
-   * Zu jeder Höhe erscheinen beide Werte (FR-007, SC-005) und der Abstand zur
-   * Faustformel (FR-009) — wer im Kopf mit 30 ft/hPa überschlägt, erhält eine
-   * andere Zahl und soll das nicht für einen Fehler halten.
-   */
-  const hoehen = $derived([
-    { name: 'Startplatz', wert: result.pressureAltitudes.departure },
-    { name: 'Reiseflug', wert: result.pressureAltitudes.cruise }
-  ]);
 </script>
 
 <section class="ergebnis">
   <h2>Kraftstoffbedarf</h2>
 
   <!--
-    Die vier Spalten passen auf einem Telefon nicht nebeneinander. Statt die
-    Seite waagerecht scrollen zu lassen, scrollt nur die Tabelle selbst; die
-    Zahlen bleiben dabei in einer Zeile beieinander und damit vergleichbar.
+    Die Druckhöhen stehen unter den Reglern, die sie erzeugen, nicht hier. Eine
+    zweite Anzeige an dieser Stelle waere ein Duplikat und muesste bei jeder
+    Aenderung mitgepflegt werden.
+
+    Geschwindigkeit und Stundenverbrauch fallen bei der Rechnung ohnehin an und
+    sind fuer sich aussagekraeftig — sie beantworten "wie lange" und "wie viel
+    pro Stunde", ohne dass der Rechenweg aufgeklappt werden muss.
   -->
-  <div class="hoehen-rahmen">
-    <table class="hoehen">
-    <caption>
-      Druckhöhen, errechnet aus Höhe und QNH — sie stehen so nicht im Flughandbuch
-    </caption>
-    <thead>
-      <tr>
-        <th scope="col"></th>
-        <th scope="col">über dem Meeresspiegel</th>
-        <th scope="col">Druckhöhe</th>
-        <th scope="col">Faustformel 30 ft/hPa</th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each hoehen as zeile (zeile.name)}
-        <tr>
-          <th scope="row">{zeile.name}</th>
-          <td>{formatFeet(zeile.wert.elevationFt)} bei {formatHectopascal(zeile.wert.qnhHpa)}</td>
-          <td class="druckhoehe">{formatFeet(zeile.wert.pressureAltitudeFt)}</td>
-          <td class="abweichung">
-            {formatFeet(zeile.wert.deviationFromRuleOfThumbFt)} Abstand
-          </td>
-        </tr>
-      {/each}
-      </tbody>
-    </table>
-  </div>
+  <dl class="leistung">
+    <div>
+      <dt>Eigengeschwindigkeit</dt>
+      <dd>{formatKnots(result.cruisePerformance.ktas)} KTAS</dd>
+    </div>
+    <div>
+      <dt>über Grund</dt>
+      <dd>{formatKnots(result.cruisePerformance.groundSpeedKt)}</dd>
+    </div>
+    <div>
+      <dt>Verbrauch je Stunde</dt>
+      <dd>{formatFuelFlow(result.cruisePerformance.fuelFlowLph, result.cruisePerformance.fuelFlowUsGph)}</dd>
+    </div>
+    <div>
+      <dt>Reiseflugzeit</dt>
+      <dd>{formatHours(result.cruisePerformance.timeH)}</dd>
+    </div>
+  </dl>
 
   <table class="aufschluesselung">
     <tbody>
@@ -107,40 +93,23 @@
 </section>
 
 <style>
-  .hoehen-rahmen {
-    overflow-x: auto;
-    margin-bottom: 1rem;
+  .leistung {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2rem;
+    margin: 0 0 1rem;
   }
 
-  .hoehen {
-    border-collapse: collapse;
-  }
-
-  .hoehen td,
-  .hoehen th {
-    white-space: nowrap;
-  }
-
-  .hoehen caption {
-    text-align: left;
+  .leistung dt {
+    font-weight: 400;
     font-size: 0.85em;
     color: #555;
-    padding-bottom: 0.35rem;
   }
 
-  .hoehen th,
-  .hoehen td {
-    text-align: left;
-    padding: 0.2rem 0.75rem 0.2rem 0;
-    font-size: 0.95em;
-  }
-
-  .druckhoehe {
+  .leistung dd {
+    margin: 0;
     font-weight: 700;
-  }
-
-  .abweichung {
-    color: #555;
+    font-variant-numeric: tabular-nums;
   }
 
   .ergebnis {

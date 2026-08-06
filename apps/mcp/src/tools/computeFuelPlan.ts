@@ -2,7 +2,11 @@ import { z } from 'zod';
 import {
   PohCalculationError,
   computeFuelPlan,
+  formatFeet,
   formatFuel,
+  formatFuelFlow,
+  formatHectopascal,
+  formatHours,
   formatKnots,
   formatLitres,
   formatUsGallons,
@@ -88,6 +92,8 @@ export function formatSummary(result: FuelPlanResult): string {
     `- Steigflug: ${formatFuel(result.breakdown.climbL, result.breakdownUsGal.climbUsGal)}`,
     `- Reiseflug: ${formatFuel(result.breakdown.cruiseL, result.breakdownUsGal.cruiseUsGal)}`,
     '',
+    `Im Reiseflug: ${formatKnots(result.cruisePerformance.ktas)} KTAS, ${formatKnots(result.cruisePerformance.groundSpeedKt)} über Grund, ${formatFuelFlow(result.cruisePerformance.fuelFlowLph, result.cruisePerformance.fuelFlowUsGph)}, Reiseflugzeit ${formatHours(result.cruisePerformance.timeH)}.`,
+    '',
     result.exceedsUsableFuel
       ? `Der Bedarf erreicht oder übersteigt die ausfliegbare Menge von ${formatFuel(result.usableFuelL, result.usableFuelUsGal)}. Dieser Flug ist so nicht durchführbar.`
       : `Ausfliegbar sind ${formatFuel(result.usableFuelL, result.usableFuelUsGal)}; rechnerisch bleiben ${formatFuel(result.remainingFuelL, result.remainingFuelUsGal)} übrig. Das ist keine Reserve.`
@@ -147,7 +153,20 @@ function formatQuantity(value: number, unit: string): string {
       return formatNauticalMiles(value);
     case 'kt':
       return formatKnots(value);
+    case 'ft':
+      return formatFeet(value);
+    case 'hPa':
+      return formatHectopascal(value);
+    case 'l/h':
+      return `${formatLitres(value)}/h`;
+    case 'US gal/h':
+      return `${formatUsGallons(value)}/h`;
+    case 'h':
+      return formatHours(value);
     default:
+      // Bewusst als letzter Ausweg und nicht als Regelfall: Ohne die Faelle
+      // oben landeten die Druckhoehen hier und erschienen im Rechenweg mit
+      // allen Nachkommastellen — eine Genauigkeit, die die Rechnung nicht hat.
       return `${value} ${unit}`;
   }
 }

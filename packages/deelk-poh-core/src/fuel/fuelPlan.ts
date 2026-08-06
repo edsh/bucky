@@ -30,6 +30,25 @@ export interface FuelBreakdownUsGal {
   readonly totalUsGal: number;
 }
 
+/**
+ * Werte, die bei der Reiseflugrechnung ohnehin anfallen und für den Piloten
+ * eigenständig aussagekräftig sind: Wie schnell fliegt die Maschine bei dieser
+ * Lasteinstellung, und was verbraucht sie dabei in der Stunde? Sie stehen hier
+ * eigens, damit ein Adapter sie nicht aus den Rechenschritten klauben muss.
+ */
+export interface CruisePerformance {
+  /** Eigengeschwindigkeit in kt, nach der Temperaturkorrektur. */
+  readonly ktas: number;
+  /** Geschwindigkeit über Grund in kt, also KTAS abzüglich Gegenwind. */
+  readonly groundSpeedKt: number;
+  /** Verbrauch je Stunde in l, unmittelbar aus der Tabelle interpoliert. */
+  readonly fuelFlowLph: number;
+  /** Derselbe Verbrauch aus der eigenen US-gph-Spalte der Tabelle. */
+  readonly fuelFlowUsGph: number;
+  /** Reine Reiseflugzeit in h, ohne Steigflug. */
+  readonly timeH: number;
+}
+
 export interface FuelPlanResult {
   readonly input: FlightPlanInput;
   /**
@@ -41,6 +60,8 @@ export interface FuelPlanResult {
     readonly departure: PressureAltitudeResult;
     readonly cruise: PressureAltitudeResult;
   };
+  /** Geschwindigkeit und Stundenverbrauch im Reiseflug. */
+  readonly cruisePerformance: CruisePerformance;
   readonly steps: readonly CalculationStep[];
   /** Gerundete Ausgabewerte (FR-020, FR-021). */
   readonly breakdown: FuelBreakdown;
@@ -133,6 +154,13 @@ export function computeFuelPlan(input: unknown): FuelPlanResult {
   return {
     input: plan,
     pressureAltitudes: { departure: validated.departure, cruise: validated.cruise },
+    cruisePerformance: {
+      ktas: cruise.ktas,
+      groundSpeedKt: cruise.groundSpeedKt,
+      fuelFlowLph: cruise.fuelFlowLph,
+      fuelFlowUsGph: cruise.fuelFlowUsGph,
+      timeH: cruise.timeH
+    },
     steps,
     breakdown: {
       taxiTakeoffL: roundLitres(TAXI_TAKEOFF_L),
@@ -172,7 +200,6 @@ function pressureAltitudeStep(
   label: string,
   result: PressureAltitudeResult
 ): CalculationStep {
-  const faustformel = result.pressureAltitudeFt - result.deviationFromRuleOfThumbFt;
   return {
     id: `pressureAltitude.${suffix}`,
     label,
@@ -180,12 +207,9 @@ function pressureAltitudeStep(
       elevationFt: { value: result.elevationFt, unit: 'ft' },
       qnhHpa: { value: result.qnhHpa, unit: 'hPa' }
     },
-    results: {
-      pressureAltitudeFt: { value: result.pressureAltitudeFt, unit: 'ft' },
-      deviationFromRuleOfThumbFt: { value: result.deviationFromRuleOfThumbFt, unit: 'ft' }
-    },
+    results: { pressureAltitudeFt: { value: result.pressureAltitudeFt, unit: 'ft' } },
     anchors: [],
-    explanation: `${formatNumber(result.elevationFt, 0)} ft über dem Meeresspiegel bei einem QNH von ${formatNumber(result.qnhHpa, 2)} hPa ergeben ${formatNumber(result.pressureAltitudeFt, 0)} ft Druckhöhe. Gerechnet nach der barometrischen Höhenformel der ICAO-Standardatmosphäre: ${ICAO_STANDARD_ATMOSPHERE_SOURCE.formula}. Diese Größe stammt nicht aus dem Flughandbuch. Die verbreitete Faustformel 30 ft/hPa ergäbe ${formatNumber(faustformel, 0)} ft — eine Abweichung von ${formatNumber(result.deviationFromRuleOfThumbFt, 0)} ft ist daher kein Fehler.`,
+    explanation: `${formatNumber(result.elevationFt, 0)} ft über dem Meeresspiegel bei einem QNH von ${formatNumber(result.qnhHpa, 2)} hPa ergeben ${formatNumber(result.pressureAltitudeFt, 0)} ft Druckhöhe. Gerechnet nach der barometrischen Höhenformel der ICAO-Standardatmosphäre: ${ICAO_STANDARD_ATMOSPHERE_SOURCE.formula}. Diese Größe stammt nicht aus dem Flughandbuch.`,
     sources: [ICAO_STANDARD_ATMOSPHERE_SOURCE]
   };
 }

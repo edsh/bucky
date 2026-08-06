@@ -47,7 +47,7 @@ async function fuellen(page, werte) {
   await regler(page, 'Reiseflughöhe ASL (ft)', werte.cruise);
   await regler(page, 'Luftdruck QNH (hPa)', werte.qnh ?? 1013);
   await regler(page, 'Streckenlänge (NM)', werte.dist);
-  await page.getByLabel('Lasteinstellung (%)').selectOption(String(werte.power));
+  await regler(page, 'Lasteinstellung', werte.power);
   await regler(page, 'ISA-Abweichung (°C)', werte.isa);
   await regler(page, 'Windkomponente (kt, positiv = Gegenwind)', werte.wind);
   // Gerechnet wird bei jeder Bewegung; ein Lidschlag reicht fuer den Durchlauf.
@@ -91,7 +91,8 @@ const seitentext = await page.locator('main').innerText();
 pruefe(4, 'Hinweis, dass die Summe keine Reserve enthält', /keine Reserve/i.test(seitentext));
 
 // 3: Lasteinstellung über 75 % erzeugt den Hinweis aus Anmerkung 4, blockiert nicht
-await page.getByLabel('Lasteinstellung (%)').selectOption('80');
+await regler(page, 'Lasteinstellung', 80);
+await page.waitForTimeout(150);
 await page.getByRole('heading', { name: 'Kraftstoffbedarf' }).waitFor({ timeout: 5000 });
 const hinweise = await page.locator('.hinweise').innerText();
 pruefe(
@@ -159,6 +160,7 @@ const ausgaben = await page.locator('output').count();
 // Die Grenzen stammen aus getFuelPlanInputDomain(); hier stehen sie als
 // erwarteter Aushang, damit ein stilles Abweichen der Oberflaeche auffaellt.
 const erwarteteGrenzen = {
+  last: { min: '50', max: '100', step: '10' },
   platzhoehe: { min: '0', max: '10000', step: '10' },
   reiseflughoehe: { min: '0', max: '18000', step: '100' },
   qnh: { min: '950', max: '1050', step: '1' },
@@ -179,8 +181,8 @@ const grenzen = await page.evaluate(
 const grenzenStimmen = JSON.stringify(grenzen) === JSON.stringify(erwarteteGrenzen);
 pruefe(
   13,
-  'sechs Schieberegler mit Wertanzeige und den Grenzen des Rechenkerns',
-  reglerZahl === 6 && ausgaben === 6 && zahlenfelder === 0 && grenzenStimmen,
+  'sieben Schieberegler mit Wertanzeige und den Grenzen des Rechenkerns',
+  reglerZahl === 7 && ausgaben === 7 && zahlenfelder === 0 && grenzenStimmen,
   `${reglerZahl} Regler, ${ausgaben} Anzeigen, ${zahlenfelder} Zahlenfelder, Grenzen ${grenzenStimmen ? 'wie erwartet' : JSON.stringify(grenzen)}`
 );
 
@@ -199,17 +201,48 @@ pruefe(
   `${vorher} -> ${nachher}`
 );
 
-// 15: Druckhöhe wird aus Höhe ASL und QNH errechnet angezeigt (FR-006)
+// 15: Druckhöhe steht unmittelbar unter dem Regler, der sie erzeugt (FR-006/FR-007)
 await fuellen(page, { dep: 1000, cruise: 6000, qnh: 1043, dist: 400, power: 70, isa: 0, wind: 0 });
-const hoehenzeilen = await page.locator('.hoehen tbody tr').allInnerTexts();
-const reiseflug = hoehenzeilen.find((z) => z.startsWith('Reiseflug')) ?? '';
-// Bei 1043 hPa liegt die Druckhoehe unter der Hoehe ASL; die Faustformel
-// (30 ft/hPa) trifft daneben, der Abstand wird eigens ausgewiesen (FR-009).
+const druckhoehenzeilen = await page.locator('form .folge').allInnerTexts();
+// Bei 1043 hPa liegen beide Druckhoehen unter den eingestellten Hoehen.
 pruefe(
   15,
-  'errechnete Druckhöhe und Abstand zur Faustformel stehen neben der Höhe ASL',
-  /6000 ft bei 1043 hPa/.test(reiseflug) && /\b5\d{3} ft/.test(reiseflug) && /Abstand/.test(reiseflug),
-  reiseflug.replace(/\s+/g, ' ')
+  'Druckhöhe steht unter beiden Höhenreglern, mit ≙ als Zeichen',
+  druckhoehenzeilen.length === 2 &&
+    druckhoehenzeilen.every((z) => z.includes('≙') && /Druckhöhe/.test(z)) &&
+    /\b2\d{2} ft/.test(druckhoehenzeilen[0]) &&
+    /\b5\d{3} ft/.test(druckhoehenzeilen[1]),
+  druckhoehenzeilen.join(' | ')
+);
+
+// 18: Schnellwahl EDSH setzt die Platzhöhe und die Druckhöhe folgt
+await page.getByRole('button', { name: 'EDSH' }).click();
+await page.waitForTimeout(150);
+const platzWert = await page.locator('#platzhoehe-wert').innerText();
+const platzFolge = (await page.locator('form .folge').allInnerTexts())[0];
+pruefe(
+  18,
+  'Schnellwahl EDSH setzt die Platzhöhe auf 971 ft',
+  platzWert.includes('971') && /≙ Druckhöhe/.test(platzFolge),
+  `${platzWert} — ${platzFolge}`
+);
+
+// 19: Geschwindigkeit und Stundenverbrauch stehen im Ergebnis
+const leistung = await page.locator('.leistung').innerText();
+pruefe(
+  19,
+  'KTAS, Geschwindigkeit über Grund und Stundenverbrauch werden ausgewiesen',
+  /KTAS/.test(leistung) && /über Grund/.test(leistung) && /\/h/.test(leistung),
+  leistung.replace(/\s+/g, ' ')
+);
+
+// 20: die Faustformel taucht nirgends mehr auf
+const ganzeSeite = await page.locator('main').innerText();
+// Die Wortgrenze ist noetig: ohne sie trifft "30 ft" auch auf "5230 ft" zu.
+pruefe(
+  20,
+  'die Faustformel wird nicht mehr erwähnt',
+  !/Faustformel|\b30 ft\b|ft\s*\/\s*hPa/.test(ganzeSeite)
 );
 
 // 17: hoher Luftdruck druckt die Platzhoehe unter den Tabellenrand (SC-006)
@@ -229,7 +262,7 @@ const spaltenZaehlen = () =>
   page.evaluate(
     () =>
       new Set(
-        [...document.querySelectorAll('form > *')].map((element) =>
+        [...document.querySelectorAll('fieldset > .regler')].map((element) =>
           Math.round(element.getBoundingClientRect().left)
         )
       ).size

@@ -144,4 +144,26 @@ describe('Fall B — mit Interpolation', () => {
   it('interpoliert die Verbrauchsrate nicht weg — sie ist bei 6000 und 8000 ft gleich', () => {
     expect(resultOf(result.steps, 'cruise.tableLookup', 'fuelFlowLph')).toBe(18.6);
   });
+
+  it('weist Geschwindigkeit und Stundenverbrauch aus, deckungsgleich mit dem Rechenweg', () => {
+    // Ohne diese Prüfung könnte die Kurzfassung stillschweigend von den
+    // Schritten abweichen — sie stünde dann als zweite Wahrheit daneben.
+    const { cruisePerformance } = result;
+    expect(cruisePerformance.ktas).toBe(
+      resultOf(result.steps, 'cruise.ktasTemperatureCorrection', 'ktas')
+    );
+    expect(cruisePerformance.groundSpeedKt).toBe(
+      resultOf(result.steps, 'cruise.groundSpeed', 'groundSpeedKt')
+    );
+    expect(cruisePerformance.fuelFlowLph).toBe(
+      resultOf(result.steps, 'cruise.tableLookup', 'fuelFlowLph')
+    );
+    expect(cruisePerformance.timeH).toBe(resultOf(result.steps, 'cruise.time', 'timeH'));
+
+    // Der Stundenverbrauch stammt aus der eigenen US-gph-Spalte der Tabelle,
+    // nicht aus einer Umrechnung der Liter (FR-009).
+    expect(cruisePerformance.fuelFlowUsGph).toBe(
+      resultOf(result.steps, 'cruise.tableLookup', 'fuelFlowUsGph')
+    );
+  });
 });

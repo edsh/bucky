@@ -35,7 +35,7 @@ aktuellen Wert.
   Meeresspiegel und die daraus errechnete Druckhöhe (FR-007, SC-005).
 - Die Druckhöhe wird als errechnet gekennzeichnet und trägt die
   Norm-Referenz, nicht den POH-Prüfhinweis.
-- Der Abstand zur Faustformel wird genannt (FR-009).
+- Die Druckhöhe steht unter dem Regler, der sie erzeugt (FR-007).
 
 ## Verhalten außerhalb des Tabellenbereichs
 

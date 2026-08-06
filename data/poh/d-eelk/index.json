@@ -1,7 +1,7 @@
 {
   "aircraft": {
     "registration": "D-EELK",
-    "type": "Reims/Cessna F172N mit TAE 125-02-114 (EASA STC 10014287)",
+    "type": "Cessna 172N mit TAE 125-02-114 (EASA STC 10014287)",
     "model": "172N",
     "propeller": "MTV-6-A/190-69",
     "applicable_section": "5b",

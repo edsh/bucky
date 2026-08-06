@@ -872,7 +872,11 @@ def main() -> int:
     index = {
         "aircraft": {
             "registration": "D-EELK",
-            "type": "Reims/Cessna F172N mit TAE 125-02-114 (EASA STC 10014287)",
+            # Das Dokument gilt laut Titel fuer "(Reims) Cessna (F)172 N&P" — die
+        # Klammern sind eine Sammelangabe fuer Reims-gebaute F172 UND
+        # Cessna-gebaute 172. Daraus laesst sich die Herkunft eines einzelnen
+        # Flugzeugs NICHT ableiten. D-EELK ist eine Cessna 172N, keine Reims.
+        "type": "Cessna 172N mit TAE 125-02-114 (EASA STC 10014287)",
             "model": "172N",
             "propeller": PROPELLER,
             "applicable_section": SECTION,

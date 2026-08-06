@@ -183,8 +183,13 @@ wird.
 
 ## Anwendbarkeit auf D-EELK
 
-D-EELK ist eine **Reims/Cessna F172N mit Standardtanks** (Stand 2026-08-06, vom
+D-EELK ist eine **Cessna 172N mit Standardtanks** (Stand 2026-08-06, vom
 Halter bestätigt). Daraus folgt:
+
+Der Dokumenttitel nennt "(Reims) Cessna (F)172 N&P". Die Klammern sind eine
+Sammelangabe: das Handbuch gilt für Reims-gebaute F172 ebenso wie für
+Cessna-gebaute 172, für die Baureihen N und P. Aus dem Titel folgt also nicht,
+dass ein einzelnes Flugzeug eine Reims wäre — D-EELK ist es nicht.
 
 - Maximale Abflugmasse **1043 kg** (2300 lbs). Die Tabellen für 1089 kg gelten
   laut POH nur für die Cessna 172P und sind für D-EELK **nicht anwendbar**.

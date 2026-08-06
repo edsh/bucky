@@ -346,7 +346,7 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
 
 - Unterstützt wird zunächst ausschließlich das Flugzeug D-EELK; weitere
   Flugzeuge/Flughandbücher sind ein separates, späteres Feature.
-- D-EELK ist eine Reims/Cessna F172N mit Standardtanks. Damit gilt die maximale
+- D-EELK ist eine Cessna 172N mit Standardtanks. Damit gilt die maximale
   Abflugmasse 1043 kg und eine ausfliegbare Kraftstoffmenge von 127,4 l. Für das
   Flugzeug ist genau eine Steigflug- und genau eine Reiseleistungstabelle
   anwendbar; Abflugmasse und Tankvariante werden daher nicht abgefragt.

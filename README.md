@@ -139,6 +139,6 @@ Offene Fragen:
 2. Authentifizierung/Rollenmodell für Vereinsmitglieder?
 3. Wahl der Datenbank?
 
-Geklärt: Die D-EELK ist eine Reims/Cessna F172N mit Standardtanks; damit sind
+Geklärt: Die D-EELK ist eine Cessna 172N mit Standardtanks; damit sind
 die Tabellen aus Abschnitt 5b für 1043 kg maßgeblich (siehe
 `data/poh/d-eelk/README.md`).

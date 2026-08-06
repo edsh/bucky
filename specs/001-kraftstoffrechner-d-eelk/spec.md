@@ -224,11 +224,13 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
   Original-Flughandbuch überein (verifiziert durch die doppelte Prüfung aus
   FR-002).
 - **SC-005**: Das System reproduziert das im POH auf Seite 5-3 bis 5-5
-  beschriebene **Verfahren** Schritt für Schritt. Geprüft wird gegen einen einmalig
-  von Hand aus den Tabellen des Abschnitts 5b erstellten und dokumentierten
-  Sollwert, nicht gegen die Zahlen des dortigen Rechenbeispiels — dieses gehört zu
-  Abschnitt 5a (anderer Propeller, andere KTAS-Korrektur) und ist für D-EELK nicht
-  anwendbar.
+  beschriebene Verfahren Schritt für Schritt. Geprüft wird gegen die von Hand
+  erstellten und in `reference-calculation.md` dokumentierten Sollwerte. Dazu
+  gehört das Rechenbeispiel des Handbuchs selbst: speist man dessen Tabellenwerte
+  in das Verfahren ein, müssen alle Zwischenwerte und die Summe von 85,4 l
+  getroffen werden. Die Tabellenwerte des Beispiels stammen aus Abschnitt 5a und
+  sind für D-EELK nicht anwendbar; sie dienen ausschließlich als Testvorgabe und
+  dürfen nicht in die Datengrundlage gelangen (FR-015).
 
 ## Out of Scope (diese Iteration)
 

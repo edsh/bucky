@@ -50,7 +50,7 @@ Eingabevalidierung. Ohne diese Phase kann keine User Story beginnen.
 **⚠️ Kritisch**: T008 muss vor jeder Implementierungsaufgabe abgeschlossen sein.
 Ein Sollwert, der nach dem Code entsteht, prüft den Code nicht (CHK047a).
 
-- [ ] T008 Sollwert für SC-005 von Hand aus Abb. 5-3a und 5-4a rechnen, jeden Zwischenschritt mit Seitenzahl und abgelesenen Eckwerten belegen und mit Datum und Namen des Erstellers ablegen in `specs/001-kraftstoffrechner-d-eelk/reference-calculation.md` — ohne Blick in den Code, da dieser noch nicht existiert
+- [x] T008 Sollwert für SC-005 von Hand aus Abb. 5-3a und 5-4a gerechnet, drei Fälle (Stützstellen, Interpolation, Nachrechnen des Handbuch-Beispiels) in `specs/001-kraftstoffrechner-d-eelk/reference-calculation.md`
 - [ ] T009 [P] Typen `SourceReference`, `TableAnchor`, `CalculationStep`, `InputDomain` und `TableSummary` laut `data-model.md` in `packages/deelk-poh-core/src/types.ts`
 - [ ] T010 [P] Fehlerklasse `PohCalculationError` mit den Arten `OUT_OF_RANGE`, `UNSUPPORTED_COMBINATION`, `INVALID_INPUT` und `NOT_COMPUTABLE`, jeweils mit betroffenem Feld und zulässigem Bereich in der Meldung, in `packages/deelk-poh-core/src/errors.ts`
 - [ ] T011 Tabellen aus `data/poh/d-eelk/` zur Bauzeit importieren, `SourceReference` unverändert aus `source.citation` übernehmen und den Zugriff auf Tabellen mit `applicability.applicable_to_d_eelk === false` bereits beim Laden ausschließen (V-04, FR-015, C-04) in `packages/deelk-poh-core/src/tables.ts`
@@ -84,7 +84,8 @@ eingeben und das Ergebnis mit dem dort von Hand gerechneten Sollwert vergleichen
 - [ ] T024 [US1] Gegenüberstellung zu 127,4 l ausfliegbar mit `remainingFuelL` und `exceedsUsableFuel` bei `totalL >= usableFuelL` (FR-016) in `packages/deelk-poh-core/src/fuel/fuelPlan.ts`
 - [ ] T025 [US1] Hinweise ohne Abbruch erzeugen: fehlende Reserve, Sinkflug und Ausweichflugplatz (FR-018), Temperaturkorrektur abweichend von Anmerkung 2 (FR-019), Anmerkung 4 bei über 75 % Last, Geltung der Steigflugtabelle für 1043 kg, in `packages/deelk-poh-core/src/fuel/advisories.ts`
 - [ ] T026 [US1] `computeFuelPlan` und die zugehörigen Typen exportieren in `packages/deelk-poh-core/src/index.ts`
-- [ ] T027 [US1] Test gegen den Sollwert aus T008 mit fest hinterlegten Erwartungswerten, plus Test, dass ein Zwischenwert zwischen den Ergebnissen der beiden Nachbarstützstellen liegt (SC-005, FR-003), in `packages/deelk-poh-core/tests/fuel/fuelPlan.test.ts`
+- [ ] T027 [US1] Tests gegen die Sollwerte aus `reference-calculation.md`: Fall A (87,6 l, alle Eingaben auf Stützstellen) und Fall B (46,5 l, mit Interpolation), je mit den dreizehn Zwischenwerten (SC-005, FR-003), in `packages/deelk-poh-core/tests/fuel/fuelPlan.test.ts`
+- [ ] T027a [US1] Test des Verfahrens gegen die Zahlen des Herstellers: Fall C aus `reference-calculation.md` mit den 5a-Werten als Zahlenkonstanten im Test (nicht in `data/poh/`) muss 85,4 l und jeden Zwischenwert des Handbuch-Beispiels treffen, in `packages/deelk-poh-core/tests/fuel/poh-example.test.ts`
 - [ ] T028 [P] [US1] Tests der Abbruchfälle: Strecke kürzer als die Steigflugstrecke (V-05), Gegenwind größer als die KTAS (V-06), sowie zweimal dieselbe Eingabe liefert bitgleich dasselbe Ergebnis (Prinzip I), in `packages/deelk-poh-core/tests/fuel/edge-cases.test.ts`
 - [ ] T029 [US1] Eingabemaske mit den sechs Feldern aus `data-model.md`, deren Auswahllisten aus `getFuelPlanInputDomain()` stammen, in `apps/web/src/routes/+page.svelte`
 - [ ] T030 [US1] Ergebnisdarstellung mit aufgeschlüsseltem Bedarf, Gesamtsumme, Gegenüberstellung zur ausfliegbaren Menge, Hinweisen und Fehlermeldungen wortgleich aus dem Kern, ohne eigene Rechen- oder Rundungslogik (Prinzip IV, C-02, C-03), in `apps/web/src/lib/components/FuelResult.svelte`

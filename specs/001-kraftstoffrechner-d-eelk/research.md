@@ -54,9 +54,9 @@ wirken **stetig**, nicht in Stufen. Bei ISA-Abweichung nach unten wird nicht
 korrigiert.
 
 **Rationale**: Die 10 % stehen in Anmerkung 2 der Steigflugtabelle, die 1 % in
-Anmerkung 3 der Reiseleistungstabellen des Abschnitts 5b. Das Rechenbeispiel auf
-Seite 5-3 nennt 2 % — es gehört zu Abschnitt 5a (Propeller MTV-6-A/187-129) und ist
-für D-EELK nicht anwendbar; maßgeblich ist die Anmerkung der 5b-Tabellen.
+Anmerkung 3 der Reiseleistungstabellen. Das Rechenbeispiel auf Seite 5-3 nennt
+2 % — das ist kein Widerspruch, sondern das Ergebnis für ISA+20 (zweimal 1 % je
+10 °C). Anmerkung 3 lautet in den Abschnitten 5a und 5b wortgleich.
 Anmerkung 2 nennt wörtlich nur Zeit und Steigstrecke, das Rechenbeispiel des POH
 wendet die Korrektur jedoch ausdrücklich auch auf den Kraftstoff an
 (3,3 l × 20 % = 0,7 l). Wir folgen dem Rechenbeispiel, weil das mehr Kraftstoff

@@ -26,7 +26,7 @@ erhalten würden.
 
 ## Reiseflug
 
-- [ ] CHK033 Ist begründet, warum FR-013 mit 1 % rechnet, während das Rechenbeispiel des Handbuchs 2 % nennt? Ohne diese Begründung wirkt die Anforderung wie ein Tippfehler. [Traceability, Spec §FR-013]
+- [x] CHK033 ~~Ist begründet, warum FR-013 mit 1 % rechnet, während das Rechenbeispiel 2 % nennt?~~ **Erledigt 2026-08-06**: kein Widerspruch — die 2 % sind das Ergebnis für ISA+20 bei 1 % je 10 °C. Anmerkung 3 ist in 5a und 5b wortgleich. Festgehalten in `reference-calculation.md`, Befund 1.
 - [x] CHK034 ~~Gilt für die KTAS-Korrektur dieselbe Frage?~~ **Erledigt 2026-08-06**: ebenfalls stetig, als Formel in FR-013 festgeschrieben. [Spec §FR-013]
 - [ ] CHK035 Ist das Vorzeichen der Windkomponente definiert — ist ein positiver Wert Gegen- oder Rückenwind? [Clarity, Spec §FR-004, §FR-014]
 - [ ] CHK036 Ist festgelegt, dass die Windkomponente entlang der Strecke gemeint ist und nicht Windrichtung und -stärke? [Ambiguity, Spec §FR-004]
@@ -48,7 +48,7 @@ erhalten würden.
 - [ ] CHK045 Ist "innerhalb der durch Interpolation und Rundung bedingten Genauigkeit" mit einer zulässigen Abweichung beziffert, sodass sich das Akzeptanzkriterium objektiv entscheiden lässt? [Measurability, Spec §User Story 1]
 - [ ] CHK046 Ist ausgeschlossen, dass zwischen den Rechenschritten gerundet wird? [Gap, Spec §FR-017]
 - [x] CHK047 ~~Ist SC-005 überprüfbar formuliert?~~ **Erledigt 2026-08-06**: SC-005 prüft jetzt das Verfahren gegen einen von Hand erstellten Sollwert statt gegen die 5a-Zahlen. [Spec §SC-005]
-- [ ] CHK047a Ist festgelegt, wer den von Hand erstellten Sollwert erstellt, wo er dokumentiert wird und dass er unabhängig vom Code entsteht? Ein aus dem Code abgeleiteter Sollwert prüft nichts. [Gap, Spec §SC-005]
+- [x] CHK047a ~~Ist festgelegt, wer den Sollwert erstellt und wo er dokumentiert wird?~~ **Erledigt 2026-08-06**: `reference-calculation.md`, erstellt vor jeder Zeile Code. Fall C prüft gegen die Zahlen des Herstellers statt gegen eine eigene Rechnung. Offen bleibt die menschliche Stichprobe gegen das gedruckte Handbuch.
 
 ## Notes
 

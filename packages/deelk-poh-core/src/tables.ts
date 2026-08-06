@@ -1,4 +1,4 @@
-import type { SourceAnomaly, SourceReference, TableSummary } from './types.js';
+import type { PohSourceReference, SourceAnomaly, TableSummary } from './types.js';
 import { PohCalculationError } from './errors.js';
 
 import catalogue from '../../../data/poh/d-eelk/index.json' with { type: 'json' };
@@ -113,9 +113,10 @@ export function listApplicableTableIds(): readonly string[] {
  * Quellenreferenz einer Tabelle, wortgleich aus der JSON-Datei. Der Kern
  * formuliert sie nicht neu (FR-005).
  */
-export function getSourceReference(tableId: string): SourceReference {
+export function getSourceReference(tableId: string): PohSourceReference {
   const table = getTable(tableId);
   return {
+    kind: 'poh',
     tableId: table.id,
     figure: table.figure,
     tableName: table.table_name,

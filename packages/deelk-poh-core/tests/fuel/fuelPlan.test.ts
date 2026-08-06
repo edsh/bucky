@@ -27,8 +27,9 @@ function resultOf(steps: readonly CalculationStep[], id: string, key: string): n
 
 describe('Fall A — alle Eingaben auf Stützstellen', () => {
   const input: FlightPlanInput = {
-    departureAltitudeFt: 1000,
-    cruiseAltitudeFt: 6000,
+    departureElevationFt: 1000,
+    cruiseAltitudeAmslFt: 6000,
+    qnhHpa: 1013.25,
     distanceNm: 400,
     powerSettingPct: 70,
     isaDeviationC: 20,
@@ -78,9 +79,13 @@ describe('Fall A — alle Eingaben auf Stützstellen', () => {
   });
 
   it('nennt beide verwendeten Tabellen mit Quellenangabe (FR-005)', () => {
-    const figures = result.sources.map((source) => source.figure).sort();
+    // Die Norm-Referenz der Druckhöhe steht daneben, zählt hier aber nicht mit:
+    // sie hat weder Abbildung noch Seitenzahl (Constitution, Prinzip I).
+    const poh = result.sources.filter((source) => source.kind === 'poh');
+    const figures = poh.map((source) => source.figure).sort();
+
     expect(figures).toEqual(['Abb. 5-3a', 'Abb. 5-4a']);
-    expect(result.sources[0]?.citation).toContain('Seite 5b-10');
+    expect(poh[0]?.citation).toContain('Seite 5b-10');
   });
 
   it('gibt den Prüfhinweis mit (FR-006)', () => {
@@ -90,8 +95,9 @@ describe('Fall A — alle Eingaben auf Stützstellen', () => {
 
 describe('Fall B — mit Interpolation', () => {
   const input: FlightPlanInput = {
-    departureAltitudeFt: 1500,
-    cruiseAltitudeFt: 7000,
+    departureElevationFt: 1500,
+    cruiseAltitudeAmslFt: 7000,
+    qnhHpa: 1013.25,
     distanceNm: 250,
     powerSettingPct: 60,
     isaDeviationC: 5,

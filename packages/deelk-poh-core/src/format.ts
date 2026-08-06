@@ -77,3 +77,13 @@ export function formatNauticalMiles(value: number): string {
 export function formatKnots(value: number): string {
   return `${formatNumber(value, 0)} kt`;
 }
+
+/** Höhe auf ganze Fuß. */
+export function formatFeet(value: number): string {
+  return `${formatNumber(value, 0)} ft`;
+}
+
+/** Luftdruck auf ganze hPa. Das QNH wird auch im Wetterbericht so genannt. */
+export function formatHectopascal(value: number): string {
+  return `${formatNumber(value, 0)} hPa`;
+}

@@ -49,10 +49,17 @@ export function buildInputShape(): z.ZodRawShape {
     .join('; ');
 
   return {
-    departureAltitudeFt: numberField(domain.departureAltitudeFt, 'Druckhöhe des Startplatzes'),
-    cruiseAltitudeFt: numberField(
-      domain.cruiseAltitudeFt,
-      'Druckhöhe des Reiseflugs, muss über der Platzhöhe liegen'
+    departureElevationFt: numberField(
+      domain.departureElevationFt,
+      'Platzhöhe des Startplatzes über dem Meeresspiegel, wie sie auf der Karte steht'
+    ),
+    cruiseAltitudeAmslFt: numberField(
+      domain.cruiseAltitudeAmslFt,
+      'Reiseflughöhe über dem Meeresspiegel, muss über der Platzhöhe liegen'
+    ),
+    qnhHpa: numberField(
+      domain.qnhHpa,
+      'Aktueller Luftdruck (QNH) aus dem Wetterbericht. Die Druckhöhe, mit der die Tabellen arbeiten, wird daraus errechnet — sie wird nicht eingegeben'
     ),
     distanceNm: numberField(domain.distanceNm, 'Gesamtflugstrecke, größer als null'),
     powerSettingPct: numberField(
@@ -103,13 +110,27 @@ export function formatSummary(result: FuelPlanResult): string {
 
   lines.push('', 'Verwendete Tabellen:');
   for (const source of result.sources) {
+    if (source.kind !== 'poh') {
+      continue;
+    }
     lines.push(
       `- ${source.figure} — ${source.tableName}, Seite ${source.pohPages.join(', ')} (${source.issue}, ${source.revision})`
     );
     lines.push(`  ${source.citation}`);
   }
 
+  // Der Prüfhinweis folgt unmittelbar auf die Handbuchtabellen und bezieht sich
+  // nur auf sie. Die Norm steht getrennt darunter: Für sie gibt es keine
+  // Handbuchseite, gegen die sich etwas gegenchecken ließe (Prinzip I).
   lines.push('', result.preflightCheckNotice);
+
+  const normen = result.sources.filter((source) => source.kind === 'standard');
+  if (normen.length > 0) {
+    lines.push('', 'Nicht aus dem Flughandbuch:');
+    for (const source of normen) {
+      lines.push(`- ${source.citation}`);
+    }
+  }
   return lines.join('\n');
 }
 

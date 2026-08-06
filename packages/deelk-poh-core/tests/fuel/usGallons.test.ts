@@ -13,8 +13,9 @@ import type { FlightPlanInput } from '../../src/fuel/input.js';
 const LITER_JE_US_GALLONE = 3.785411784;
 
 const input: FlightPlanInput = {
-  departureAltitudeFt: 0,
-  cruiseAltitudeFt: 6000,
+  departureElevationFt: 0,
+  cruiseAltitudeAmslFt: 6000,
+  qnhHpa: 1013.25,
   distanceNm: 250,
   powerSettingPct: 70,
   isaDeviationC: 0,

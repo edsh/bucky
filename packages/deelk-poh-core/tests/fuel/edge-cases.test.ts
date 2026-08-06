@@ -4,8 +4,9 @@ import { PohCalculationError } from '../../src/errors.js';
 import type { FlightPlanInput } from '../../src/fuel/input.js';
 
 const base: FlightPlanInput = {
-  departureAltitudeFt: 1000,
-  cruiseAltitudeFt: 6000,
+  departureElevationFt: 1000,
+  cruiseAltitudeAmslFt: 6000,
+  qnhHpa: 1013.25,
   distanceNm: 400,
   powerSettingPct: 70,
   isaDeviationC: 20,
@@ -78,8 +79,9 @@ describe('Determinismus (Constitution-Prinzip I)', () => {
       isaDeviationC: base.isaDeviationC,
       powerSettingPct: base.powerSettingPct,
       distanceNm: base.distanceNm,
-      cruiseAltitudeFt: base.cruiseAltitudeFt,
-      departureAltitudeFt: base.departureAltitudeFt
+      qnhHpa: base.qnhHpa,
+      cruiseAltitudeAmslFt: base.cruiseAltitudeAmslFt,
+      departureElevationFt: base.departureElevationFt
     };
 
     expect(computeFuelPlan(reordered).breakdown).toEqual(computeFuelPlan(base).breakdown);
@@ -107,5 +109,57 @@ describe('Hinweise ohne Abbruch (FR-018 bis FR-020)', () => {
     expect(at80.advisories.find((entry) => entry.id === 'highPowerSetting')?.text).toContain(
       'nicht empfohlen'
     );
+  });
+});
+
+describe('Druckhöhe außerhalb des Tabellenbereichs (FR-006, FR-006a)', () => {
+  it('lehnt einen gewöhnlichen Hochdrucktag ab, statt zu rechnen', () => {
+    // 85 ft Platzhöhe bei QNH 1030 ergeben −369 ft Druckhöhe. Das ist kein
+    // Sonderfall, sondern eine übliche Wetterlage in Norddeutschland.
+    const fehler = catchError({
+      ...base,
+      departureElevationFt: 85,
+      cruiseAltitudeAmslFt: 6000,
+      qnhHpa: 1030
+    });
+
+    expect(fehler.kind).toBe('PRESSURE_ALTITUDE_OUT_OF_RANGE');
+    expect(fehler.message).toContain('-369');
+    expect(fehler.message).toContain('1030');
+    expect(fehler.message).toContain('Luftdruck');
+  });
+
+  it('lehnt auch oberhalb des Bereichs ab', () => {
+    const fehler = catchError({
+      ...base,
+      departureElevationFt: 1000,
+      cruiseAltitudeAmslFt: 18000,
+      qnhHpa: 950
+    });
+
+    expect(fehler.kind).toBe('PRESSURE_ALTITUDE_OUT_OF_RANGE');
+    expect(fehler.message).toContain('über');
+  });
+
+  it('erwähnt weder Zurückfallen auf den Rand noch Extrapolation als Ausweg', () => {
+    const fehler = catchError({ ...base, departureElevationFt: 0, qnhHpa: 1050 });
+
+    expect(fehler.message).toContain('weder auf den Tabellenrand zurückgefallen');
+  });
+
+  /**
+   * Der Grund für FR-006a, an den Tabellendaten belegt: Die Steigflugtabelle
+   * ist ab 0 ft kumulativ, der Steigflug entsteht als Differenz zweier
+   * Tabellenwerte. Eine auf 0 ft angehobene Platzhöhe vergrößert den
+   * Subtrahenden und weist damit **weniger** Kraftstoff aus, als der Flug
+   * benötigt. Klein im Betrag, falsch in der Richtung.
+   */
+  it('belegt, dass ein Anheben auf den Tabellenrand zu wenig Kraftstoff ausweisen würde', () => {
+    const tief = computeFuelPlan({ ...base, departureElevationFt: 0, qnhHpa: 1013.25 });
+    const angehoben = computeFuelPlan({ ...base, departureElevationFt: 1000, qnhHpa: 1013.25 });
+
+    // Je höher die Ausgangshöhe, desto kleiner die Differenz und damit der
+    // ausgewiesene Steigflugverbrauch.
+    expect(angehoben.exact.climbL).toBeLessThan(tief.exact.climbL);
   });
 });

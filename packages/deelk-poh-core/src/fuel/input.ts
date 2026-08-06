@@ -1,14 +1,17 @@
 import { z } from 'zod';
 import type { InputDomain, NumericRange, PowerSettingAvailability } from '../types.js';
-import { PohCalculationError, outOfRange } from '../errors.js';
+import { PohCalculationError, outOfRange, pressureAltitudeOutOfRange } from '../errors.js';
+import { toPressureAltitude, type PressureAltitudeResult } from '../atmosphere/pressureAltitude.js';
 import { CLIMB_TABLE_ID, CRUISE_TABLE_ID, getTable } from '../tables.js';
 
 /** Das vom Piloten erfasste Flugvorhaben. Alle Felder sind Pflicht (FR-008). */
 export interface FlightPlanInput {
-  /** Druckhöhe des Startplatzes in ft. */
-  readonly departureAltitudeFt: number;
-  /** Druckhöhe des Reiseflugs in ft. */
-  readonly cruiseAltitudeFt: number;
+  /** Platzhöhe über dem Meeresspiegel in ft, wie sie auf der Karte steht. */
+  readonly departureElevationFt: number;
+  /** Reiseflughöhe über dem Meeresspiegel in ft. */
+  readonly cruiseAltitudeAmslFt: number;
+  /** Luftdruck auf Meereshöhe in hPa aus dem Wetterbericht. */
+  readonly qnhHpa: number;
   /** Gesamtflugstrecke in NM. */
   readonly distanceNm: number;
   /** Lasteinstellung in Prozent. */
@@ -23,13 +26,23 @@ export interface FlightPlanInput {
  * Grenzen, die nicht aus den Tabellen ablesbar sind, sondern in der
  * Spezifikation stehen (`data-model.md`, Abschnitt Flugvorhaben).
  */
-const DISTANCE_RANGE: NumericRange = { min: 0, max: Number.POSITIVE_INFINITY, unit: 'NM' };
-const ISA_DEVIATION_RANGE: NumericRange = { min: -30, max: 40, unit: '°C' };
-const WIND_COMPONENT_RANGE: NumericRange = { min: -50, max: 50, unit: 'kt' };
+const DEPARTURE_ELEVATION_RANGE: NumericRange = { min: 0, max: 10000, unit: 'ft', step: 10 };
+const CRUISE_ALTITUDE_AMSL_RANGE: NumericRange = { min: 0, max: 18000, unit: 'ft', step: 100 };
+const QNH_RANGE: NumericRange = { min: 950, max: 1050, unit: 'hPa', step: 1 };
+/**
+ * Die obere Grenze der Strecke ist großzügig: Die größte Reichweite der Tabelle
+ * liegt darunter, ein längerer Flug scheitert ohnehin an der ausfliegbaren
+ * Menge — und genau diese Rückmeldung ist erwünscht. Ein Regler braucht anders
+ * als ein Textfeld aber ein Ende.
+ */
+const DISTANCE_RANGE: NumericRange = { min: 1, max: 900, unit: 'NM', step: 1 };
+const ISA_DEVIATION_RANGE: NumericRange = { min: -30, max: 40, unit: '°C', step: 1 };
+const WIND_COMPONENT_RANGE: NumericRange = { min: -50, max: 50, unit: 'kt', step: 1 };
 
 const flightPlanSchema = z.object({
-  departureAltitudeFt: z.number().finite(),
-  cruiseAltitudeFt: z.number().finite(),
+  departureElevationFt: z.number().finite(),
+  cruiseAltitudeAmslFt: z.number().finite(),
+  qnhHpa: z.number().finite(),
   distanceNm: z.number().finite(),
   powerSettingPct: z.number().finite(),
   isaDeviationC: z.number().finite(),
@@ -73,13 +86,18 @@ export function getPowerSettingsByPressureAltitude(): readonly PowerSettingAvail
     }));
 }
 
-/** Gemeinsames Höhenraster von Steigflug- und Reiseleistungstabelle. */
-function altitudeRange(): NumericRange {
+/**
+ * Gemeinsames Höhenraster von Steigflug- und Reiseleistungstabelle. Seit
+ * Feature 004 begrenzt es nicht mehr die Eingabe, sondern die aus Höhe und QNH
+ * **errechnete** Druckhöhe (FR-006). Die Eingabegrenzen beziehen sich auf die
+ * Höhe über dem Meeresspiegel und können daher nicht aus dem Raster stammen.
+ */
+export function getPressureAltitudeRange(): NumericRange {
   const climb = pressureAltitudes(CLIMB_TABLE_ID);
   const cruise = pressureAltitudes(CRUISE_TABLE_ID);
   const min = Math.max(climb[0] as number, cruise[0] as number);
   const max = Math.min(climb[climb.length - 1] as number, cruise[cruise.length - 1] as number);
-  return { min, max, unit: 'ft' };
+  return { min, max, unit: 'ft', step: 100 };
 }
 
 /**
@@ -87,14 +105,19 @@ function altitudeRange(): NumericRange {
  * bauen ihre Formulare daraus, statt Grenzen selbst zu kennen (Prinzip IV).
  */
 export function getFuelPlanInputDomain(): InputDomain {
-  const altitudes = altitudeRange();
   const availability = getPowerSettingsByPressureAltitude();
   const allSettings = availability.flatMap((entry) => [...entry.powerSettingsPct]);
   return {
-    departureAltitudeFt: altitudes,
-    cruiseAltitudeFt: altitudes,
+    departureElevationFt: DEPARTURE_ELEVATION_RANGE,
+    cruiseAltitudeAmslFt: CRUISE_ALTITUDE_AMSL_RANGE,
+    qnhHpa: QNH_RANGE,
     distanceNm: DISTANCE_RANGE,
-    powerSettingPct: { min: Math.min(...allSettings), max: Math.max(...allSettings), unit: '%' },
+    powerSettingPct: {
+      min: Math.min(...allSettings),
+      max: Math.max(...allSettings),
+      unit: '%',
+      step: 5
+    },
     isaDeviationC: ISA_DEVIATION_RANGE,
     windComponentKt: WIND_COMPONENT_RANGE,
     powerSettingsByPressureAltitude: availability
@@ -128,11 +151,26 @@ function checkRange(field: keyof FlightPlanInput, value: number, range: NumericR
 }
 
 /**
- * Prüft ein Flugvorhaben vollständig, bevor gerechnet wird (FR-008).
- * Reihenfolge: Struktur, dann Raster (V-02), dann Höhenverhältnis (V-01),
- * dann belegte Kombination (V-03).
+ * Ein geprüftes Flugvorhaben samt der beiden daraus errechneten Druckhöhen.
+ *
+ * Die Umrechnung gehört in die Prüfung und nicht dahinter: Ob eine
+ * Lasteinstellung überhaupt belegt ist, hängt an der Druckhöhe, nicht an der
+ * Höhe über dem Meeresspiegel. Ohne dieses Ergebnis müsste `computeFuelPlan`
+ * dieselbe Umrechnung ein zweites Mal vornehmen.
  */
-export function validateFlightPlan(input: unknown): FlightPlanInput {
+export interface ValidatedFlightPlan {
+  readonly plan: FlightPlanInput;
+  readonly departure: PressureAltitudeResult;
+  readonly cruise: PressureAltitudeResult;
+}
+
+/**
+ * Prüft ein Flugvorhaben vollständig, bevor gerechnet wird (FR-008).
+ * Reihenfolge: Struktur, dann Eingabegrenzen, dann Höhenverhältnis (V-01),
+ * dann die errechneten Druckhöhen gegen das Tabellenraster (V-02, FR-006),
+ * zuletzt die belegte Kombination (V-03).
+ */
+export function validateFlightPlan(input: unknown): ValidatedFlightPlan {
   const parsed = flightPlanSchema.safeParse(input);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
@@ -146,8 +184,9 @@ export function validateFlightPlan(input: unknown): FlightPlanInput {
   const plan: FlightPlanInput = parsed.data;
   const domain = getFuelPlanInputDomain();
 
-  checkRange('departureAltitudeFt', plan.departureAltitudeFt, domain.departureAltitudeFt);
-  checkRange('cruiseAltitudeFt', plan.cruiseAltitudeFt, domain.cruiseAltitudeFt);
+  checkRange('departureElevationFt', plan.departureElevationFt, domain.departureElevationFt);
+  checkRange('cruiseAltitudeAmslFt', plan.cruiseAltitudeAmslFt, domain.cruiseAltitudeAmslFt);
+  checkRange('qnhHpa', plan.qnhHpa, domain.qnhHpa);
   checkRange('isaDeviationC', plan.isaDeviationC, domain.isaDeviationC);
   checkRange('windComponentKt', plan.windComponentKt, domain.windComponentKt);
 
@@ -157,17 +196,47 @@ export function validateFlightPlan(input: unknown): FlightPlanInput {
       actual: plan.distanceNm
     });
   }
+  checkRange('distanceNm', plan.distanceNm, domain.distanceNm);
 
-  if (plan.cruiseAltitudeFt <= plan.departureAltitudeFt) {
+  // Beide Höhen werden mit demselben QNH umgerechnet; ihre Reihenfolge bleibt
+  // dabei erhalten. Die Prüfung auf der Höhe über dem Meeresspiegel ist deshalb
+  // gleichwertig zur früheren Prüfung auf der Druckhöhe.
+  if (plan.cruiseAltitudeAmslFt <= plan.departureElevationFt) {
     throw new PohCalculationError(
       'INVALID_INPUT',
       'Die Reiseflughöhe muss über der Platzhöhe liegen; sonst liefert die Differenzbildung des Handbuchverfahrens kein Ergebnis.',
-      { field: 'cruiseAltitudeFt', actual: plan.cruiseAltitudeFt }
+      { field: 'cruiseAltitudeAmslFt', actual: plan.cruiseAltitudeAmslFt }
     );
   }
 
-  checkPowerSetting(plan);
-  return plan;
+  const departure = toPressureAltitude(plan.departureElevationFt, plan.qnhHpa);
+  const cruise = toPressureAltitude(plan.cruiseAltitudeAmslFt, plan.qnhHpa);
+  const pressureRange = getPressureAltitudeRange();
+  checkPressureAltitude('departureElevationFt', departure, pressureRange);
+  checkPressureAltitude('cruiseAltitudeAmslFt', cruise, pressureRange);
+
+  checkPowerSetting(plan, cruise.pressureAltitudeFt);
+  return { plan, departure, cruise };
+}
+
+/**
+ * FR-006: Es wird abgelehnt, nicht auf den Tabellenrand zurückgefallen. Die
+ * Begründung steht bei `pressureAltitudeOutOfRange`.
+ */
+function checkPressureAltitude(
+  field: keyof FlightPlanInput,
+  result: PressureAltitudeResult,
+  range: NumericRange
+): void {
+  if (result.pressureAltitudeFt < range.min || result.pressureAltitudeFt > range.max) {
+    throw pressureAltitudeOutOfRange(
+      field,
+      result.pressureAltitudeFt,
+      range,
+      result.elevationFt,
+      result.qnhHpa
+    );
+  }
 }
 
 /**
@@ -175,9 +244,9 @@ export function validateFlightPlan(input: unknown): FlightPlanInput {
  * einschließenden Stützstellen belegt sein. Nur dann lässt sich zwischen zwei
  * echten Tabellenwerten interpolieren.
  */
-function checkPowerSetting(plan: FlightPlanInput): void {
+function checkPowerSetting(plan: FlightPlanInput, cruisePressureAltitudeFt: number): void {
   const availability = getPowerSettingsByPressureAltitude();
-  const [lower, upper] = bracketingAltitudes(plan.cruiseAltitudeFt);
+  const [lower, upper] = bracketingAltitudes(cruisePressureAltitudeFt);
 
   for (const altitude of new Set([lower, upper])) {
     const entry = availability.find((item) => item.pressureAltitudeFt === altitude);

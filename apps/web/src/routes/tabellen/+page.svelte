@@ -1,6 +1,6 @@
 <script lang="ts">
   import { base } from '$app/paths';
-  import { listTables } from '@edsh-bucky/deelk-poh-core';
+  import { ICAO_STANDARD_ATMOSPHERE_SOURCE, listTables } from '@edsh-bucky/deelk-poh-core';
 
   /**
    * Übersicht der digitalisierten Tabellen. Sie macht sichtbar, worauf die
@@ -76,6 +76,27 @@
     </article>
   {/each}
 
+  <section class="nichtpoh">
+    <h2>Nicht aus dem Flughandbuch: die Druckhöhe</h2>
+    <p>
+      Eingegeben werden die Höhe über dem Meeresspiegel und das QNH; die Druckhöhe, mit der die
+      obigen Tabellen arbeiten, errechnet der Kern selbst. Diese Umrechnung steht in keiner Tabelle
+      des Handbuchs und wird deshalb hier getrennt ausgewiesen — sonst entstünde der Eindruck, auch
+      sie sei gegen das Original geprüft.
+    </p>
+    <dl>
+      <dt>Norm</dt>
+      <dd>{ICAO_STANDARD_ATMOSPHERE_SOURCE.standard}</dd>
+
+      <dt>Formel</dt>
+      <dd>{ICAO_STANDARD_ATMOSPHERE_SOURCE.formula}</dd>
+    </dl>
+    <p>
+      Die verbreitete Faustformel von 30 ft je hPa ist eine Näherung für Meereshöhe. Mit zunehmender
+      Höhe wächst der Abstand zur Norm; das Ergebnis weist ihn deshalb bei jeder Berechnung aus.
+    </p>
+  </section>
+
   <p class="zurueck"><a href="{base}/">Zurück zum Kraftstoffrechner</a></p>
 </main>
 
@@ -125,5 +146,11 @@
 
   .anomalie h3 {
     margin-top: 0;
+  }
+
+  .nichtpoh {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 2px solid #333;
   }
 </style>

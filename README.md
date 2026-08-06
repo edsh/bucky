@@ -47,6 +47,18 @@ Beide rufen denselben Kern auf; Rechen- und Rundungslogik wird nicht dupliziert.
 Quellenangabe (Seite + Tabellenname) und Prüfhinweis kommen aus dem Kern und
 werden von beiden Zugangswegen unverändert durchgereicht.
 
+### Eingaben: Höhe über dem Meeresspiegel, nicht Druckhöhe
+
+Angegeben werden Platzhöhe und Reiseflughöhe über dem Meeresspiegel sowie das
+QNH — beides steht auf der Karte bzw. im Wetterbericht. Die Druckhöhe, mit der
+die Handbuchtabellen arbeiten, errechnet der Kern daraus nach der
+barometrischen Höhenformel der ICAO-Standardatmosphäre (ICAO Doc 7488). Sie ist
+damit die einzige Größe, die nicht aus dem Flughandbuch stammt; das Ergebnis
+weist sie deshalb getrennt aus, zusammen mit dem Abstand zur verbreiteten
+Faustformel von 30 ft je hPa. Aus dieser Faustformel entsteht in größerer Höhe
+ein Unterschied von über hundert Fuß — wer im Kopf überschlägt, soll das nicht
+für einen Rechenfehler halten.
+
 ## Veröffentlichte Oberfläche
 
 <https://edsh.github.io/bucky/>

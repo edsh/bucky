@@ -11,8 +11,9 @@ import { handleListPohTables } from '../src/tools/listPohTables.js';
 import { createServer } from '../src/server.js';
 
 const fallA = {
-  departureAltitudeFt: 0,
-  cruiseAltitudeFt: 6000,
+  departureElevationFt: 0,
+  cruiseAltitudeAmslFt: 6000,
+  qnhHpa: 1013.25,
   distanceNm: 250,
   powerSettingPct: 70,
   isaDeviationC: 0,
@@ -20,8 +21,9 @@ const fallA = {
 };
 
 const fallB = {
-  departureAltitudeFt: 2000,
-  cruiseAltitudeFt: 8000,
+  departureElevationFt: 2000,
+  cruiseAltitudeAmslFt: 8000,
+  qnhHpa: 1013.25,
   distanceNm: 120,
   powerSettingPct: 60,
   isaDeviationC: 20,
@@ -55,14 +57,27 @@ describe('M-01: Quellenangaben und Prüfhinweis wortgleich', () => {
     const direkt = computeFuelPlan(fallA);
     const text = formatSummary(direkt);
 
-    expect(direkt.sources.length).toBeGreaterThan(0);
-    for (const source of direkt.sources) {
+    const poh = direkt.sources.filter((source) => source.kind === 'poh');
+
+    expect(poh.length).toBeGreaterThan(0);
+    for (const source of poh) {
       expect(text).toContain(source.tableName);
       expect(text).toContain(source.citation);
       for (const page of source.pohPages) {
         expect(text).toContain(page);
       }
     }
+  });
+
+  it('weist die Druckhöhen-Umrechnung getrennt von den Handbuchtabellen aus', () => {
+    const text = formatSummary(computeFuelPlan(fallA));
+    const tabellen = text.indexOf('Verwendete Tabellen:');
+    const norm = text.indexOf('Nicht aus dem Flughandbuch:');
+
+    // Die Norm darf nicht unter „Verwendete Tabellen" stehen, sonst liest ein
+    // Sprachmodell sie als Handbuchquelle (Prinzip I).
+    expect(norm).toBeGreaterThan(tabellen);
+    expect(text).toContain('ICAO Doc 7488');
   });
 
   it('enthält den Prüfhinweis unverändert', () => {
@@ -74,7 +89,7 @@ describe('M-01: Quellenangaben und Prüfhinweis wortgleich', () => {
 
 describe('T046: Fehler ohne Zahlenwert', () => {
   it('gibt bei einer Reiseflughöhe unter der Platzhöhe keinen Zahlenwert heraus', () => {
-    const antwort = handleComputeFuelPlan({ ...fallA, cruiseAltitudeFt: 0 });
+    const antwort = handleComputeFuelPlan({ ...fallA, cruiseAltitudeAmslFt: 0 });
 
     expect(antwort.isError).toBe(true);
     expect(antwort.structuredContent).toBeUndefined();
@@ -122,15 +137,23 @@ describe('M-03: keine Rohtabellen', () => {
 });
 
 describe('T044: Eingabeschema aus der Datengrundlage', () => {
-  it('beschreibt genau die sechs Felder des Flugvorhabens', () => {
+  it('beschreibt genau die sieben Felder des Flugvorhabens', () => {
     expect(Object.keys(buildInputShape()).sort()).toStrictEqual([
-      'cruiseAltitudeFt',
-      'departureAltitudeFt',
+      'cruiseAltitudeAmslFt',
+      'departureElevationFt',
       'distanceNm',
       'isaDeviationC',
       'powerSettingPct',
+      'qnhHpa',
       'windComponentKt'
     ]);
+  });
+
+  it('nimmt keine Druckhöhe mehr entgegen', () => {
+    const felder = Object.keys(buildInputShape());
+
+    expect(felder).not.toContain('departureAltitudeFt');
+    expect(felder).not.toContain('cruiseAltitudeFt');
   });
 });
 
@@ -145,3 +168,20 @@ async function withClient<T>(use: (client: Client) => Promise<T>): Promise<T> {
     await client.close();
   }
 }
+
+describe('FR-006 über den MCP-Weg', () => {
+  it('meldet eine Druckhöhe außerhalb des Tabellenbereichs als Werkzeugfehler', () => {
+    const antwort = handleComputeFuelPlan({
+      ...fallA,
+      departureElevationFt: 85,
+      cruiseAltitudeAmslFt: 6000,
+      qnhHpa: 1030
+    });
+
+    expect(antwort.isError).toBe(true);
+    expect(antwort.structuredContent).toBeUndefined();
+    // Der Pilot beziehungsweise das Sprachmodell muss erkennen, dass der
+    // Luftdruck die Ursache ist, nicht die Höhe.
+    expect(antwort.content[0]?.text ?? '').toContain('1030');
+  });
+});

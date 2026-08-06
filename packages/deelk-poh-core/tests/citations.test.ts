@@ -107,3 +107,29 @@ describe('listTables', () => {
     expect(anomaly?.description).toContain('70 KIAS');
   });
 });
+
+describe('Ausgabe und Änderungsstand', () => {
+  it('führt jede Quellenreferenz Ausgabe und Änderungsstand mit (FR-005, CHK002)', () => {
+    const result = computeFuelPlan({
+      departureAltitudeFt: 0,
+      cruiseAltitudeFt: 6000,
+      distanceNm: 250,
+      powerSettingPct: 70,
+      isaDeviationC: 0,
+      windComponentKt: 0
+    });
+
+    expect(result.sources.length).toBeGreaterThan(0);
+    for (const source of result.sources) {
+      expect(source.issue).not.toBe('');
+      expect(source.revision).not.toBe('');
+    }
+  });
+
+  it('führt auch der Tabellenkatalog beides mit', () => {
+    for (const table of listTables()) {
+      expect(table.source.issue).not.toBe('');
+      expect(table.source.revision).not.toBe('');
+    }
+  });
+});

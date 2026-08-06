@@ -37,14 +37,53 @@ Die digitalisierten Tabellen und die Interpolationslogik bilden einen
 eigenständigen, UI-freien **Berechnungskern**. Darüber liegen zwei dünne
 Zugangswege (Constitution, Prinzip IV):
 
-- ein **MCP-Endpunkt**, per HTTPS erreichbar und als Custom Connector in Claude
-  nutzbar (claude.ai, Desktop, Mobile) – sofort mobil im Chat verfügbar
+- ein **MCP-Server**, derzeit lokal über stdio; ein per HTTPS erreichbarer
+  Endpunkt als Custom Connector in Claude (claude.ai, Desktop, Mobile) ist das
+  Ziel, aber noch nicht umgesetzt
 - die **SvelteKit-App** (Constitution, Prinzip III) mit eigener Eingabemaske,
   Branding und Platz für die weiteren Vereinsmodule
 
 Beide rufen denselben Kern auf; Rechen- und Rundungslogik wird nicht dupliziert.
 Quellenangabe (Seite + Tabellenname) und Prüfhinweis kommen aus dem Kern und
 werden von beiden Zugangswegen unverändert durchgereicht.
+
+## Bauen und starten
+
+Voraussetzung ist Node 22 oder neuer.
+
+```bash
+npm ci            # Abhängigkeiten aller Workspaces
+npm test          # Tests von Kern und MCP-Adapter
+npm run lint
+npm run build     # Kern-Typprüfung, statisches Web-Bundle, MCP-Bundle
+```
+
+Die Weboberfläche im Entwicklungsmodus:
+
+```bash
+npm run dev --workspace @edsh-bucky/web
+```
+
+Der MCP-Server läuft über stdio und muss vor dem ersten Start gebaut werden
+(`npm run build`). Der Kern ist ein Quellpaket ohne Emit; `apps/mcp` wird
+deshalb zu einer einzelnen Datei gebündelt, die Node direkt ausführen kann.
+Eintrag in ein MCP-fähiges Werkzeug (Claude Desktop, VS Code, Copilot CLI):
+
+```json
+{
+  "mcpServers": {
+    "bucky-deelk-poh": {
+      "command": "node",
+      "args": ["<Pfad zum Repo>/apps/mcp/dist/server.js"]
+    }
+  }
+}
+```
+
+Der Server stellt zwei Werkzeuge bereit: `compute_fuel_plan` berechnet den
+Kraftstoffbedarf, `list_poh_tables` nennt die digitalisierten Tabellen mit
+Seitenzahl und bekannten Widersprüchen. Rohtabellen zum Selberrechnen gibt er
+bewusst nicht heraus.
 
 ## Entwicklungsmethodik
 
@@ -67,9 +106,11 @@ duplizieren.
 
 ## Status
 
-Frühe Phase. Constitution liegt vor (v1.4.0), Feature 1 ist spezifiziert, die
-POH-Tabellen der D-EELK sind digitalisiert und geprüft. Als Nächstes steht der
-Implementierungsplan für Feature 1 an (`/speckit-plan`).
+Constitution liegt vor (v1.4.0). Feature 1 ist spezifiziert, geplant und
+implementiert: die POH-Tabellen der D-EELK sind digitalisiert, der
+Berechnungskern rechnet den Kraftstoffbedarf mitsamt Rechenweg und
+Quellenangaben, beide Zugangswege stehen. Offen ist die Stichprobe der
+digitalisierten Werte gegen das gedruckte Handbuch durch einen Menschen.
 
 Entschieden: Frontend SvelteKit (Prinzip III), Architektur mit gemeinsamem
 Berechnungskern und den Zugangswegen SvelteKit-UI und MCP-Endpunkt (Prinzip IV).
@@ -79,6 +120,7 @@ Offene Fragen:
 1. Backend/Hosting?
 2. Authentifizierung/Rollenmodell für Vereinsmitglieder?
 3. Wahl der Datenbank?
-4. Muster (Cessna 172N oder 172P) und Tankkonfiguration der D-EELK – bestimmt,
-   welche POH-Tabellen gesichert anwendbar sind (siehe
-   `data/poh/d-eelk/README.md`).
+
+Geklärt: Die D-EELK ist eine Reims/Cessna F172N mit Standardtanks; damit sind
+die Tabellen aus Abschnitt 5b für 1043 kg maßgeblich (siehe
+`data/poh/d-eelk/README.md`).

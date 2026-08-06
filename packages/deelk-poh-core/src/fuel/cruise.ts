@@ -11,10 +11,13 @@ export interface CruiseComputation {
   /** KTAS nach der Temperaturkorrektur. */
   readonly ktas: number;
   readonly fuelFlowLph: number;
+  /** Aus der eigenen US-gph-Spalte der Tabelle, nicht umgerechnet (FR-009). */
+  readonly fuelFlowUsGph: number;
   readonly distanceNm: number;
   readonly groundSpeedKt: number;
   readonly timeH: number;
   readonly fuelL: number;
+  readonly fuelUsGal: number;
   readonly steps: readonly CalculationStep[];
   readonly source: SourceReference;
 }
@@ -37,7 +40,7 @@ export function computeCruise(plan: FlightPlanInput, climbDistanceNm: number): C
     tableId: CRUISE_TABLE_ID,
     axisKey: 'pressure_altitude_ft',
     axisValue: plan.cruiseAltitudeFt,
-    valueKeys: ['ktas', 'fuel_flow_lph'],
+    valueKeys: ['ktas', 'fuel_flow_lph', 'fuel_flow_usgph'],
     where: { power_setting_pct: plan.powerSettingPct },
     field: 'cruiseAltitudeFt',
     axisUnit: 'ft'
@@ -45,6 +48,7 @@ export function computeCruise(plan: FlightPlanInput, climbDistanceNm: number): C
 
   const tableKtas = lookup.values['ktas'] as number;
   const fuelFlowLph = lookup.values['fuel_flow_lph'] as number;
+  const fuelFlowUsGph = lookup.values['fuel_flow_usgph'] as number;
   const factor = ktasTemperatureFactor(plan.isaDeviationC);
   const ktas = tableKtas * factor;
 
@@ -68,6 +72,7 @@ export function computeCruise(plan: FlightPlanInput, climbDistanceNm: number): C
 
   const timeH = distanceNm / groundSpeedKt;
   const fuelL = timeH * fuelFlowLph;
+  const fuelUsGal = timeH * fuelFlowUsGph;
 
   const steps: CalculationStep[] = [
     {
@@ -79,7 +84,8 @@ export function computeCruise(plan: FlightPlanInput, climbDistanceNm: number): C
       },
       results: {
         ktas: { value: tableKtas, unit: 'kt' },
-        fuelFlowLph: { value: fuelFlowLph, unit: 'l/h' }
+        fuelFlowLph: { value: fuelFlowLph, unit: 'l/h' },
+        fuelFlowUsGph: { value: fuelFlowUsGph, unit: 'US gal/h' }
       },
       anchors: lookup.anchors,
       explanation: `Aus ${source.figure} abgelesen. Verwendet wird ausschließlich die Verbrauchsrate — die Spalten für Reichweite und Flugdauer enthalten laut Anmerkung 2 bereits Rollen, Steigflug und Reserve und dürfen hier nicht einfließen.`,
@@ -143,9 +149,13 @@ export function computeCruise(plan: FlightPlanInput, climbDistanceNm: number): C
       label: 'Kraftstoff für den Reiseflug',
       inputs: {
         timeH: { value: timeH, unit: 'h' },
-        fuelFlowLph: { value: fuelFlowLph, unit: 'l/h' }
+        fuelFlowLph: { value: fuelFlowLph, unit: 'l/h' },
+        fuelFlowUsGph: { value: fuelFlowUsGph, unit: 'US gal/h' }
       },
-      results: { fuelL: { value: fuelL, unit: 'l' } },
+      results: {
+        fuelL: { value: fuelL, unit: 'l' },
+        fuelUsGal: { value: fuelUsGal, unit: 'US gal' }
+      },
       anchors: [],
       explanation: 'Reiseflugzeit mal Verbrauchsrate.',
       sources: [source]
@@ -156,10 +166,12 @@ export function computeCruise(plan: FlightPlanInput, climbDistanceNm: number): C
     tableKtas,
     ktas,
     fuelFlowLph,
+    fuelFlowUsGph,
     distanceNm,
     groundSpeedKt,
     timeH,
     fuelL,
+    fuelUsGal,
     steps,
     source
   };

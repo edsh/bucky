@@ -12,6 +12,11 @@ export function roundLitres(value: number): number {
   return roundTo(value, 1);
 }
 
+/** Kraftstoffmenge auf 0,1 US gal. */
+export function roundUsGallons(value: number): number {
+  return roundTo(value, 1);
+}
+
 /** Zeit auf ganze Minuten. */
 export function roundMinutes(value: number): number {
   return roundTo(value, 0);
@@ -47,6 +52,18 @@ export function formatNumber(value: number, decimals: number): string {
 
 export function formatLitres(value: number): string {
   return `${formatNumber(value, 1)} l`;
+}
+
+export function formatUsGallons(value: number): string {
+  return `${formatNumber(value, 1)} US gal`;
+}
+
+/**
+ * Beide Einheiten in einer Zeile. Die US-Gallonen stammen aus den eigenen
+ * Spalten des Handbuchs, nicht aus einer Umrechnung der Liter (FR-009).
+ */
+export function formatFuel(litres: number, usGallons: number): string {
+  return `${formatLitres(litres)} (${formatUsGallons(usGallons)})`;
 }
 
 export function formatMinutes(value: number): string {

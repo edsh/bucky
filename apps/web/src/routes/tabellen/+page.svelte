@@ -31,6 +31,9 @@
         <dt>Seiten im Handbuch</dt>
         <dd>{table.source.pohPages.join(', ')}</dd>
 
+        <dt>Stand</dt>
+        <dd>{table.source.issue}, {table.source.revision}</dd>
+
         <dt>Zeilen</dt>
         <dd>{table.rowCount}</dd>
 

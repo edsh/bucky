@@ -64,7 +64,7 @@
 
   <form onsubmit={berechnen}>
     <label>
-      Platzhöhe Startplatz (ft)
+      Druckhöhe Startplatz (ft)
       <input
         type="number"
         bind:value={departureAltitudeFt}
@@ -76,7 +76,7 @@
     </label>
 
     <label>
-      Reiseflughöhe (ft)
+      Druckhöhe Reiseflug (ft)
       <input
         type="number"
         bind:value={cruiseAltitudeFt}

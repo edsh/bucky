@@ -47,6 +47,25 @@ export default tseslint.config(
     }
   },
   {
+    // Build-Konfiguration laeuft in Node, nicht im Browser.
+    files: ['**/*.config.js', 'apps/mcp/**/*.ts'],
+    languageOptions: {
+      globals: { process: 'readonly' }
+    }
+  },
+  {
+    // Der Klickpfad laeuft in Node und steuert einen echten Browser.
+    files: ['tests/ui/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        document: 'readonly',
+        window: 'readonly'
+      }
+    }
+  },
+  {
     files: ['packages/deelk-poh-core/src/**/*.ts'],
     languageOptions: {
       globals: {}

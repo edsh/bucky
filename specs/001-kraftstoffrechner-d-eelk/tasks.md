@@ -154,14 +154,14 @@ Kern. Diese Phase gehört zu keiner einzelnen User Story, sondern macht alle dre
 
 ## Phase 7: Polish und übergreifende Belange
 
-- [ ] T049 Fehlerhaften Prüfbefehl korrigieren: `verify_d_eelk.py` verlangt `--pdf`, in `specs/001-kraftstoffrechner-d-eelk/quickstart.md`
-- [ ] T050 [P] Test, dass der Kern nichts aus SvelteKit, dem MCP-SDK, `node:fs` oder dem DOM importiert (C-01), in `packages/deelk-poh-core/tests/contract.test.ts`
-- [ ] T051 [P] Test, dass die Rundung ausschließlich in `format.ts` stattfindet und kein Adapter nachrundet (C-03), in `packages/deelk-poh-core/tests/contract.test.ts`
-- [ ] T052 GitHub-Actions-Workflow: Installation, Lint, Tests beider Workspaces und Bau des statischen Bundles in `.github/workflows/ci.yml`
-- [ ] T053 [P] Veröffentlichung des statischen Bundles auf GitHub Pages in `.github/workflows/pages.yml`
-- [ ] T054 [P] Bau- und Startanleitung sowie Eintrag des MCP-Servers in ein MCP-fähiges Werkzeug in `README.md`
-- [ ] T055 Die manuellen Prüfungen aus `quickstart.md` durchgehen und die Ergebnisse festhalten
-- [ ] T056 Offene Checklistenpunkte durchgehen und die erledigten abhaken in `specs/001-kraftstoffrechner-d-eelk/checklists/`
+- [x] T049 Fehlerhaften Prüfbefehl korrigieren: `verify_d_eelk.py` verlangt `--pdf`, in `specs/001-kraftstoffrechner-d-eelk/quickstart.md`
+- [x] T050 [P] Test, dass der Kern nichts aus SvelteKit, dem MCP-SDK, `node:fs` oder dem DOM importiert (C-01), in `packages/deelk-poh-core/tests/contract.test.ts`
+- [x] T051 [P] Test, dass die Rundung ausschließlich in `format.ts` stattfindet und kein Adapter nachrundet (C-03), in `packages/deelk-poh-core/tests/contract.test.ts`
+- [x] T052 GitHub-Actions-Workflow: Installation, Lint, Tests beider Workspaces und Bau des statischen Bundles in `.github/workflows/ci.yml`
+- [x] T053 [P] Veröffentlichung des statischen Bundles auf GitHub Pages in `.github/workflows/pages.yml`
+- [x] T054 [P] Bau- und Startanleitung sowie Eintrag des MCP-Servers in ein MCP-fähiges Werkzeug in `README.md`
+- [x] T055 Die manuellen Prüfungen aus `quickstart.md` durchgehen und die Ergebnisse festhalten
+- [x] T056 Offene Checklistenpunkte durchgehen und die erledigten abhaken in `specs/001-kraftstoffrechner-d-eelk/checklists/`
 
 ---
 

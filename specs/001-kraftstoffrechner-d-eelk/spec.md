@@ -118,6 +118,12 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
   Standardtanks (127,4 l) → System MUSS deutlich darauf hinweisen.
 - Eine Lasteinstellung über 75 % wird gewählt → System MUSS die Anmerkung 4 der
   Reiseleistungstabelle wiedergeben (für den Reiseflug nicht empfohlen).
+- Die gewählte Lasteinstellung ist in der Reiseflughöhe nicht belegt (100 %
+  oberhalb 8000 ft, 90 % oberhalb 14000 ft) → System MUSS die Kombination
+  zurückweisen und die dort verfügbaren Lasteinstellungen nennen, statt auf eine
+  benachbarte auszuweichen.
+- Die ISA-Abweichung liegt unter null → System MUSS mit dem Faktor 1 rechnen und
+  nicht nach unten korrigieren.
 - Eingaben sind unvollständig, fehlerhaft oder unplausibel → System MUSS die
   Eingabe zurückweisen, bevor eine Berechnung versucht wird.
 
@@ -136,7 +142,11 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
 - **FR-003**: System MUSS alle Zwischen- und Endwerte ausschließlich durch
   deterministische Interpolation zwischen den digitalisierten Tabellenwerten und
   die im POH beschriebenen Rechenschritte ermitteln — kein frei generierter oder
-  geschätzter Wert.
+  geschätzter Wert. Interpoliert wird **linear** und **ausschließlich über die
+  Druckhöhe**. Über die Lasteinstellung wird nicht interpoliert: zulässig sind
+  nur die im Tabellenraster belegten Werte (50, 60, 70, 80, 90, 100 %). Liegt
+  ein Wert genau auf einer Stützstelle, wird er unverändert übernommen; die
+  ausgewiesenen Eckwerte machen das erkennbar, weil beide dann gleich sind.
 - **FR-004**: Piloten MÜSSEN ihr Flugvorhaben über eine Eingabemaske erfassen
   können: Platzhöhe des Startplatzes und geplante Reiseflughöhe (beide als
   Druckhöhe in ft), Streckenlänge (NM), Lasteinstellung (%),
@@ -144,25 +154,57 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
   positiv bei Gegenwind).
 - **FR-005**: System MUSS zu jedem Berechnungsergebnis die verwendete(n)
   Tabelle(n) exakt referenzieren (Seitenzahl und Tabellenname aus dem
-  Original-POH) sowie die verwendeten Eckwerte nennen.
+  Original-POH) sowie die verwendeten Eckwerte nennen. Die Referenz MUSS
+  zusätzlich Ausgabe und Änderungsstand des Handbuchs nennen, damit ein Pilot
+  mit einem abweichenden Handbuchstand die Diskrepanz bemerkt. Die Eckwerte
+  MÜSSEN mit den Größen des Handbuchs benannt sein (Druckhöhe, Lasteinstellung
+  und die dort abgelesenen Werte), nicht mit internen Feldnamen. Quellenangaben
+  erscheinen sowohl je Rechenschritt als auch gesammelt für das Gesamtergebnis;
+  die gesammelte Angabe MUSS ohne weitere Bedienschritte sichtbar sein.
 - **FR-006**: System MUSS zu jedem Berechnungsergebnis den Hinweis anzeigen,
-  das Ergebnis vor dem Flug gegen das Original-POH zu prüfen.
+  das Ergebnis vor dem Flug gegen das Original-POH zu prüfen. Der Wortlaut MUSS
+  über alle Zugangswege identisch sein und aus einer einzigen Quelle stammen;
+  der Hinweis MUSS zusammen mit dem Ergebnis sichtbar sein und darf nicht hinter
+  einem Aufklappen oder auf einer Unterseite liegen.
 - **FR-007**: System MUSS erkennen, wenn eingegebene Werte außerhalb des durch
   die digitalisierten Tabellen abgedeckten Wertebereichs liegen, und MUSS die
-  Berechnung in diesem Fall verweigern statt zu extrapolieren.
+  Berechnung in diesem Fall verweigern statt zu extrapolieren. Abgedeckt sind:
+  Druckhöhe 0 bis 18000 ft (gemeinsames Raster von Steigflug- und
+  Reiseleistungstabelle), Lasteinstellung 50 bis 100 % nur auf den belegten
+  Rasterwerten, ISA-Abweichung −30 bis +40 °C, Windkomponente −50 bis +50 kt,
+  Streckenlänge größer als null. Die Lasteinstellungen sind nicht in jeder Höhe
+  belegt — 100 % fehlt oberhalb 8000 ft, 90 % oberhalb 14000 ft. Die
+  Lasteinstellung MUSS bei **beiden** die Reiseflughöhe einschließenden
+  Stützstellen belegt sein; ein Rückfall auf eine benachbarte Lasteinstellung
+  ist ausgeschlossen. Jede Fehlermeldung MUSS das betroffene Feld und den
+  zulässigen Bereich beziehungsweise die dort verfügbaren Werte nennen.
 - **FR-008**: System MUSS unvollständige oder unplausible Eingaben zurückweisen,
   bevor eine Berechnung versucht wird.
 - **FR-009**: System MUSS den Kraftstoffbedarf in Litern ausgeben, aufgeschlüsselt
   nach Anlassen/Rollen/Start, Steigflug und Reiseflug, samt Gesamtsumme.
+  Zusätzlich MUSS jeder dieser Posten in US-Gallonen erscheinen, weil das
+  Handbuch beide Einheiten führt und die Betankung am Platz in Litern erfolgt.
+  Die Gallonenwerte MÜSSEN aus den Gallonenspalten des Handbuchs stammen und
+  DÜRFEN NICHT aus den Litern umgerechnet werden: die Wertepaare des Originals
+  sind gerundet und weichen von einer Umrechnung ab — 127,4 l stehen dort als
+  33,6 US gal, gerechnet wären es 33,7.
 - **FR-010**: System MUSS Zeit, Strecke und Kraftstoff für den Steigflug als
   Differenz der Tabellenwerte für Reiseflughöhe und Platzhöhe des Startplatzes
-  ermitteln (Verfahren laut POH Seite 5-4).
+  ermitteln (Verfahren laut POH Seite 5-4). Steigflug- und Reiseleistungstabelle
+  haben unterschiedliche Höhenraster (1000 ft gegen 2000 ft); jede Tabelle wird
+  in ihrem eigenen Raster interpoliert, ein gemeinsames Raster wird nicht
+  gebildet. Das System MUSS ausweisen, dass die Steigflugwerte für die maximale
+  Abflugmasse gelten und die Rechnung bei geringerer Masse auf der sicheren
+  Seite liegt.
 - **FR-011**: System MUSS für Anlassen, Rollen und Start den im POH festgelegten
-  Festbetrag von 4 l ansetzen (Anmerkung 1 der Steigflugtabelle).
+  Festbetrag von 4 l ansetzen (Anmerkung 1 der Steigflugtabelle). Der Festbetrag
+  ist temperaturunabhängig; die Korrektur nach FR-012 wirkt nicht auf ihn.
 - **FR-012**: System MUSS die Steigflugwerte für Zeit, Strecke und Kraftstoff mit
   dem Faktor `1 + (ISA-Abweichung in °C / 10) × 0,10` korrigieren (Anmerkung 2 der
   Steigflugtabelle, in der Rechenweise des POH-Rechenbeispiels: `20 °C / 10 °C
-  × 10 % = 20 %`). Die Korrektur wirkt stetig, nicht in Stufen. Bei einer
+  × 10 % = 20 %`). Die Korrektur wirkt stetig, nicht in Stufen, und wird auf
+  die bereits gebildete Differenz aus FR-010 angewandt, nicht auf die einzelnen
+  Tabellenwerte. Bei einer
   ISA-Abweichung von null oder darunter MUSS der Faktor 1 betragen; nach unten
   wird nicht korrigiert.
 - **FR-013**: System MUSS die KTAS aus der Reiseleistungstabelle mit dem Faktor
@@ -172,14 +214,20 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
 - **FR-014**: System MUSS die Reiseflugstrecke als Gesamtflugstrecke abzüglich
   der korrigierten Steigflugstrecke ermitteln, die Geschwindigkeit über Grund aus
   korrigierter KTAS und Windkomponente bilden und daraus die Reiseflugzeit und
-  den Reiseflug-Kraftstoff berechnen.
+  den Reiseflug-Kraftstoff berechnen. Die Verbrauchsrate hängt laut den
+  digitalisierten Tabellen ausschließlich von der Lasteinstellung ab; Druckhöhe
+  und Temperatur wirken auf die KTAS, nicht auf die Rate.
 - **FR-015**: System MUSS ausschließlich die für D-EELK anwendbaren Tabellen
   verwenden (Abb. 5-3a Steigflug und Abb. 5-4a Reiseleistung, beide für 1043 kg
   und Standardtanks) und MUSS die Verwendung einer nicht anwendbaren Tabelle
   ausschließen.
 - **FR-016**: System MUSS den berechneten Bedarf der ausfliegbaren
   Kraftstoffmenge der Standardtanks (127,4 l) gegenüberstellen und warnen, wenn
-  der Bedarf diese erreicht oder übersteigt.
+  der Bedarf diese erreicht oder übersteigt. Die Warnung MUSS sich vom normalen
+  Ergebnis unterscheiden — durch eigene Hervorhebung und durch die ausdrückliche
+  Aussage, dass der Flug so nicht durchführbar ist. Ein Ergebnis mit
+  Überschreitung darf nicht wie ein gewöhnliches Ergebnis aussehen. Verglichen
+  wird der ungerundete Bedarf, damit die Rundung keine Warnung verschluckt.
 - **FR-017**: System MUSS die Zwischenwerte jedes Rechenschritts ausgeben, nicht
   nur die Gesamtsumme.
 - **FR-018**: System MUSS zu jedem Ergebnis ausweisen, dass die Summe **keine
@@ -197,10 +245,44 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
   Vorzeichen. Ein Pilot, der von Hand nach dem Handbuch nachrechnet, MUSS diese
   Differenz erklärt bekommen, statt sie für einen Fehler zu halten.
 - **FR-021**: System MUSS gerundete Werte einheitlich mit diesen Stellen
-  ausgeben: Kraftstoffmengen auf 0,1 l, Zeiten auf ganze Minuten, Strecken auf
+  ausgeben: Kraftstoffmengen auf 0,1 l beziehungsweise 0,1 US gal, Zeiten auf
+  ganze Minuten, Strecken auf
   0,1 NM, Geschwindigkeiten auf ganze Knoten. Diese Stellen entsprechen der
   Darstellung im POH, sodass Ergebnis und Handbuch unmittelbar vergleichbar
   sind.
+
+- **FR-022**: Dieselbe Eingabe MUSS über alle Zugangswege dasselbe
+  Zahlenergebnis liefern, und dasselbe Ergebnis MUSS unabhängig von Zeitpunkt,
+  Gerät und Spracheinstellung reproduzierbar sein. Rechen- und Rundungslogik
+  liegen daher in einem gemeinsamen Kern, nicht in den Zugangswegen
+  (Constitution-Prinzip IV).
+- **FR-023**: Ein Sprachmodell DARF weder Tabellenwerte noch Zwischenwerte
+  selbst ermitteln. Der MCP-Zugang MUSS fertig gerechnete Ergebnisse liefern und
+  DARF kein Werkzeug bereitstellen, das Rohtabellenzeilen als
+  Interpolationsgrundlage herausgibt (Constitution-Prinzip I).
+- **FR-024**: Die Eingabemaske MUSS je Feld die Einheit anzeigen, die Höhenfelder
+  ausdrücklich als Druckhöhe kennzeichnen und für die Lasteinstellung eine
+  Auswahl der belegten Rasterwerte statt einer freien Eingabe anbieten. Die
+  übrigen Felder sind freie Zahleneingaben mit hinterlegten Grenzen. Die Maske
+  startet mit plausiblen Vorbelegungen, und eingegebene Werte bleiben nach einer
+  Fehlermeldung erhalten. Unzulässige Kombinationen werden beim Absenden
+  geprüft und gemeldet, nicht vorab in der Auswahl gesperrt — welche
+  Lasteinstellungen belegt sind, hängt von der Reiseflughöhe ab, und eine still
+  verschwindende Auswahlmöglichkeit wäre schwerer zu verstehen als eine
+  Meldung, die die verfügbaren Werte nennt.
+- **FR-025**: Bei einem Fehler MUSS ein zuvor angezeigtes Ergebnis verschwinden,
+  damit kein veraltetes Teilergebnis für ein gültiges gehalten wird. Hinweise,
+  die die Berechnung nicht abbrechen, MÜSSEN von abbrechenden Fehlern
+  unterscheidbar dargestellt werden.
+- **FR-026**: Die Aufschlüsselung MUSS in der Reihenfolge des Handbuchverfahrens
+  erscheinen: Anlassen/Rollen/Start, Steigflug, Reiseflug, Summe. Aufschlüsselung,
+  Quellenangaben, Prüfhinweis und Hinweise MÜSSEN ohne weitere Bedienschritte
+  sichtbar sein; die Folge der einzelnen Rechenschritte darf aufklappbar sein.
+  Jeder Rechenschritt MUSS seine Eingangswerte, seine Ergebnisse und eine
+  Erläuterung zeigen.
+- **FR-027**: Die Oberfläche MUSS auf Deutsch geführt sein, auf einem Mobilgerät
+  bedienbar bleiben und nach dem ersten Laden ohne Netzverbindung rechnen können.
+  Die Berechnung läuft vollständig auf dem Gerät des Piloten.
 
 ### Key Entities
 
@@ -224,11 +306,14 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
 
 ### Measurable Outcomes
 
-- **SC-001**: Ein Pilot erhält für ein gültiges Flugvorhaben innerhalb weniger
-  Sekunden ein Berechnungsergebnis.
-- **SC-002**: 100 % der ausgegebenen Berechnungsergebnisse enthalten die
-  Quellenreferenzen (Seitenzahl und Tabellenname), die verwendeten
-  Tabellen-Eckwerte und den Hinweis zur Vorflug-Prüfung.
+- **SC-001**: Ein Pilot erhält für ein gültiges Flugvorhaben in höchstens einer
+  Sekunde nach dem Absenden ein Berechnungsergebnis, gemessen auf einem
+  Mobilgerät bei bereits geladener Anwendung.
+- **SC-002**: 100 % der ausgegebenen Berechnungsergebnisse enthalten je
+  verwendeter Tabelle Seitenzahl, Abbildungsnummer, Tabellenname sowie Ausgabe
+  und Änderungsstand des Handbuchs, dazu die verwendeten Tabellen-Eckwerte und
+  den Hinweis zur Vorflug-Prüfung. Eine Quellenangabe gilt nur dann als
+  vollständig, wenn alle diese Bestandteile vorhanden sind.
 - **SC-003**: 100 % der Eingaben außerhalb des digitalisierten Wertebereichs
   führen zu einer klaren Fehlermeldung statt zu einem (falschen) Ergebnis.
 - **SC-004**: Die digitalisierten Tabellenwerte stimmen vollständig mit dem
@@ -268,6 +353,8 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
 - Die Steigflugtabelle gilt für die maximale Abflugmasse. Ein leichter beladenes
   Flugzeug steigt besser und verbraucht dabei weniger — die Rechnung ist damit auf
   der sicheren Seite.
+- Die Windkomponente wird als über die gesamte Strecke konstant angenommen. Wer
+  mit wechselndem Wind rechnet, muss den ungünstigsten Wert ansetzen.
 - Der Pilot gibt Höhen als Druckhöhe ein; die Umrechnung von Platzhöhe und
   QNH auf die Druckhöhe ist nicht Teil dieses Features.
 - Die Kraftstoffverbrauchsrate hängt laut den digitalisierten Tabellen

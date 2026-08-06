@@ -12,6 +12,13 @@ export interface SourceReference {
   readonly figure: string;
   readonly tableName: string;
   readonly pohPages: readonly string[];
+  /** Ausgabe des Handbuchs, z. B. „Ausgabe 2". */
+  readonly issue: string;
+  /**
+   * Änderungsstand der referenzierten Seiten. Wer ein Handbuch mit anderem
+   * Stand vor sich hat, muss die Abweichung bemerken können (FR-005).
+   */
+  readonly revision: string;
   readonly citation: string;
 }
 

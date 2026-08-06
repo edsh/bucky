@@ -19,6 +19,7 @@ export {
   CLIMB_TABLE_ID,
   CRUISE_TABLE_ID,
   USABLE_FUEL_L,
+  USABLE_FUEL_US_GAL,
   getSourceReference,
   getTableNote,
   getTableSummary,
@@ -29,8 +30,10 @@ export {
 export { interpolate, type InterpolationQuery, type InterpolationResult } from './interpolate.js';
 
 export {
+  formatFuel,
   formatKnots,
   formatLitres,
+  formatUsGallons,
   formatMinutes,
   formatNauticalMiles,
   formatNumber,
@@ -38,7 +41,8 @@ export {
   roundLitres,
   roundMinutes,
   roundNauticalMiles,
-  roundTo
+  roundTo,
+  roundUsGallons
 } from './format.js';
 
 export { computeClimb, climbTemperatureFactor, type ClimbSegment } from './fuel/climb.js';
@@ -48,6 +52,7 @@ export {
   computeFuelPlan,
   PREFLIGHT_CHECK_NOTICE,
   type FuelBreakdown,
+  type FuelBreakdownUsGal,
   type FuelPlanResult
 } from './fuel/fuelPlan.js';
 

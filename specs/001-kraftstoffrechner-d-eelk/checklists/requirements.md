@@ -51,9 +51,9 @@ Flugvorhabens erweitert (FR-010 bis FR-017 neu). Die Haken oben beziehen sich au
 den Stand vom 2026-08-05 und werden hier nicht nachträglich verändert, sondern
 neu bewertet. Vier Positionen halten dem erweiterten Scope nicht mehr stand:
 
-- [ ] CHK071 "Requirements are testable and unambiguous" — trifft nicht mehr zu: das Interpolationsverfahren, das Vorzeichen der Windkomponente und die Einheiten von Streckenlänge und Wind sind in der Spec nicht festgelegt. [Clarity, Spec §FR-003, §FR-004]
-- [ ] CHK072 "Success criteria are measurable" — SC-005 ist am 2026-08-06 nachgebessert; SC-001 nennt weiterhin "wenige Sekunden" ohne Schwellwert. [Measurability, Spec §SC-001]
-- [ ] CHK073 "Edge cases are identified" — unvollständig: die höhenabhängige Verfügbarkeit der Lasteinstellungen und die ISA-Abweichung nach unten fehlen. [Coverage, Spec §Edge Cases]
+- [x] CHK071 ~~"Requirements are testable and unambiguous" — trifft nicht mehr zu: das Interpolationsverfahren, das Vorzeichen der Windkomponente und die Einheiten von Streckenlänge und Wind sind in der Spec nicht festgelegt. [Clarity, Spec §FR-003, §FR-004]~~ **Erledigt 2026-08-06**: FR-003 und FR-004 legen Verfahren, Vorzeichen und Einheiten fest.
+- [x] CHK072 ~~"Success criteria are measurable" — SC-005 ist am 2026-08-06 nachgebessert; SC-001 nennt weiterhin "wenige Sekunden" ohne Schwellwert. [Measurability, Spec §SC-001]~~ **Erledigt 2026-08-06**: SC-001 ist beziffert.
+- [x] CHK073 ~~"Edge cases are identified" — unvollständig: die höhenabhängige Verfügbarkeit der Lasteinstellungen und die ISA-Abweichung nach unten fehlen. [Coverage, Spec §Edge Cases]~~ **Erledigt 2026-08-06**: Die Edge Cases nennen jetzt die hoehenabhaengige Verfuegbarkeit und die ISA-Abweichung nach unten.
 - [x] CHK074 ~~"No [NEEDS CLARIFICATION] markers remain"~~ **Erledigt 2026-08-06**: alle vier fachlichen Fragen sind entschieden und im Abschnitt "Geklärte Punkte" der Spec dokumentiert.
 
 Weiterführende Prüfung in den fachlichen Listen dieses Verzeichnisses:

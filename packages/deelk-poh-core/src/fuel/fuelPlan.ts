@@ -1,6 +1,6 @@
 import type { Advisory, CalculationStep, SourceReference } from '../types.js';
-import { CLIMB_TABLE_ID, USABLE_FUEL_L, getTableNote } from '../tables.js';
-import { roundLitres } from '../format.js';
+import { CLIMB_TABLE_ID, USABLE_FUEL_L, USABLE_FUEL_US_GAL, getTableNote } from '../tables.js';
+import { roundLitres, roundUsGallons } from '../format.js';
 import { buildAdvisories } from './advisories.js';
 import { computeClimb } from './climb.js';
 import { computeCruise } from './cruise.js';
@@ -14,6 +14,18 @@ export interface FuelBreakdown {
   readonly totalL: number;
 }
 
+/**
+ * Derselbe Bedarf in US-Gallonen. Das Handbuch führt Kraftstoff durchgängig in
+ * US gal; ohne diese Angabe müsste der Pilot beim Abgleich selbst umrechnen
+ * (FR-009).
+ */
+export interface FuelBreakdownUsGal {
+  readonly taxiTakeoffUsGal: number;
+  readonly climbUsGal: number;
+  readonly cruiseUsGal: number;
+  readonly totalUsGal: number;
+}
+
 export interface FuelPlanResult {
   readonly input: FlightPlanInput;
   readonly steps: readonly CalculationStep[];
@@ -21,8 +33,11 @@ export interface FuelPlanResult {
   readonly breakdown: FuelBreakdown;
   /** Ungerundete Werte, damit Adapter selbst nichts nachrechnen müssen. */
   readonly exact: FuelBreakdown;
+  readonly breakdownUsGal: FuelBreakdownUsGal;
   readonly usableFuelL: number;
+  readonly usableFuelUsGal: number;
   readonly remainingFuelL: number;
+  readonly remainingFuelUsGal: number;
   readonly exceedsUsableFuel: boolean;
   readonly advisories: readonly Advisory[];
   readonly sources: readonly SourceReference[];
@@ -31,6 +46,9 @@ export interface FuelPlanResult {
 
 /** Festbetrag für Anlassen, Rollen und Start (FR-011, Anmerkung 1). */
 const TAXI_TAKEOFF_L = 4;
+
+/** Derselbe Festbetrag, wie Anmerkung 1 ihn zusätzlich in US gal angibt. */
+const TAXI_TAKEOFF_US_GAL = 1.1;
 
 /** Prüfhinweis laut FR-006; er wird im Kern erzeugt, nicht im Adapter. */
 export const PREFLIGHT_CHECK_NOTICE =
@@ -46,6 +64,7 @@ export function computeFuelPlan(input: unknown): FuelPlanResult {
   const cruise = computeCruise(plan, climb.corrected.distanceNm);
 
   const totalL = TAXI_TAKEOFF_L + climb.corrected.fuelL + cruise.fuelL;
+  const totalUsGal = TAXI_TAKEOFF_US_GAL + climb.corrected.fuelUsGal + cruise.fuelUsGal;
   const remainingExactL = USABLE_FUEL_L - totalL;
 
   const exact: FuelBreakdown = {
@@ -105,8 +124,16 @@ export function computeFuelPlan(input: unknown): FuelPlanResult {
       totalL: roundLitres(totalL)
     },
     exact,
+    breakdownUsGal: {
+      taxiTakeoffUsGal: roundUsGallons(TAXI_TAKEOFF_US_GAL),
+      climbUsGal: roundUsGallons(climb.corrected.fuelUsGal),
+      cruiseUsGal: roundUsGallons(cruise.fuelUsGal),
+      totalUsGal: roundUsGallons(totalUsGal)
+    },
     usableFuelL: USABLE_FUEL_L,
+    usableFuelUsGal: USABLE_FUEL_US_GAL,
     remainingFuelL: roundLitres(remainingExactL),
+    remainingFuelUsGal: roundUsGallons(USABLE_FUEL_US_GAL - totalUsGal),
     // Verglichen wird der ungerundete Bedarf: ein Ergebnis von 127,44 l würde
     // gerundet auf 127,4 l genau die Warnung verschlucken, die es auslösen soll.
     exceedsUsableFuel: totalL >= USABLE_FUEL_L,

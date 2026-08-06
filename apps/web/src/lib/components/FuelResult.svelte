@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { FuelPlanResult } from '@edsh-bucky/deelk-poh-core';
-  import { formatLitres } from '@edsh-bucky/deelk-poh-core';
+  import { formatFuel } from '@edsh-bucky/deelk-poh-core';
   import CalculationSteps from './CalculationSteps.svelte';
   import SourceCitations from './SourceCitations.svelte';
 
@@ -19,19 +19,19 @@
     <tbody>
       <tr>
         <th scope="row">Anlassen, Rollen und Start</th>
-        <td>{formatLitres(result.breakdown.taxiTakeoffL)}</td>
+        <td>{formatFuel(result.breakdown.taxiTakeoffL, result.breakdownUsGal.taxiTakeoffUsGal)}</td>
       </tr>
       <tr>
         <th scope="row">Steigflug</th>
-        <td>{formatLitres(result.breakdown.climbL)}</td>
+        <td>{formatFuel(result.breakdown.climbL, result.breakdownUsGal.climbUsGal)}</td>
       </tr>
       <tr>
         <th scope="row">Reiseflug</th>
-        <td>{formatLitres(result.breakdown.cruiseL)}</td>
+        <td>{formatFuel(result.breakdown.cruiseL, result.breakdownUsGal.cruiseUsGal)}</td>
       </tr>
       <tr class="summe">
         <th scope="row">Gesamt</th>
-        <td>{formatLitres(result.breakdown.totalL)}</td>
+        <td>{formatFuel(result.breakdown.totalL, result.breakdownUsGal.totalUsGal)}</td>
       </tr>
     </tbody>
   </table>
@@ -39,10 +39,10 @@
   <p class="vergleich" class:warnung={result.exceedsUsableFuel}>
     {#if result.exceedsUsableFuel}
       Der Bedarf erreicht oder übersteigt die ausfliegbare Menge von
-      {formatLitres(result.usableFuelL)}. Dieser Flug ist so nicht durchführbar.
+      {formatFuel(result.usableFuelL, result.usableFuelUsGal)}. Dieser Flug ist so nicht durchführbar.
     {:else}
-      Ausfliegbar sind {formatLitres(result.usableFuelL)}. Rechnerisch bleiben
-      {formatLitres(result.remainingFuelL)} übrig — das ist keine Reserve.
+      Ausfliegbar sind {formatFuel(result.usableFuelL, result.usableFuelUsGal)}. Rechnerisch bleiben
+      {formatFuel(result.remainingFuelL, result.remainingFuelUsGal)} übrig — das ist keine Reserve.
     {/if}
   </p>
 

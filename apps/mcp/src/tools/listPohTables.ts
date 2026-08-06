@@ -17,7 +17,9 @@ export function handleListPohTables(): ToolResult {
 
   for (const table of tables) {
     lines.push(`${table.figure} — ${table.tableName}`);
-    lines.push(`  Seite ${table.source.pohPages.join(', ')}, ${table.rowCount} Zeilen`);
+    lines.push(
+      `  Seite ${table.source.pohPages.join(', ')}, ${table.source.issue}, ${table.source.revision}, ${table.rowCount} Zeilen`
+    );
     lines.push(`  ${table.source.citation}`);
     for (const condition of table.conditions) {
       lines.push(`  Bedingung: ${condition}`);

@@ -2,8 +2,10 @@ import { z } from 'zod';
 import {
   PohCalculationError,
   computeFuelPlan,
+  formatFuel,
   formatKnots,
   formatLitres,
+  formatUsGallons,
   formatMinutes,
   formatNauticalMiles,
   getFuelPlanInputDomain,
@@ -73,15 +75,15 @@ export function formatSummary(result: FuelPlanResult): string {
   const lines: string[] = [];
 
   lines.push(
-    `Kraftstoffbedarf D-EELK: ${formatLitres(result.breakdown.totalL)} gesamt.`,
+    `Kraftstoffbedarf D-EELK: ${formatFuel(result.breakdown.totalL, result.breakdownUsGal.totalUsGal)} gesamt.`,
     '',
-    `- Anlassen, Rollen und Start: ${formatLitres(result.breakdown.taxiTakeoffL)}`,
-    `- Steigflug: ${formatLitres(result.breakdown.climbL)}`,
-    `- Reiseflug: ${formatLitres(result.breakdown.cruiseL)}`,
+    `- Anlassen, Rollen und Start: ${formatFuel(result.breakdown.taxiTakeoffL, result.breakdownUsGal.taxiTakeoffUsGal)}`,
+    `- Steigflug: ${formatFuel(result.breakdown.climbL, result.breakdownUsGal.climbUsGal)}`,
+    `- Reiseflug: ${formatFuel(result.breakdown.cruiseL, result.breakdownUsGal.cruiseUsGal)}`,
     '',
     result.exceedsUsableFuel
-      ? `Der Bedarf erreicht oder übersteigt die ausfliegbare Menge von ${formatLitres(result.usableFuelL)}. Dieser Flug ist so nicht durchführbar.`
-      : `Ausfliegbar sind ${formatLitres(result.usableFuelL)}; rechnerisch bleiben ${formatLitres(result.remainingFuelL)} übrig. Das ist keine Reserve.`
+      ? `Der Bedarf erreicht oder übersteigt die ausfliegbare Menge von ${formatFuel(result.usableFuelL, result.usableFuelUsGal)}. Dieser Flug ist so nicht durchführbar.`
+      : `Ausfliegbar sind ${formatFuel(result.usableFuelL, result.usableFuelUsGal)}; rechnerisch bleiben ${formatFuel(result.remainingFuelL, result.remainingFuelUsGal)} übrig. Das ist keine Reserve.`
   );
 
   lines.push('', 'Rechenweg:');
@@ -101,7 +103,9 @@ export function formatSummary(result: FuelPlanResult): string {
 
   lines.push('', 'Verwendete Tabellen:');
   for (const source of result.sources) {
-    lines.push(`- ${source.figure} — ${source.tableName}, Seite ${source.pohPages.join(', ')}`);
+    lines.push(
+      `- ${source.figure} — ${source.tableName}, Seite ${source.pohPages.join(', ')} (${source.issue}, ${source.revision})`
+    );
     lines.push(`  ${source.citation}`);
   }
 
@@ -114,6 +118,8 @@ function formatQuantity(value: number, unit: string): string {
   switch (unit) {
     case 'l':
       return formatLitres(value);
+    case 'US gal':
+      return formatUsGallons(value);
     case 'min':
       return formatMinutes(value);
     case 'NM':

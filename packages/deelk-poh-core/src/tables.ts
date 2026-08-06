@@ -26,6 +26,8 @@ export interface PohTable {
   readonly figure: string;
   readonly table_name: string;
   readonly source: {
+    readonly issue: string;
+    readonly revision: string;
     readonly poh_pages: readonly string[];
     readonly citation: string;
   };
@@ -80,6 +82,13 @@ export const CRUISE_TABLE_ID = '5b-cruise-standard-1043kg';
 export const USABLE_FUEL_L: number = catalogue.aircraft.usable_fuel_l;
 
 /**
+ * Dieselbe Menge in US-Gallonen, wie das Handbuch sie nennt. Sie ist bewusst
+ * nicht aus den Litern umgerechnet: 127,4 l ergäben rechnerisch 33,7 US gal,
+ * das Handbuch schreibt aber 33,6 (FR-009).
+ */
+export const USABLE_FUEL_US_GAL: number = catalogue.aircraft.usable_fuel_usgal;
+
+/**
  * Liefert eine für D-EELK anwendbare Tabelle. Der Zugriff auf eine nicht
  * anwendbare Tabelle ist ein Programmfehler, kein Eingabefehler (V-04).
  */
@@ -111,6 +120,8 @@ export function getSourceReference(tableId: string): SourceReference {
     figure: table.figure,
     tableName: table.table_name,
     pohPages: table.source.poh_pages,
+    issue: table.source.issue,
+    revision: table.source.revision,
     citation: table.source.citation
   };
 }

@@ -96,6 +96,41 @@ und dasselbe Flugvorhaben rechnen lassen wie zuvor in der Oberfläche.
 **Erwartet**: identische Zahlen wie in der Web-Oberfläche (M-02), Quellenangaben und
 Prüfhinweis wortgleich (M-01), und kein Werkzeug, das Rohtabellen herausgibt (M-03).
 
+## Prüfprotokoll
+
+Durchgeführt am 2026-08-06 auf macOS, Node 26.5.0, Microsoft Edge über
+Playwright. Die Weboberfläche wurde dabei zum ersten Mal tatsächlich bedient.
+
+| Prüfung                                                        | Ergebnis | Anmerkung                                                |
+|----------------------------------------------------------------|----------|-----------------------------------------------------------|
+| Datengrundlage gegen das PDF                                   | bestanden | 2619 Einzelprüfungen, 0 Abweichungen                     |
+| Automatische Tests                                             | bestanden | 125 Tests, Kern und MCP-Adapter                          |
+| 1. Gültiges Flugvorhaben liefert ein Ergebnis (SC-001)         | bestanden | 77 ms von Klick bis Ergebnis                             |
+| 2. Seitenzahl, Tabellenname und Prüfhinweis sichtbar (SC-002)  | bestanden | ohne Aufklappen, Abb. 5-3a und 5-4a mit Seitenangabe     |
+| 3. Über 75 % Last erzeugt den Hinweis, blockiert nicht         | bestanden | Anmerkung 4 erscheint, die Aufschlüsselung bleibt sichtbar |
+| 4. Hinweis, dass die Summe keine Reserve enthält               | bestanden |                                                          |
+| 5. Bedarf über der ausfliegbaren Menge deutlich sichtbar       | bestanden | 900 NM, 100 % Last, 40 kt Gegenwind                      |
+| Rechenweg aufklappbar mit dreizehn Schritten                   | bestanden |                                                          |
+| Reiseflughöhe unter Platzhöhe                                  | bestanden | Meldung des Kerns wortgleich                             |
+| Tabellenseite erreichbar, zeigt den Vy-Widerspruch             | bestanden |                                                          |
+| Statisches Bundle ohne Node-Prozess                            | bestanden | mit `python3 -m http.server` ausgeliefert                |
+| MCP-Server über echtes stdio                                   | bestanden | `initialize` und `tools/call`, Antwort vollständig       |
+
+Der Klickpfad liegt als `tests/ui/klickpfad.mjs` im Repository und lässt sich
+wiederholen; er wird nicht von `npx vitest run` ausgeführt, weil er einen
+gebauten Bundle, einen Webserver und einen echten Browser braucht. Der
+Kopfkommentar der Datei nennt die vier nötigen Befehle; Playwright wird mit
+`--no-save` installiert und steht deshalb in keinem Manifest.
+
+Dabei gefunden und behoben: der Browser fragte vergeblich `/favicon.ico` an.
+`app.html` enthält jetzt ein leeres Symbol. Die Höhenfelder waren nicht als
+Druckhöhe gekennzeichnet; die Beschriftungen lauten jetzt "Druckhöhe
+Startplatz" und "Druckhöhe Reiseflug".
+
+**Nicht geprüft**: die Stichprobe der digitalisierten Werte gegen das gedruckte
+Handbuch durch einen Menschen. Der maschinelle Abgleich prüft gegen dieselbe
+PDF-Datei und kann einen Lesefehler des Originals nicht ausschließen.
+
 ## Vor der Freigabe
 
 Die fachlichen Fragen sind entschieden (Spec, Abschnitt "Geklärte Punkte"). Vor der

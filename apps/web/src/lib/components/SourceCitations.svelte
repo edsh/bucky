@@ -20,7 +20,7 @@
       <li>
         <strong>{source.figure}</strong> — {source.tableName}
         <span class="seiten">
-          Seite {source.pohPages.join(', ')}
+          Seite {source.pohPages.join(', ')} — {source.issue}, {source.revision}
         </span>
         <span class="zitat">{source.citation}</span>
       </li>

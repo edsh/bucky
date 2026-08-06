@@ -9,6 +9,12 @@ export interface ClimbSegment {
   readonly timeMin: number;
   readonly distanceNm: number;
   readonly fuelL: number;
+  /**
+   * Aus der eigenen US-gal-Spalte der Tabelle, nicht aus den Litern
+   * umgerechnet: die Wertepaare des Handbuchs sind gerundet und stimmen mit
+   * einer eigenen Umrechnung nicht überall überein (FR-009).
+   */
+  readonly fuelUsGal: number;
 }
 
 export interface ClimbComputation {
@@ -21,7 +27,7 @@ export interface ClimbComputation {
   readonly source: SourceReference;
 }
 
-const CLIMB_VALUE_KEYS = ['time_min', 'distance_nm', 'fuel_l'] as const;
+const CLIMB_VALUE_KEYS = ['time_min', 'distance_nm', 'fuel_l', 'fuel_usgal'] as const;
 
 function lookup(altitude: number, field: keyof FlightPlanInput): InterpolationResult {
   return interpolate({
@@ -38,7 +44,8 @@ function toSegment(values: Readonly<Record<string, number>>): ClimbSegment {
   return {
     timeMin: values['time_min'] as number,
     distanceNm: values['distance_nm'] as number,
-    fuelL: values['fuel_l'] as number
+    fuelL: values['fuel_l'] as number,
+    fuelUsGal: values['fuel_usgal'] as number
   };
 }
 
@@ -46,7 +53,8 @@ function segmentQuantities(segment: ClimbSegment): Readonly<Record<string, Quant
   return {
     timeMin: { value: segment.timeMin, unit: 'min' },
     distanceNm: { value: segment.distanceNm, unit: 'NM' },
-    fuelL: { value: segment.fuelL, unit: 'l' }
+    fuelL: { value: segment.fuelL, unit: 'l' },
+    fuelUsGal: { value: segment.fuelUsGal, unit: 'US gal' }
   };
 }
 
@@ -74,14 +82,16 @@ export function computeClimb(plan: FlightPlanInput): ClimbComputation {
   const difference: ClimbSegment = {
     timeMin: cruise.timeMin - departure.timeMin,
     distanceNm: cruise.distanceNm - departure.distanceNm,
-    fuelL: cruise.fuelL - departure.fuelL
+    fuelL: cruise.fuelL - departure.fuelL,
+    fuelUsGal: cruise.fuelUsGal - departure.fuelUsGal
   };
 
   const temperatureFactor = climbTemperatureFactor(plan.isaDeviationC);
   const corrected: ClimbSegment = {
     timeMin: difference.timeMin * temperatureFactor,
     distanceNm: difference.distanceNm * temperatureFactor,
-    fuelL: difference.fuelL * temperatureFactor
+    fuelL: difference.fuelL * temperatureFactor,
+    fuelUsGal: difference.fuelUsGal * temperatureFactor
   };
 
   const steps: CalculationStep[] = [

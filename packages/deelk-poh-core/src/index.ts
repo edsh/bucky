@@ -50,6 +50,7 @@ export {
   formatHours,
   formatKnots,
   formatLitres,
+  formatLitresPerNauticalMile,
   formatUsGallons,
   formatMinutes,
   formatNauticalMiles,

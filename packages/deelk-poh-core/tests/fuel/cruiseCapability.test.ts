@@ -33,6 +33,10 @@ describe('Reiseleistung an den Stützstellen', () => {
       expect(result.ktas).toBe(row['ktas']);
       expect(result.fuelFlowLph).toBe(row['fuel_flow_lph']);
       expect(result.fuelFlowUsGph).toBe(row['fuel_flow_usgph']);
+      expect(result.litresPerNm).toBeCloseTo(
+        (row['fuel_flow_lph'] as number) / (row['ktas'] as number),
+        10
+      );
       expect(result.tableRangeNm).toBe(row['range_nm']);
       expect(result.maxRangeNm).toBe(row['range_nm']);
       expect(result.enduranceH).toBe(row['endurance_h']);
@@ -111,6 +115,15 @@ describe('Temperaturkorrektur', () => {
     expect(warm.enduranceH).toBe(norm.enduranceH);
     expect(warm.fuelFlowLph).toBe(norm.fuelFlowLph);
     expect(warm.fuelFlowUsGph).toBe(norm.fuelFlowUsGph);
+  });
+
+  it('leitet Liter pro NM aus der temperaturkorrigierten Eigengeschwindigkeit ab', () => {
+    const norm = computeCruiseCapability({ ...bedingungen, isaDeviationC: 0 });
+    const warm = computeCruiseCapability({ ...bedingungen, isaDeviationC: 20 });
+
+    expect(norm.litresPerNm).toBeCloseTo(norm.fuelFlowLph / norm.ktas, 10);
+    expect(warm.litresPerNm).toBeCloseTo(warm.fuelFlowLph / warm.ktas, 10);
+    expect(warm.litresPerNm).toBeLessThan(norm.litresPerNm);
   });
 
   it('korrigiert unterhalb der Normtemperatur nicht', () => {

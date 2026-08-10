@@ -54,6 +54,8 @@ export interface CruiseCapability {
   readonly fuelFlowLph: number;
   /** Aus der eigenen US-gph-Spalte der Tabelle, nicht umgerechnet. */
   readonly fuelFlowUsGph: number;
+  /** Aus Verbrauch je Stunde und Eigengeschwindigkeit abgeleitet. */
+  readonly litresPerNm: number;
   /** Maximale Strecke laut Tabelle, vor der Temperaturkorrektur. */
   readonly tableRangeNm: number;
   /** Maximale Strecke nach der Temperaturkorrektur. */
@@ -134,6 +136,7 @@ export function computeCruiseCapability(input: unknown): CruiseCapability {
   // dieser Zeit nur weiter, weil sie schneller fliegt.
   const temperatureFactor = ktasTemperatureFactor(conditions.isaDeviationC);
   const ktas = tableKtas * temperatureFactor;
+  const litresPerNm = fuelFlowLph / ktas;
   const maxRangeNm = tableRangeNm * temperatureFactor;
 
   const steps: CalculationStep[] = [
@@ -196,6 +199,7 @@ export function computeCruiseCapability(input: unknown): CruiseCapability {
     ktas,
     fuelFlowLph,
     fuelFlowUsGph,
+    litresPerNm,
     tableRangeNm,
     maxRangeNm,
     enduranceH,

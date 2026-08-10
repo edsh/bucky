@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   formatKnots,
   formatLitres,
+  formatLitresPerNauticalMile,
   formatMinutes,
   formatNauticalMiles,
   roundKnots,
@@ -33,6 +34,7 @@ describe('Rundung (FR-021)', () => {
   it('schreibt Zahlen in deutscher Schreibweise mit Einheit', () => {
     expect(formatLitres(87.567)).toBe('87,6 l');
     expect(formatLitres(4)).toBe('4,0 l');
+    expect(formatLitresPerNauticalMile(0.1905)).toBe('0,19 l/NM');
     expect(formatMinutes(23.6)).toBe('24 min');
     expect(formatNauticalMiles(36.3)).toBe('36,3 NM');
     expect(formatKnots(116)).toBe('116 kt');

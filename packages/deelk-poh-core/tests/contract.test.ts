@@ -232,6 +232,7 @@ describe('FR-009: die Reiseleistung hängt nicht am Vorhaben', () => {
       capability.ktas,
       capability.fuelFlowLph,
       capability.fuelFlowUsGph,
+      capability.litresPerNm,
       capability.tableRangeNm,
       capability.maxRangeNm,
       capability.enduranceH,

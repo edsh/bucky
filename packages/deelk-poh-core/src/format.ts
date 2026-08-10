@@ -74,6 +74,11 @@ export function formatFuelFlow(litresPerHour: number, usGallonsPerHour: number):
   return `${formatLitres(litresPerHour)}/h (${formatUsGallons(usGallonsPerHour)}/h)`;
 }
 
+/** Aus Stundenverbrauch und Eigengeschwindigkeit abgeleiteter Verbrauch je NM. */
+export function formatLitresPerNauticalMile(value: number): string {
+  return `${formatNumber(value, 2)} l/NM`;
+}
+
 export function formatMinutes(value: number): string {
   return `${formatNumber(value, 0)} min`;
 }

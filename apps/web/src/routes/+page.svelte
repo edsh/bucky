@@ -85,7 +85,7 @@
   let scrollY = $state(0);
 
   const AVATAR_GROSS_PX = 96;
-  const AVATAR_KLEIN_PX = 34;
+  const AVATAR_KLEIN_PX = 48;
   /** Nach dieser Scrollstrecke ist die Endgröße erreicht. */
   const SCHRUMPFSTRECKE_PX = 260;
   /** Abstand des Avatars zum oberen Rand, sobald es mitwandert. */
@@ -348,9 +348,14 @@
     cursor: pointer;
   }
 
+  /*
+    Oben buendig statt mittig: Das Avatar haengt am oberen Rand, eine
+    vertikal zentrierte Ueberschrift bekaeme daneben einen Rand nach oben,
+    der wie ein Fehler aussieht.
+  */
   .kopf {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
   }
@@ -370,6 +375,12 @@
       deshalb der Fensterbreite (FR-027).
     */
     font-size: clamp(1.4rem, 6.5vw, 2rem);
+    /*
+      Enge Zeilenhoehe, damit die erste Zeile oben tatsaechlich buendig zum
+      Avatar steht: Bei 1.5 liegt die haelftige Durchschusshoehe darueber und
+      wirkt wie ein zusaetzlicher Rand.
+    */
+    line-height: 1.15;
   }
 
   /*

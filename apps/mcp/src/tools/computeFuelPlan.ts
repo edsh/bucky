@@ -8,8 +8,11 @@ import {
   formatHectopascal,
   formatHours,
   formatKnots,
+  formatFuelPerNauticalMile,
+  formatQuantity as formatCoreQuantity,
   formatLitres,
   formatUsGallons,
+  unitText,
   formatMinutes,
   formatNauticalMiles,
   getFuelPlanInputDomain,
@@ -92,13 +95,13 @@ export function formatSummary(result: FuelPlanResult): string {
     `- Steigflug: ${formatFuel(result.breakdown.climbL, result.breakdownUsGal.climbUsGal)}`,
     `- Reiseflug: ${formatFuel(result.breakdown.cruiseL, result.breakdownUsGal.cruiseUsGal)}`,
     '',
-    `Im Reiseflug: ${formatKnots(result.cruisePerformance.ktas)} KTAS, ${formatKnots(result.cruisePerformance.groundSpeedKt)} über Grund, ${formatFuelFlow(result.cruisePerformance.fuelFlowLph, result.cruisePerformance.fuelFlowUsGph)}, Reiseflugzeit ${formatHours(result.cruisePerformance.timeH)}.`,
+    `Im Reiseflug: ${unitText(formatKnots(result.cruisePerformance.ktas), 'KTAS')}, ${formatKnots(result.cruisePerformance.groundSpeedKt)} über Grund, ${formatFuelFlow(result.cruisePerformance.fuelFlowLph, result.cruisePerformance.fuelFlowUsGph)}, Reiseflugzeit ${formatHours(result.cruisePerformance.timeH)}.`,
     '',
     // Sprachlich getrennt vom Bedarf: Diese Zahlen beschreiben, was die
     // Maschine unter diesen Bedingungen leistet, und sind kein Bedarf fuer
     // dieses Vorhaben. Sie schliessen Reserve und Steigflug bereits ein --
     // wer sie mit der Summe oben verrechnete, zaehlte doppelt.
-    `Was die Maschine unter diesen Bedingungen leistet (unabhängig von Strecke und Wind, aus ${result.cruiseCapability.source.figure}): maximal ${formatNauticalMiles(result.cruiseCapability.maxRangeNm)} Reichweite und ${formatHours(result.cruiseCapability.enduranceH)} Flugdauer bei ${result.cruiseCapability.windlessNote} und vollen Standardtanks.`,
+    `Was die Maschine unter diesen Bedingungen leistet (unabhängig von Strecke und Wind, aus ${result.cruiseCapability.source.figure}): maximal ${formatNauticalMiles(result.cruiseCapability.maxRangeNm)} Reichweite und ${formatHours(result.cruiseCapability.enduranceH)} Flugdauer bei ${result.cruiseCapability.windlessNote} und vollen Standardtanks. Das entspricht ${formatFuelPerNauticalMile(result.cruiseCapability.fuelPerNmL, result.cruiseCapability.fuelPerNmUsGal)} im Reiseflug.`,
     `Diese beiden Werte sind kein Bedarf und dürfen mit der Summe oben nicht verrechnet werden. Laut Handbuch, Anmerkung ${result.cruiseCapability.inclusionsNote}`,
     '',
     result.exceedsUsableFuel
@@ -168,13 +171,18 @@ function formatQuantity(value: number, unit: string): string {
       return `${formatLitres(value)}/h`;
     case 'US gal/h':
       return `${formatUsGallons(value)}/h`;
+    case 'l/NM':
+    case 'US gal/NM':
+      // Beide Einheiten der Kennzahl stehen im selben Schritt; jede wird hier
+      // einzeln dargestellt, die gemeinsame Zeile bildet formatSummary.
+      return formatCoreQuantity(value, 2, unit);
     case 'h':
       return formatHours(value);
     default:
       // Bewusst als letzter Ausweg und nicht als Regelfall: Ohne die Faelle
       // oben landeten die Druckhoehen hier und erschienen im Rechenweg mit
       // allen Nachkommastellen — eine Genauigkeit, die die Rechnung nicht hat.
-      return `${value} ${unit}`;
+      return unitText(String(value), unit);
   }
 }
 

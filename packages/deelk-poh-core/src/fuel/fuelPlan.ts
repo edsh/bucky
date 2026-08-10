@@ -4,7 +4,7 @@ import {
   type PressureAltitudeResult
 } from '../atmosphere/pressureAltitude.js';
 import { CLIMB_TABLE_ID, USABLE_FUEL_L, USABLE_FUEL_US_GAL, getTableNote } from '../tables.js';
-import { formatNumber, roundLitres, roundUsGallons } from '../format.js';
+import { formatQuantity, roundLitres, roundUsGallons } from '../format.js';
 import { buildAdvisories } from './advisories.js';
 import { computeClimb } from './climb.js';
 import { computeCruise } from './cruise.js';
@@ -223,7 +223,7 @@ function pressureAltitudeStep(
     },
     results: { pressureAltitudeFt: { value: result.pressureAltitudeFt, unit: 'ft' } },
     anchors: [],
-    explanation: `${formatNumber(result.elevationFt, 0)} ft über dem Meeresspiegel bei einem QNH von ${formatNumber(result.qnhHpa, 2)} hPa ergeben ${formatNumber(result.pressureAltitudeFt, 0)} ft Druckhöhe. Gerechnet nach der barometrischen Höhenformel der ICAO-Standardatmosphäre: ${ICAO_STANDARD_ATMOSPHERE_SOURCE.formula}. Diese Größe stammt nicht aus dem Flughandbuch.`,
+    explanation: `${formatQuantity(result.elevationFt, 0, 'ft')} über dem Meeresspiegel bei einem QNH von ${formatQuantity(result.qnhHpa, 2, 'hPa')} ergeben ${formatQuantity(result.pressureAltitudeFt, 0, 'ft')} Druckhöhe. Gerechnet nach der barometrischen Höhenformel der ICAO-Standardatmosphäre: ${ICAO_STANDARD_ATMOSPHERE_SOURCE.formula}. Diese Größe stammt nicht aus dem Flughandbuch.`,
     sources: [ICAO_STANDARD_ATMOSPHERE_SOURCE]
   };
 }

@@ -4,14 +4,14 @@
     PohCalculationError,
     computeCruiseCapability,
     computeFuelPlan,
+    formatCelsius,
     formatFeet,
     formatHectopascal,
     formatKnots,
     formatNauticalMiles,
-    formatNumber,
+    formatPercent,
     getFuelPlanInputDomain,
     toPressureAltitude,
-    unitText,
     type CruiseCapability,
     type FuelPlanResult
   } from '@edsh-bucky/deelk-poh-core';
@@ -40,9 +40,6 @@
   let powerSettingPct = $state(70);
   let isaDeviationC = $state(10);
   let windComponentKt = $state(10);
-
-  const grad = (wert: number): string => unitText(formatNumber(wert, 0), '°C');
-  const prozent = (wert: number): string => unitText(formatNumber(wert, 0), '%');
 
   /**
    * Die Druckhöhe zu beiden Höhen, unabhängig von der Gesamtrechnung. Sie soll
@@ -78,6 +75,29 @@
       };
     }
   });
+
+  /**
+   * Das Flugzeug-Avatar wandert beim Scrollen mit und schrumpft dabei: Es soll
+   * die ganze Vorbereitung über sichtbar bleiben (Situationsbewusstsein), ohne
+   * in voller Größe die Ergebnistabellen zu verdecken (Issue #14). Gerechnet
+   * wird in Pixeln, weil der Scrollstand in Pixeln kommt.
+   */
+  let scrollY = $state(0);
+
+  const AVATAR_GROSS_PX = 96;
+  const AVATAR_KLEIN_PX = 34;
+  /** Nach dieser Scrollstrecke ist die Endgröße erreicht. */
+  const SCHRUMPFSTRECKE_PX = 260;
+  /** Abstand des Avatars zum oberen Rand, sobald es mitwandert. */
+  const ABSTAND_OBEN_PX = 8;
+  /** Der Innenabstand von `main`; dort steht das Avatar ungescrollt. */
+  const KOPF_ABSTAND_PX = 24;
+
+  const schrumpf = $derived(Math.min(1, Math.max(0, scrollY / SCHRUMPFSTRECKE_PX)));
+  const avatarBreitePx = $derived(
+    AVATAR_GROSS_PX - (AVATAR_GROSS_PX - AVATAR_KLEIN_PX) * schrumpf
+  );
+  const avatarObenPx = $derived(Math.max(ABSTAND_OBEN_PX, KOPF_ABSTAND_PX - scrollY));
 
   let result = $state<FuelPlanResult | undefined>(undefined);
   let fehler = $state<string | undefined>(undefined);
@@ -128,20 +148,30 @@
   <title>Kraftstoffrechner D-EELK — Bucky Highfly</title>
 </svelte:head>
 
+<svelte:window bind:scrollY />
+
+<!--
+  Das Avatar steht bewusst außerhalb von <main>: Es ist fest im Sichtfeld
+  verankert, nicht Teil des Textflusses. Im Kopfbereich bleibt ein Platzhalter
+  derselben Größe stehen, damit die Überschrift nicht darunterläuft.
+-->
+<img
+  class="flugzeug"
+  src="{base}/D-EELK_pixelart_192px.png"
+  alt="Die D-EELK als Pixelgrafik"
+  style="width: {avatarBreitePx}px; top: {avatarObenPx}px;"
+/>
+
 <main>
-  <div class="kopfbereich">
-    <header class="kopf">
-      <h1>Kraftstoffrechner D-EELK</h1>
-    </header>
-    <div class="flugzeughalter">
-      <img class="flugzeug" src="{base}/D-EELK_pixelart_192px.png" alt="Die D-EELK als Pixelgrafik" />
-    </div>
-    <p class="einleitung">
-      Cessna 172N mit TAE 125-02-114, Standardtanks und Propeller MTV-6-A/190-69.
-      Grundlage ist Abschnitt 5b des
-      Flughandbuch-Anhangs — <a href="{base}/tabellen">die verwendeten Tabellen im Einzelnen</a>.
-    </p>
-  </div>
+  <header class="kopf">
+    <h1>Kraftstoffrechner D-EELK</h1>
+    <div class="flugzeug-platzhalter" aria-hidden="true"></div>
+  </header>
+  <p class="einleitung">
+    Cessna 172N mit TAE 125-02-114, Standardtanks und Propeller MTV-6-A/190-69.
+    Grundlage ist Abschnitt 5b des
+    Flughandbuch-Anhangs — <a href="{base}/tabellen">die verwendeten Tabellen im Einzelnen</a>.
+  </p>
 
   <!--
     Die Gliederung folgt dem Gedankengang: erst die Bedingungen des
@@ -154,18 +184,11 @@
       <legend>Grundbedingungen</legend>
 
       <div class="felder">
-        <RangeField
-          id="reiseflughoehe"
-          label="Reiseflughöhe ASL (ft)"
-          range={domain.cruiseAltitudeAmslFt}
-          bind:value={cruiseAltitudeAmslFt}
-          format={formatFeet}
-        >
-          {#snippet folge()}
-            ≙ Druckhöhe {formatFeet(reiseDruckhoehe.pressureAltitudeFt)}
-          {/snippet}
-        </RangeField>
-
+        <!--
+          Der Luftdruck steht an erster Stelle, weil er in beide Druckhöhen
+          eingeht: Wer die Folgezeile „≙ Druckhöhe … @ …" liest, findet den
+          Regler, der sie verstellt, davor und nicht dahinter (Issue #9).
+        -->
         <RangeField
           id="qnh"
           label="Luftdruck QNH (hPa)"
@@ -175,11 +198,23 @@
         />
 
         <RangeField
+          id="reiseflughoehe"
+          label="Reiseflughöhe ASL (ft)"
+          range={domain.cruiseAltitudeAmslFt}
+          bind:value={cruiseAltitudeAmslFt}
+          format={formatFeet}
+        >
+          {#snippet folge()}
+            ≙ Druckhöhe {formatFeet(reiseDruckhoehe.pressureAltitudeFt)} @ {formatHectopascal(qnhHpa)}
+          {/snippet}
+        </RangeField>
+
+        <RangeField
           id="isa"
           label="ISA-Abweichung (°C)"
           range={domain.isaDeviationC}
           bind:value={isaDeviationC}
-          format={grad}
+          format={formatCelsius}
         />
       </div>
 
@@ -193,7 +228,7 @@
         label="Lasteinstellung"
         range={domain.powerSettingPct}
         bind:value={powerSettingPct}
-        format={prozent}
+        format={formatPercent}
       />
     </fieldset>
   </form>
@@ -223,7 +258,7 @@
             </button>
           {/snippet}
           {#snippet folge()}
-            ≙ Druckhöhe {formatFeet(platzDruckhoehe.pressureAltitudeFt)}
+            ≙ Druckhöhe {formatFeet(platzDruckhoehe.pressureAltitudeFt)} @ {formatHectopascal(qnhHpa)}
           {/snippet}
         </RangeField>
 
@@ -313,15 +348,11 @@
     cursor: pointer;
   }
 
-  .kopfbereich {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: 1rem;
-    align-items: start;
-  }
-
   .kopf {
-    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
   }
 
   /*
@@ -331,25 +362,45 @@
   */
   .kopf h1 {
     margin: 0;
+    flex: 1;
     min-width: 0;
+    /*
+      "Kraftstoffrechner" ist ein langes, unteilbares Wort: In fester Groesse
+      ragt es auf einem Telefon in das Avatar hinein. Die Schriftgroesse folgt
+      deshalb der Fensterbreite (FR-027).
+    */
+    font-size: clamp(1.4rem, 6.5vw, 2rem);
   }
 
-  .flugzeughalter {
-    position: sticky;
-    top: 1rem;
-    align-self: start;
-  }
-
+  /*
+    Das Avatar haengt am Sichtfeld und schrumpft mit der Scrollstrecke
+    (Issue #14). Es klebt nicht bloss am Kopfbereich fest: Ein `position:
+    sticky` reichte nur so weit, wie sein umgebender Block hoch ist -- also
+    kaum ueber die Einleitung hinaus. `right` folgt dem rechten Innenrand von
+    `main`: Solange das Fenster breiter als die Textspalte ist, sitzt es in der
+    freien Flaeche daneben; darunter am Fensterrand. Breite und Abstand nach
+    oben setzt das Skript, weil sie am Scrollstand haengen.
+  */
   .flugzeug {
+    position: fixed;
+    right: max(1.5rem, calc((100vw - 48rem) / 2 + 1.5rem));
     display: block;
-    width: 6rem;
     height: auto;
+    z-index: 10;
     /* Pixelgrafik: die Kanten sollen Kanten bleiben. */
     image-rendering: pixelated;
+    /* Zeigegeraete sollen durch das Avatar hindurch auf den Inhalt treffen. */
+    pointer-events: none;
   }
 
-  .einleitung {
-    grid-column: 1 / -1;
+  /*
+    Haelt im Kopfbereich den Platz frei, den das Avatar ungescrollt einnimmt.
+    Ohne ihn liefe die Ueberschrift unter das Bild.
+  */
+  .flugzeug-platzhalter {
+    width: 6rem;
+    height: 6rem;
+    flex: none;
   }
 
   .fehler {

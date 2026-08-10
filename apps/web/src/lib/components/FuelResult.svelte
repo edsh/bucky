@@ -14,7 +14,7 @@
 </script>
 
 <section class="ergebnis">
-  <h2>Kraftstoffbedarf</h2>
+  <h2>Kraftstoffbedarf und Geschwindigkeiten</h2>
 
   <!--
     Die Druckhöhen stehen unter den Reglern, die sie erzeugen, nicht hier. Eine

@@ -25,6 +25,7 @@ const ERWARTETE_SCHRITTE = [
   'cruise.fuel',
   'capability.tableLookup',
   'capability.temperatureCorrection',
+  'capability.fuelPerNm',
   'total.fuel',
   'total.usableFuelComparison'
 ] as const;
@@ -60,7 +61,7 @@ const eingaben: readonly FlightPlanInput[] = [
 ];
 
 describe('Schrittfolge (FR-017)', () => {
-  it.each(eingaben)('enthält die siebzehn Schritte in der festgelegten Reihenfolge', (input) => {
+  it.each(eingaben)('enthält die achtzehn Schritte in der festgelegten Reihenfolge', (input) => {
     const ids = computeFuelPlan(input).steps.map((step) => step.id);
 
     expect(ids).toEqual([...ERWARTETE_SCHRITTE]);

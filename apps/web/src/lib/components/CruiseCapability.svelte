@@ -2,9 +2,11 @@
   import type { CruiseCapability } from '@edsh-bucky/deelk-poh-core';
   import {
     formatFuelFlow,
+    formatFuelPerNauticalMile,
     formatHours,
     formatKnots,
-    formatNauticalMiles
+    formatNauticalMiles,
+    unitText
   } from '@edsh-bucky/deelk-poh-core';
 
   /**
@@ -34,11 +36,22 @@
     <dl class="werte">
       <div>
         <dt>Eigengeschwindigkeit</dt>
-        <dd>{formatKnots(capability.ktas)} KTAS</dd>
+        <dd>{unitText(formatKnots(capability.ktas), 'KTAS')}</dd>
       </div>
       <div>
         <dt>Verbrauch je Stunde</dt>
         <dd>{formatFuelFlow(capability.fuelFlowLph, capability.fuelFlowUsGph)}</dd>
+      </div>
+      <div>
+        <!--
+          Kein Tabellenwert, sondern Stundenverbrauch geteilt durch
+          Eigengeschwindigkeit (Issue #12). Die Kennzahl macht zwei
+          Lasteinstellungen unmittelbar vergleichbar: Ob mehr Leistung eine
+          Strecke teurer macht, sieht man an Verbrauch und Geschwindigkeit
+          einzeln nicht.
+        -->
+        <dt>Verbrauch je Seemeile</dt>
+        <dd>{formatFuelPerNauticalMile(capability.fuelPerNmL, capability.fuelPerNmUsGal)}</dd>
       </div>
       <div>
         <!--

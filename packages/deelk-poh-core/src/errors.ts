@@ -1,5 +1,5 @@
 import type { NumericRange } from './types.js';
-import { formatNumber } from './format.js';
+import { formatQuantity, unitText } from './format.js';
 
 /**
  * Arten von Rechenfehlern laut `data-model.md`. Die Berechnung wirft, statt
@@ -75,7 +75,7 @@ function buildMessage(message: string, details: PohCalculationErrorDetails): str
   }
   if (details.allowedRange !== undefined) {
     const { min, max, unit } = details.allowedRange;
-    parts.push(`Zulässig: ${min} bis ${max} ${unit}.`);
+    parts.push(`Zulässig: ${min} bis ${unitText(String(max), unit)}.`);
   }
   if (details.tableId !== undefined) {
     parts.push(`Grenze aus Tabelle ${details.tableId}.`);
@@ -119,7 +119,7 @@ export function pressureAltitudeOutOfRange(
   const richtung = pressureAltitudeFt < allowedRange.min ? 'unter' : 'über';
   return new PohCalculationError(
     'PRESSURE_ALTITUDE_OUT_OF_RANGE',
-    `Bei ${elevationFt} ft über dem Meeresspiegel und einem QNH von ${qnhHpa} hPa ergibt sich eine Druckhöhe von ${formatNumber(pressureAltitudeFt, 0)} ft. Das liegt ${richtung} dem Bereich, den die Tabellen des Flughandbuchs abdecken. Ursache ist hier der Luftdruck, nicht die Höhe. Es wird weder auf den Tabellenrand zurückgefallen noch extrapoliert.`,
+    `Bei ${formatQuantity(elevationFt, 0, 'ft')} über dem Meeresspiegel und einem QNH von ${formatQuantity(qnhHpa, 0, 'hPa')} ergibt sich eine Druckhöhe von ${formatQuantity(pressureAltitudeFt, 0, 'ft')}. Das liegt ${richtung} dem Bereich, den die Tabellen des Flughandbuchs abdecken. Ursache ist hier der Luftdruck, nicht die Höhe. Es wird weder auf den Tabellenrand zurückgefallen noch extrapoliert.`,
     // Bewusst ohne `actual`: Die Druckhöhe steht bereits gerundet im Satz. Als
     // `actual` erschiene sie ein zweites Mal mit allen Nachkommastellen — eine
     // Genauigkeit, die die Rechnung nicht hat und die nur verunsichert.

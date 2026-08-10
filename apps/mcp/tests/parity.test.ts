@@ -204,7 +204,7 @@ describe('Reiseleistungs-Übersicht über den MCP-Weg (Feature 006)', () => {
     expect(text).toContain('Windstille');
     // Der Satz, der die Verwechslung ausschließt, muss mit dabei sein.
     expect(text).toContain('kein Bedarf');
-    expect(text).toContain('45 min');
+    expect(text).toContain('45\u00a0min');
   });
 
   it('trennt den Reserve-Hinweis des Bedarfs von dem der Übersicht', () => {
@@ -213,6 +213,6 @@ describe('Reiseleistungs-Übersicht über den MCP-Weg (Feature 006)', () => {
     // Beide Aussagen stehen im Text und sagen Gegensätzliches über
     // verschiedene Zahlen — sie dürfen nicht ineinanderlaufen.
     expect(text).toContain('Das ist keine Reserve.');
-    expect(text).toContain('45 min. Reserve');
+    expect(text).toContain('45\u00a0min. Reserve');
   });
 });

@@ -47,8 +47,12 @@ describe('Tabellenzugriff', () => {
     expect(reference.citation).toContain('5b-15');
   });
 
+  /**
+   * Der Wortlaut bleibt unangetastet; einzig zwischen Zahl und Einheit steht
+   * ein geschütztes statt eines gewöhnlichen Leerzeichens (Issue #13).
+   */
   it('liefert Anmerkungen im Wortlaut des Handbuchs', () => {
-    expect(getTableNote(CLIMB_TABLE_ID, 1)).toContain('4 l');
+    expect(getTableNote(CLIMB_TABLE_ID, 1)).toContain('4\u00a0l');
     expect(getTableNote(CRUISE_TABLE_ID, 4)).toContain('75%');
   });
 

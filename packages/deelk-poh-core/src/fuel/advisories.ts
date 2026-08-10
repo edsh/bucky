@@ -27,7 +27,7 @@ export function buildAdvisories(plan: FlightPlanInput): readonly Advisory[] {
 
   advisories.push({
     id: 'roundingOnce',
-    text: 'Gerechnet wird durchgehend mit voller Genauigkeit; gerundet wird erst das Ergebnis. Das Rechenbeispiel des Handbuchs rundet dagegen nach jedem Schritt. Wer von Hand nachrechnet, kann deshalb um rund 0,6 l abweichen — in beide Richtungen.'
+    text: 'Gerechnet wird durchgehend mit voller Genauigkeit; gerundet wird erst das Ergebnis. Das Rechenbeispiel des Handbuchs rundet dagegen nach jedem Schritt. Wer von Hand nachrechnet, kann deshalb um rund 0,6\u00a0l abweichen — in beide Richtungen.'
   });
 
   advisories.push({

@@ -60,12 +60,19 @@ erzeugt, im Rechenweg als eigener Schritt mit eigener Quellenangabe.
 ### Reichweite und Flugdauer: eine Auskunft, kein Bedarf
 
 Über den Angaben zum Streckenflug steht, was die Maschine unter den
-eingestellten Bedingungen leistet: Eigengeschwindigkeit, Verbrauch je Stunde,
-maximale Reichweite und maximale Flugdauer. Diese vier Werte hängen allein an
-Reiseflughöhe, QNH, Lasteinstellung und Temperatur — Streckenlänge, Platzhöhe
-und Wind ändern sie nicht. Wer noch keine Strecke im Sinn hat, bekommt so schon
+eingestellten Grundbedingungen leistet: Eigengeschwindigkeit, Verbrauch je
+Stunde, Verbrauch je Seemeile, maximale Reichweite und maximale Flugdauer.
+Diese Werte hängen allein an Reiseflughöhe, QNH, Lasteinstellung und
+Temperatur — Streckenlänge, Platzhöhe und Wind ändern sie nicht. Wer noch keine Strecke im Sinn hat, bekommt so schon
 eine Antwort; und wenn die Bedarfsrechnung an Wind oder Strecke scheitert,
 bleibt diese Auskunft stehen.
+
+Der Verbrauch je Seemeile ist dabei der einzige dieser Werte, der nicht in der
+Tabelle steht: Er entsteht aus Stundenverbrauch geteilt durch
+Eigengeschwindigkeit und macht zwei Lasteinstellungen unmittelbar
+vergleichbar — ob mehr Leistung eine Strecke teurer macht, sieht man an
+Verbrauch und Geschwindigkeit einzeln nicht. Anders als Reichweite und
+Flugdauer enthält er weder Rollen noch Steigflug noch Reserve.
 
 **Sie ist ausdrücklich kein Bedarf.** Reichweite und Flugdauer stammen als
 eigene Spalten aus Abb. 5-4a und schließen laut Anmerkung 2 bereits 4 l für

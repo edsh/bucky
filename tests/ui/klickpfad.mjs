@@ -67,7 +67,7 @@ await page.goto(BASE, { waitUntil: 'networkidle' });
 // 1: gültiges Flugvorhaben liefert zügig ein Ergebnis (SC-001)
 const start = Date.now();
 await fuellen(page, { dep: 1000, cruise: 6000, dist: 400, power: 70, isa: 20, wind: 10 });
-await page.getByRole('heading', { name: 'Kraftstoffbedarf' }).waitFor({ timeout: 5000 });
+await page.getByRole('heading', { name: 'Kraftstoffbedarf', exact: true }).waitFor({ timeout: 5000 });
 const dauerMs = Date.now() - start;
 pruefe(1, 'gültiges Flugvorhaben liefert ein Ergebnis', dauerMs < 2000, `${dauerMs} ms`);
 
@@ -93,7 +93,7 @@ pruefe(4, 'Hinweis, dass die Summe keine Reserve enthält', /keine Reserve/i.tes
 // 3: Lasteinstellung über 75 % erzeugt den Hinweis aus Anmerkung 4, blockiert nicht
 await regler(page, 'Lasteinstellung', 80);
 await page.waitForTimeout(150);
-await page.getByRole('heading', { name: 'Kraftstoffbedarf' }).waitFor({ timeout: 5000 });
+await page.getByRole('heading', { name: 'Kraftstoffbedarf', exact: true }).waitFor({ timeout: 5000 });
 const hinweise = await page.locator('.hinweise').innerText();
 pruefe(
   3,
@@ -117,7 +117,7 @@ pruefe(
 
 // Rechenweg aufklappbar (US2)
 await fuellen(page, { dep: 1000, cruise: 6000, dist: 400, power: 70, isa: 20, wind: 10 });
-await page.getByRole('heading', { name: 'Kraftstoffbedarf' }).waitFor({ timeout: 5000 });
+await page.getByRole('heading', { name: 'Kraftstoffbedarf', exact: true }).waitFor({ timeout: 5000 });
 const details = page.locator('details').first();
 await details.click();
 await page.waitForTimeout(200);
@@ -262,7 +262,7 @@ pruefe(
   21,
   'die Übersicht steht zwischen Bedingungen und Vorhaben und zeigt vier Werte',
   reihenfolge[0].startsWith('Bedingungen') &&
-    /Reichweite und Flugdauer/.test(reihenfolge[1]) &&
+    /Kraftstoffbedarf und Geschwindigkeiten/.test(reihenfolge[1]) &&
     reihenfolge[2].startsWith('Streckenflug') &&
     uebersichtWerte === 4,
   `${reihenfolge.join(' > ')} — ${uebersichtWerte} Werte`

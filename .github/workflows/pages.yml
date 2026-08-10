@@ -3,8 +3,22 @@ name: GitHub Pages
 on:
   push:
     branches: [main]
+    # Nur was in das statische Bundle eingeht. Das Bauergebnis selbst
+    # (apps/web/build) taugt nicht als Filter: Es ist gitignoriert und
+    # entsteht erst hier im Workflow, kann sich durch einen Push also nie
+    # aendern. Nicht gelistet und damit ohne Veroeffentlichung: apps/mcp,
+    # tests, specs, tools und die Dokumentation.
     paths:
-      - 'apps/web/build/**'
+      - 'apps/web/**'
+      - 'packages/deelk-poh-core/**'
+      - '!packages/deelk-poh-core/tests/**'
+      # Die Tabellen werden in tables.ts direkt importiert und landen
+      # dadurch im Bundle.
+      - 'data/poh/**'
+      - 'package.json'
+      - 'package-lock.json'
+      # Ohne diese Zeile liesse sich der Workflow nicht per Push reparieren.
+      - '.github/workflows/pages.yml'
   workflow_dispatch:
 
 permissions:

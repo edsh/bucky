@@ -211,11 +211,24 @@ const druckhoehenzeilen = [platzFolgeZeile, reiseFolge];
 // Bei 1043 hPa liegen beide Druckhoehen unter den eingestellten Hoehen.
 pruefe(
   15,
-  'Druckhöhe steht unter beiden Höhenreglern, mit ≙ als Zeichen',
-  druckhoehenzeilen.every((z) => z.includes('≙') && /Druckhöhe/.test(z)) &&
+  'Druckhöhe steht unter beiden Höhenreglern und nennt den Luftdruck',
+  druckhoehenzeilen.every((z) => z.includes('≙') && /Druckhöhe @ 1043 hPa/.test(z)) &&
     /\b2\d{2} ft/.test(druckhoehenzeilen[0]) &&
     /\b5\d{3} ft/.test(druckhoehenzeilen[1]),
   druckhoehenzeilen.join(' | ')
+);
+
+// 26: In der Gruppe der Reiseflugbedingungen steht der QNH-Regler zuerst
+const bedingungenLabels = await page
+  .locator('fieldset')
+  .first()
+  .locator('.regler > .beschriftung > label')
+  .evaluateAll((labels) => labels.map((label) => label.textContent.trim()));
+pruefe(
+  26,
+  'QNH steht in der Gruppe der Reiseflugbedingungen an erster Stelle',
+  bedingungenLabels[0] === 'Luftdruck QNH (hPa)',
+  bedingungenLabels.join(' | ')
 );
 
 // 18: Schnellwahl EDSH setzt die Platzhöhe und die Druckhöhe folgt

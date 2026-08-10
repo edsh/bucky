@@ -150,6 +150,14 @@
 
       <div class="felder">
         <RangeField
+          id="qnh"
+          label="Luftdruck QNH (hPa)"
+          range={domain.qnhHpa}
+          bind:value={qnhHpa}
+          format={formatHectopascal}
+        />
+
+        <RangeField
           id="reiseflughoehe"
           label="Reiseflughöhe ASL (ft)"
           range={domain.cruiseAltitudeAmslFt}
@@ -157,17 +165,9 @@
           format={formatFeet}
         >
           {#snippet folge()}
-            ≙ Druckhöhe {formatFeet(reiseDruckhoehe.pressureAltitudeFt)}
+            ≙ Druckhöhe @ {formatHectopascal(qnhHpa)}: {formatFeet(reiseDruckhoehe.pressureAltitudeFt)}
           {/snippet}
         </RangeField>
-
-        <RangeField
-          id="qnh"
-          label="Luftdruck QNH (hPa)"
-          range={domain.qnhHpa}
-          bind:value={qnhHpa}
-          format={formatHectopascal}
-        />
 
         <RangeField
           id="isa"
@@ -218,7 +218,7 @@
             </button>
           {/snippet}
           {#snippet folge()}
-            ≙ Druckhöhe {formatFeet(platzDruckhoehe.pressureAltitudeFt)}
+            ≙ Druckhöhe @ {formatHectopascal(qnhHpa)}: {formatFeet(platzDruckhoehe.pressureAltitudeFt)}
           {/snippet}
         </RangeField>
 

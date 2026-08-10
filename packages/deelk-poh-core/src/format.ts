@@ -9,12 +9,12 @@
 
 export const NBSP = '\u00A0';
 
-export function formatUnitText(valueText: string, unit: string): string {
+export function unitText(valueText: string, unit: string): string {
   return unit === '' ? valueText : `${valueText}${NBSP}${unit.replaceAll(' ', NBSP)}`;
 }
 
 function formatWithUnit(value: number, decimals: number, unit: string): string {
-  return formatUnitText(formatNumber(value, decimals), unit);
+  return unitText(formatNumber(value, decimals), unit);
 }
 
 /** Kraftstoffmenge auf 0,1 l. */

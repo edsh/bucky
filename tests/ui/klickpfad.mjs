@@ -530,6 +530,24 @@ pruefe(
 );
 await page.locator('#gras').uncheck();
 
+// 36: der Wind steht als Anteil in der Zeilenbeschriftung und als Meterbetrag
+// in den Zellen -- so addiert sich die Spalte sichtbar auf (FR-020)
+await page.locator('#wind').fill('9');
+await page.dispatchEvent('#wind', 'input');
+await page.waitForTimeout(200);
+const windZeile = (
+  await page.locator('#startstrecke tbody tr').nth(1).innerText()
+).replace(/\s+/g, ' ');
+pruefe(
+  36,
+  'die Windzeile nennt den Anteil in Prozent und die Abzüge in Metern',
+  /−10,0 %/.test(windZeile) && (windZeile.match(/−\d+ m/g) ?? []).length === 2,
+  windZeile
+);
+await page.locator('#wind').fill('0');
+await page.dispatchEvent('#wind', 'input');
+await page.waitForTimeout(200);
+
 // 34: zwei Spalten im Querformat, eine im Hochformat -- der Fall, an dem eine
 // reine Breitenabfrage scheitern wuerde (quickstart.md Abschnitt 9)
 const bereicheNebeneinander = () =>

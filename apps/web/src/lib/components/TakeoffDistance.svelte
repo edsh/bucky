@@ -43,20 +43,24 @@
   );
 
   /**
-   * Wind und Bahnzuschlag als Zellinhalt. Das Vorzeichen steht davor, weil ein
-   * Zuschlag ohne Vorzeichen wie ein Endwert aussähe — und ein Endwert steht
-   * in dieser Tabelle nur in der letzten Zeile.
+   * Beitrag eines Schritts in Metern. Das Vorzeichen steht davor, weil ein
+   * Beitrag ohne Vorzeichen wie ein Endwert aussähe — und ein Endwert steht in
+   * dieser Tabelle nur in der letzten Zeile. Gebildet wird hier nichts: Die
+   * Beträge kommen als eigene Felder aus dem Kern, damit die Zeilen sich auf
+   * die Gesamtstrecke aufaddieren (Zusicherung C-03).
    */
+  function beitrag(metres: number): string {
+    if (metres === 0) {
+      return '—';
+    }
+    return metres > 0 ? `+${formatMetres(metres)}` : `−${formatMetres(Math.abs(metres))}`;
+  }
+
+  /** Der Anteil aus Anmerkung 2, mit Vorzeichen und ohne eigene Rundung. */
   const windAnteil = $derived(
     result === undefined || result.windAdjustmentPct === 0
-      ? '—'
+      ? 'Windstille'
       : `${result.windAdjustmentPct > 0 ? '+' : '−'}${unitText(formatNumber(Math.abs(result.windAdjustmentPct), 1), '%')}`
-  );
-
-  const bahnZuschlag = $derived(
-    result === undefined || result.surfaceAllowanceM === 0
-      ? '—'
-      : `+${formatMetres(result.surfaceAllowanceM)}`
   );
 </script>
 
@@ -91,15 +95,15 @@
     </p>
 
     <!--
-      Die beiden Strecken stehen nur einmal, naemlich als Spalten. Der Wind
-      erscheint als Anteil und nicht als Zwischenstand in Metern: Ein
-      gerundeter Zwischenstand plus gerundeter Zuschlag ergaebe sichtbar einen
-      anderen Wert als die Gesamtstrecke, obwohl die Rechnung stimmt.
+      Die beiden Strecken stehen nur einmal, naemlich als Spalten. Die
+      Zwischenzeilen zeigen den Beitrag des jeweiligen Schritts in Metern und
+      nicht den Zwischenstand: So stehen alle Betraege einer Spalte
+      untereinander und addieren sich sichtbar auf die Gesamtstrecke.
 
-      Der Bahnzuschlag steht dagegen in Metern, und in beiden Spalten
-      derselbe. Genau das ist die Auslegung der Anmerkungen 3 und 4: Der
-      Zuschlag entsteht aus dem Startlauf und wirkt am Boden, nicht in der
-      Luft — er waechst nicht mit der Strecke ueber das Hindernis mit.
+      Der Bahnzuschlag ist dabei in beiden Spalten derselbe. Genau das ist die
+      Auslegung der Anmerkungen 3 und 4: Der Zuschlag entsteht aus dem
+      Startlauf und wirkt am Boden, nicht in der Luft — er waechst nicht mit
+      der Strecke ueber das Hindernis mit.
     -->
     <table class="aufschluesselung">
       <thead>
@@ -118,12 +122,10 @@
         <tr>
           <th scope="row">
             Wind
-            {#if result.windAdjustmentPct === 0}
-              <span class="anteil">Windstille</span>
-            {/if}
+            <span class="anteil">{windAnteil}</span>
           </th>
-          <td>{windAnteil}</td>
-          <td>{windAnteil}</td>
+          <td>{beitrag(result.windAdjustmentGroundRollM)}</td>
+          <td>{beitrag(result.windAdjustmentOverObstacleM)}</td>
         </tr>
         <tr>
           <th scope="row">
@@ -134,8 +136,8 @@
                 : `+${unitText(formatNumber(result.surfaceAllowancePct, 0), '%')} des Startlaufs`}
             </span>
           </th>
-          <td>{bahnZuschlag}</td>
-          <td>{bahnZuschlag}</td>
+          <td>{beitrag(result.surfaceAllowanceM)}</td>
+          <td>{beitrag(result.surfaceAllowanceM)}</td>
         </tr>
         <tr class="summe">
           <th scope="row">Gesamtstrecke</th>
@@ -144,6 +146,18 @@
         </tr>
       </tbody>
     </table>
+
+    <!--
+      Der Hinweis steht immer und nicht nur im Zweifelsfall: Ob die gerundeten
+      Zeilen im Einzelfall aufgehen, liesse sich nur durch eigenes Runden
+      feststellen — und gerundet wird ausschliesslich im Kern (C-03). In etwa
+      drei von zehn Faellen weicht eine Spalte um einen Meter ab; ohne diesen
+      Satz sieht das aus wie ein Rechenfehler.
+    -->
+    <p class="rundungshinweis">
+      Auf ganze Meter gerundet. Die Zeilen können sich deshalb um einen Meter
+      von der Gesamtstrecke unterscheiden.
+    </p>
 
     {#if windErlaeuterung}
       <p class="erlaeuterung">{windErlaeuterung}</p>
@@ -250,6 +264,12 @@
 
   .summe td {
     font-size: 1.1em;
+  }
+
+  .rundungshinweis {
+    margin: 0.35rem 0 0;
+    font-size: 0.8em;
+    color: #666;
   }
 
   .erlaeuterung {

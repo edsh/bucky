@@ -391,3 +391,56 @@ describe('computeTakeoffDistance: Rechenweg', () => {
     }
   });
 });
+
+describe('computeTakeoffDistance: der Windbetrag in Metern', () => {
+  /**
+   * Der Betrag wird ausgewiesen, damit eine Darstellung die Zeilen
+   * untereinander aufaddieren kann, ohne ihn selbst aus zwei gerundeten
+   * Werten zu bilden — das ergäbe einen anderen Betrag als diese Rechnung.
+   */
+  it('trägt bei Gegenwind ein negatives Vorzeichen und passt zum Zwischenwert', () => {
+    const result = rechne({ pressureAltitudeFt: 0, oatC: 20, windComponentKt: 9 });
+
+    expect(result.windAdjustmentGroundRollM).toBeCloseTo(-20.4, 10);
+    expect(result.windAdjustmentOverObstacleM).toBeCloseTo(-31.9, 10);
+    expect(result.tableGroundRollM + result.windAdjustmentGroundRollM).toBeCloseTo(
+      result.windAdjustedGroundRollM,
+      10
+    );
+    expect(result.tableOverObstacleM + result.windAdjustmentOverObstacleM).toBeCloseTo(
+      result.windAdjustedOverObstacleM,
+      10
+    );
+  });
+
+  it('trägt bei Rückenwind ein positives Vorzeichen', () => {
+    const result = rechne({ pressureAltitudeFt: 0, oatC: 20, windComponentKt: -6 });
+
+    expect(result.windAdjustmentGroundRollM).toBeCloseTo(61.2, 10);
+    expect(result.windAdjustmentOverObstacleM).toBeCloseTo(95.7, 10);
+  });
+
+  it('ist bei Windstille null', () => {
+    const result = rechne({ pressureAltitudeFt: 0, oatC: 20, windComponentKt: 0 });
+
+    expect(result.windAdjustmentGroundRollM).toBe(0);
+    expect(result.windAdjustmentOverObstacleM).toBe(0);
+  });
+
+  it('ergibt zusammen mit dem Bahnzuschlag genau die Gesamtstrecke', () => {
+    const result = rechne({
+      pressureAltitudeFt: 0,
+      oatC: 20,
+      windComponentKt: 9,
+      dryGrassRunway: true,
+      wetOrSnowRunway: true
+    });
+
+    expect(
+      result.tableGroundRollM + result.windAdjustmentGroundRollM + result.surfaceAllowanceM
+    ).toBeCloseTo(result.groundRollM, 10);
+    expect(
+      result.tableOverObstacleM + result.windAdjustmentOverObstacleM + result.surfaceAllowanceM
+    ).toBeCloseTo(result.overObstacleM, 10);
+  });
+});

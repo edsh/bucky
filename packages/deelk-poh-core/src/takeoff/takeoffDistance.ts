@@ -67,6 +67,14 @@ export interface TakeoffDistanceResult {
   readonly windAdjustmentPct: number;
   /** Wahr, sobald der Deckel der Gegenwindgutschrift greift. */
   readonly windAdjustmentCapped: boolean;
+  /**
+   * Der Betrag in m, den Anmerkung 2 beisteuert; negativ bei Gegenwind. Er
+   * wird hier ausgewiesen und nicht der Darstellung überlassen: Ein Adapter,
+   * der ihn aus zwei gerundeten Werten selbst bildete, käme auf einen anderen
+   * Betrag als diese Rechnung (Prinzip IV, Zusicherung C-03).
+   */
+  readonly windAdjustmentGroundRollM: number;
+  readonly windAdjustmentOverObstacleM: number;
   readonly windAdjustedGroundRollM: number;
   readonly windAdjustedOverObstacleM: number;
   /** Anteil aus den Anmerkungen 3 und 4: 0, 15, 20 oder 35. */
@@ -208,6 +216,8 @@ export function computeTakeoffDistance(input: unknown): TakeoffDistanceResult {
   const windFactor = 1 + wind.pct / 100;
   const windAdjustedGroundRollM = tableGroundRollM * windFactor;
   const windAdjustedOverObstacleM = tableOverObstacleM * windFactor;
+  const windAdjustmentGroundRollM = windAdjustedGroundRollM - tableGroundRollM;
+  const windAdjustmentOverObstacleM = windAdjustedOverObstacleM - tableOverObstacleM;
 
   // Additiv auf dieselbe Bezugsgröße, nicht 1,15 × 1,20: Beide Anmerkungen
   // beziehen ihren Aufschlag ausdrücklich auf „den Wert Startlauf". Nacheinander
@@ -285,6 +295,8 @@ export function computeTakeoffDistance(input: unknown): TakeoffDistanceResult {
       },
       results: {
         adjustmentPct: { value: wind.pct, unit: '%' },
+        adjustmentGroundRollM: { value: windAdjustmentGroundRollM, unit: 'm' },
+        adjustmentOverObstacleM: { value: windAdjustmentOverObstacleM, unit: 'm' },
         groundRollM: { value: windAdjustedGroundRollM, unit: 'm' },
         overObstacleM: { value: windAdjustedOverObstacleM, unit: 'm' }
       },
@@ -339,6 +351,8 @@ export function computeTakeoffDistance(input: unknown): TakeoffDistanceResult {
     tableOverObstacleM,
     windAdjustmentPct: wind.pct,
     windAdjustmentCapped: wind.capped,
+    windAdjustmentGroundRollM,
+    windAdjustmentOverObstacleM,
     windAdjustedGroundRollM,
     windAdjustedOverObstacleM,
     surfaceAllowancePct,

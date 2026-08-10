@@ -98,6 +98,13 @@
     AVATAR_GROSS_PX - (AVATAR_GROSS_PX - AVATAR_KLEIN_PX) * schrumpf
   );
   const avatarObenPx = $derived(Math.max(ABSTAND_OBEN_PX, KOPF_ABSTAND_PX - scrollY));
+  /**
+   * Breite des weißen Hofs, der das Avatar vom überlagerten Text abhebt. In
+   * Pixeln statt Prozent, weil sich prozentuale Innenabstände bei einem am
+   * Sichtfeld verankerten Element auf das Fenster beziehen würden, nicht auf
+   * das Bild.
+   */
+  const avatarHofPx = $derived(avatarBreitePx * 0.18);
 
   let result = $state<FuelPlanResult | undefined>(undefined);
   let fehler = $state<string | undefined>(undefined);
@@ -159,7 +166,7 @@
   class="flugzeug"
   src="{base}/D-EELK_pixelart_192px.png"
   alt="Die D-EELK als Pixelgrafik"
-  style="width: {avatarBreitePx}px; top: {avatarObenPx}px;"
+  style="width: {avatarBreitePx}px; top: {avatarObenPx}px; --hof: {avatarHofPx}px;"
 />
 
 <main>
@@ -409,6 +416,28 @@
     image-rendering: pixelated;
     /* Zeigegeraete sollen durch das Avatar hindurch auf den Inhalt treffen. */
     pointer-events: none;
+    /*
+      Weiter unten liegt das Avatar ueber dem Fliesstext. Ein weisser Hof
+      trennt beide voneinander, ohne als Kasten aufzufallen: Mehrere
+      gegeneinander versetzte Radialverlaeufe ueberlagern sich zu einem
+      unregelmaessigen Fleck, der nach aussen in die Transparenz laeuft --
+      ein einzelner Verlauf saehe als Kreis wie ein Bauteil aus.
+
+      Der Hof liegt im Innenabstand; die gleich grossen negativen
+      Aussenabstaende halten das Bild selbst genau dort, wo es ohne Hof
+      stuende (buendig zur Ueberschrift, siehe `.kopf`).
+    */
+    box-sizing: content-box;
+    padding: var(--hof);
+    margin: calc(-1 * var(--hof));
+    background:
+      radial-gradient(42% 46% at 26% 42%, #fff 72%, rgba(255, 255, 255, 0) 100%),
+      radial-gradient(34% 52% at 48% 34%, #fff 70%, rgba(255, 255, 255, 0) 100%),
+      radial-gradient(38% 44% at 63% 60%, #fff 70%, rgba(255, 255, 255, 0) 100%),
+      radial-gradient(30% 40% at 82% 44%, #fff 66%, rgba(255, 255, 255, 0) 100%),
+      radial-gradient(32% 38% at 36% 68%, #fff 68%, rgba(255, 255, 255, 0) 100%),
+      radial-gradient(26% 34% at 12% 58%, #fff 62%, rgba(255, 255, 255, 0) 100%),
+      radial-gradient(24% 36% at 92% 62%, #fff 60%, rgba(255, 255, 255, 0) 100%);
   }
 
   /*

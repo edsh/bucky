@@ -146,7 +146,7 @@
   -->
   <form onsubmit={(event) => event.preventDefault()}>
     <fieldset>
-      <legend>Bedingungen des Reiseflugs</legend>
+      <legend>Grundbedingungen</legend>
 
       <div class="felder">
         <RangeField

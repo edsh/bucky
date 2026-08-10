@@ -128,15 +128,19 @@
 </svelte:head>
 
 <main>
-  <header class="kopf">
-    <h1>Kraftstoffrechner D-EELK</h1>
-    <img class="flugzeug" src="{base}/D-EELK_pixelart_192px.png" alt="Die D-EELK als Pixelgrafik" />
-  </header>
-  <p class="einleitung">
-    Cessna 172N mit TAE 125-02-114, Standardtanks und Propeller MTV-6-A/190-69.
-    Grundlage ist Abschnitt 5b des
-    Flughandbuch-Anhangs — <a href="{base}/tabellen">die verwendeten Tabellen im Einzelnen</a>.
-  </p>
+  <div class="kopfbereich">
+    <header class="kopf">
+      <h1>Kraftstoffrechner D-EELK</h1>
+    </header>
+    <div class="flugzeughalter">
+      <img class="flugzeug" src="{base}/D-EELK_pixelart_192px.png" alt="Die D-EELK als Pixelgrafik" />
+    </div>
+    <p class="einleitung">
+      Cessna 172N mit TAE 125-02-114, Standardtanks und Propeller MTV-6-A/190-69.
+      Grundlage ist Abschnitt 5b des
+      Flughandbuch-Anhangs — <a href="{base}/tabellen">die verwendeten Tabellen im Einzelnen</a>.
+    </p>
+  </div>
 
   <!--
     Die Gliederung folgt dem Gedankengang: erst die Bedingungen des
@@ -308,11 +312,15 @@
     cursor: pointer;
   }
 
+  .kopfbereich {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 1rem;
+    align-items: start;
+  }
+
   .kopf {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
+    min-width: 0;
   }
 
   /*
@@ -322,16 +330,26 @@
   */
   .kopf h1 {
     margin: 0;
-    flex: 1;
     min-width: 0;
   }
 
+  .flugzeughalter {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+  }
+
   .flugzeug {
+    display: block;
     width: 6rem;
     height: auto;
     flex: none;
     /* Pixelgrafik: die Kanten sollen Kanten bleiben. */
     image-rendering: pixelated;
+  }
+
+  .einleitung {
+    grid-column: 1 / -1;
   }
 
   .fehler {

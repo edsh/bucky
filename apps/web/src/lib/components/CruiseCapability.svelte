@@ -26,7 +26,7 @@
 </script>
 
 <section class="uebersicht" aria-labelledby="uebersicht-titel">
-  <h2 id="uebersicht-titel">Reichweite und Flugdauer</h2>
+  <h2 id="uebersicht-titel">Kraftstoffbedarf und Geschwindigkeiten</h2>
 
   {#if fehler}
     <p class="fehler" role="alert">{fehler}</p>

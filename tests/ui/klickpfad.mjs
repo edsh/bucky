@@ -20,6 +20,7 @@ import { chromium } from 'playwright';
 // stattdessen die veroeffentlichte Seite pruefen, etwa
 // BASE=https://edsh.github.io/bucky node tests/ui/klickpfad.mjs
 const BASE = process.env.BASE ?? 'http://localhost:8899';
+const NBSP = '\u00A0';
 const befunde = [];
 
 function pruefe(nummer, beschreibung, bestanden, detail = '') {
@@ -213,8 +214,8 @@ pruefe(
   15,
   'Druckhöhe steht unter beiden Höhenreglern, mit ≙ als Zeichen',
   druckhoehenzeilen.every((z) => z.includes('≙') && /Druckhöhe/.test(z)) &&
-    /\b2\d{2} ft/.test(druckhoehenzeilen[0]) &&
-    /\b5\d{3} ft/.test(druckhoehenzeilen[1]),
+    new RegExp(`\\b2\\d{2}${NBSP}ft`).test(druckhoehenzeilen[0]) &&
+    new RegExp(`\\b5\\d{3}${NBSP}ft`).test(druckhoehenzeilen[1]),
   druckhoehenzeilen.join(' | ')
 );
 

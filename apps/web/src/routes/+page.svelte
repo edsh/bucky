@@ -9,6 +9,7 @@
     formatKnots,
     formatNauticalMiles,
     formatNumber,
+    formatUnitText,
     getFuelPlanInputDomain,
     toPressureAltitude,
     type CruiseCapability,
@@ -40,8 +41,8 @@
   let isaDeviationC = $state(10);
   let windComponentKt = $state(10);
 
-  const grad = (wert: number): string => `${formatNumber(wert, 0)} °C`;
-  const prozent = (wert: number): string => `${formatNumber(wert, 0)} %`;
+  const grad = (wert: number): string => formatUnitText(formatNumber(wert, 0), '°C');
+  const prozent = (wert: number): string => formatUnitText(formatNumber(wert, 0), '%');
 
   /**
    * Die Druckhöhe zu beiden Höhen, unabhängig von der Gesamtrechnung. Sie soll

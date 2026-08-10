@@ -7,6 +7,16 @@
  * entsprechen der Darstellung im POH (FR-021).
  */
 
+export const NBSP = '\u00A0';
+
+export function formatUnitText(valueText: string, unit: string): string {
+  return unit === '' ? valueText : `${valueText}${NBSP}${unit.replaceAll(' ', NBSP)}`;
+}
+
+function formatWithUnit(value: number, decimals: number, unit: string): string {
+  return formatUnitText(formatNumber(value, decimals), unit);
+}
+
 /** Kraftstoffmenge auf 0,1 l. */
 export function roundLitres(value: number): number {
   return roundTo(value, 1);
@@ -51,11 +61,11 @@ export function formatNumber(value: number, decimals: number): string {
 }
 
 export function formatLitres(value: number): string {
-  return `${formatNumber(value, 1)} l`;
+  return formatWithUnit(value, 1, 'l');
 }
 
 export function formatUsGallons(value: number): string {
-  return `${formatNumber(value, 1)} US gal`;
+  return formatWithUnit(value, 1, 'US gal');
 }
 
 /**
@@ -75,7 +85,7 @@ export function formatFuelFlow(litresPerHour: number, usGallonsPerHour: number):
 }
 
 export function formatMinutes(value: number): string {
-  return `${formatNumber(value, 0)} min`;
+  return formatWithUnit(value, 0, 'min');
 }
 
 /**
@@ -86,23 +96,23 @@ export function formatHours(value: number): string {
   const gesamtMinuten = roundTo(value * 60, 0);
   const stunden = Math.floor(gesamtMinuten / 60);
   const minuten = gesamtMinuten - stunden * 60;
-  return `${formatNumber(stunden, 0)} h ${minuten < 10 ? '0' : ''}${formatNumber(minuten, 0)} min`;
+  return `${formatWithUnit(stunden, 0, 'h')} ${minuten < 10 ? '0' : ''}${formatWithUnit(minuten, 0, 'min')}`;
 }
 
 export function formatNauticalMiles(value: number): string {
-  return `${formatNumber(value, 1)} NM`;
+  return formatWithUnit(value, 1, 'NM');
 }
 
 export function formatKnots(value: number): string {
-  return `${formatNumber(value, 0)} kt`;
+  return formatWithUnit(value, 0, 'kt');
 }
 
 /** Höhe auf ganze Fuß. */
 export function formatFeet(value: number): string {
-  return `${formatNumber(value, 0)} ft`;
+  return formatWithUnit(value, 0, 'ft');
 }
 
 /** Luftdruck auf ganze hPa. Das QNH wird auch im Wetterbericht so genannt. */
 export function formatHectopascal(value: number): string {
-  return `${formatNumber(value, 0)} hPa`;
+  return formatWithUnit(value, 0, 'hPa');
 }

@@ -104,11 +104,6 @@
    * Bildgröße, damit der Schein beim Schrumpfen nicht plump wirkt.
    */
   const avatarScheinPx = $derived(avatarBreitePx * 0.045);
-  /**
-   * Versatz des Schlagschattens nach unten. Er wächst mit dem Bild, damit der
-   * Abstand zum „Boden" beim Schrumpfen gleich wirkt.
-   */
-  const avatarWurfPx = $derived(avatarBreitePx * 0.1);
 
   let result = $state<FuelPlanResult | undefined>(undefined);
   let fehler = $state<string | undefined>(undefined);
@@ -165,13 +160,16 @@
   Das Avatar steht bewusst außerhalb von <main>: Es ist fest im Sichtfeld
   verankert, nicht Teil des Textflusses. Im Kopfbereich bleibt ein Platzhalter
   derselben Größe stehen, damit die Überschrift nicht darunterläuft.
+
+  Die Umhüllung trägt den Bodenschatten als Pseudo-Element; er sitzt deutlich
+  unter dem Flugzeug und ist kleiner als dieses, wie ein Schatten aus der Höhe.
 -->
-<img
+<div
   class="flugzeug"
-  src="{base}/D-EELK_pixelart_192px.png"
-  alt="Die D-EELK als Pixelgrafik"
-  style="width: {avatarBreitePx}px; top: {avatarObenPx}px; --schein: {avatarScheinPx}px; --wurf: {avatarWurfPx}px;"
-/>
+  style="width: {avatarBreitePx}px; top: {avatarObenPx}px; --schein: {avatarScheinPx}px;"
+>
+  <img src="{base}/D-EELK_pixelart_192px.png" alt="Die D-EELK als Pixelgrafik" />
+</div>
 
 <main>
   <header class="kopf">
@@ -413,13 +411,19 @@
   .flugzeug {
     position: fixed;
     right: max(1.5rem, calc((100vw - 48rem) / 2 + 1.5rem));
-    display: block;
-    height: auto;
+    /* Kein Zeilenabstand unter dem Bild: Der Kasten soll genau das Bild sein. */
+    line-height: 0;
     z-index: 10;
-    /* Pixelgrafik: die Kanten sollen Kanten bleiben. */
-    image-rendering: pixelated;
     /* Zeigegeraete sollen durch das Avatar hindurch auf den Inhalt treffen. */
     pointer-events: none;
+  }
+
+  .flugzeug img {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* Pixelgrafik: die Kanten sollen Kanten bleiben. */
+    image-rendering: pixelated;
     /*
       Weiter unten liegt das Avatar ueber dem Fliesstext. Ein weisser Schein
       entlang des Umrisses trennt beide voneinander. `drop-shadow` folgt der
@@ -428,15 +432,35 @@
       und wirkte als Fleck. Mehrfach gestapelt, weil ein einzelner Schatten
       zu duenn deckt, um Text darunter verschwinden zu lassen; die Radien
       bleiben klein, damit es ein Umriss bleibt und kein Hof.
-
-      Zuletzt faellt ein weicher Schatten nach unten -- das Flugzeug soll
-      fliegen und nicht auf der Seite kleben. Er kommt nach dem Schein, weil
-      Filter nacheinander wirken: So wirft die bereits umrandete Silhouette
-      den Schatten, und der Schein bleibt selbst schattenfrei.
     */
     filter: drop-shadow(0 0 var(--schein) #fff) drop-shadow(0 0 var(--schein) #fff)
-      drop-shadow(0 0 var(--schein) #fff)
-      drop-shadow(0 var(--wurf) calc(var(--wurf) * 1.1) rgba(0, 0, 0, 0.22));
+      drop-shadow(0 0 var(--schein) #fff);
+  }
+
+  /*
+    Der Schatten auf dem Boden. Er haengt nicht am Flugzeug, sondern liegt als
+    eigener Fleck weit darunter und deutlich kleiner als dieses -- so entsteht
+    Hoehe. Ein `drop-shadow` am Bild taugt dafuer nicht: Der bildet die
+    Silhouette in Originalgroesse ab und klebt damit unmittelbar hinter dem
+    Flugzeug, statt sich als Schatten aus der Distanz zu lesen.
+
+    Alle Masse sind Anteile des Bildkastens, damit der Schatten beim
+    Schrumpfen mitgeht. Die Ellipse laeuft nach aussen in die Transparenz und
+    braucht deshalb keine Weichzeichnung.
+  */
+  .flugzeug::after {
+    content: '';
+    position: absolute;
+    left: 30%;
+    width: 40%;
+    top: 210%;
+    height: 30%;
+    background: radial-gradient(
+      closest-side at 50% 50%,
+      rgba(0, 0, 0, 0.3),
+      rgba(0, 0, 0, 0.16) 45%,
+      rgba(0, 0, 0, 0) 100%
+    );
   }
 
   /*

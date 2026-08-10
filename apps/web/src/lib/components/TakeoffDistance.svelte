@@ -41,6 +41,23 @@
   const windErlaeuterung = $derived(
     result?.steps.find((step) => step.id === 'takeoff.windAdjustment')?.explanation
   );
+
+  /**
+   * Wind und Bahnzuschlag als Zellinhalt. Das Vorzeichen steht davor, weil ein
+   * Zuschlag ohne Vorzeichen wie ein Endwert aussähe — und ein Endwert steht
+   * in dieser Tabelle nur in der letzten Zeile.
+   */
+  const windAnteil = $derived(
+    result === undefined || result.windAdjustmentPct === 0
+      ? '—'
+      : `${result.windAdjustmentPct > 0 ? '+' : '−'}${unitText(formatNumber(Math.abs(result.windAdjustmentPct), 1), '%')}`
+  );
+
+  const bahnZuschlag = $derived(
+    result === undefined || result.surfaceAllowanceM === 0
+      ? '—'
+      : `+${formatMetres(result.surfaceAllowanceM)}`
+  );
 </script>
 
 <div class="startstrecke">
@@ -63,28 +80,35 @@
   {#if fehler}
     <p class="fehler" role="alert">{fehler}</p>
   {:else if result}
-    <dl class="werte">
-      <div>
-        <dt>Startrollstrecke</dt>
-        <dd>{formatMetres(result.groundRollM)}</dd>
-      </div>
-      <div>
-        <dt>Startstrecke über {result.obstacleLabel}</dt>
-        <dd>{formatMetres(result.overObstacleM)}</dd>
-      </div>
-    </dl>
-
     <!--
-      Die Eckwerte der Rechnung stehen direkt unter dem Ergebnis: Druckhoehe
-      und Temperatur sind die beiden Groessen, mit denen der Pilot die Zeile in
-      der Handbuchtabelle wiederfindet (Constitution, Prinzip I).
+      Die Eckwerte der Rechnung stehen über der Tabelle: Druckhoehe und
+      Temperatur sind die beiden Groessen, mit denen der Pilot die Zeile in der
+      Handbuchtabelle wiederfindet (Constitution, Prinzip I).
     -->
     <p class="eckwerte">
       Druckhöhe {formatFeet(result.pressureAltitude.pressureAltitudeFt)},
       Außentemperatur {formatCelsius(result.outsideAirTemperature.outsideAirTemperatureC)}
     </p>
 
+    <!--
+      Die beiden Strecken stehen nur einmal, naemlich als Spalten. Der Wind
+      erscheint als Anteil und nicht als Zwischenstand in Metern: Ein
+      gerundeter Zwischenstand plus gerundeter Zuschlag ergaebe sichtbar einen
+      anderen Wert als die Gesamtstrecke, obwohl die Rechnung stimmt.
+
+      Der Bahnzuschlag steht dagegen in Metern, und in beiden Spalten
+      derselbe. Genau das ist die Auslegung der Anmerkungen 3 und 4: Der
+      Zuschlag entsteht aus dem Startlauf und wirkt am Boden, nicht in der
+      Luft — er waechst nicht mit der Strecke ueber das Hindernis mit.
+    -->
     <table class="aufschluesselung">
+      <thead>
+        <tr>
+          <td></td>
+          <th scope="col">Startrollstrecke</th>
+          <th scope="col">Startstrecke über {result.obstacleLabel}</th>
+        </tr>
+      </thead>
       <tbody>
         <tr>
           <th scope="row">Laut Tabelle</th>
@@ -94,21 +118,27 @@
         <tr>
           <th scope="row">
             Wind
-            <span class="anteil">
-              {unitText(formatNumber(result.windAdjustmentPct, 1), '%')}
-            </span>
+            {#if result.windAdjustmentPct === 0}
+              <span class="anteil">Windstille</span>
+            {/if}
           </th>
-          <td>{formatMetres(result.windAdjustedGroundRollM)}</td>
-          <td>{formatMetres(result.windAdjustedOverObstacleM)}</td>
+          <td>{windAnteil}</td>
+          <td>{windAnteil}</td>
         </tr>
-        <tr class="summe">
+        <tr>
           <th scope="row">
             Bahnzustand
             <span class="anteil">
-              +{unitText(formatNumber(result.surfaceAllowancePct, 0), '%')}
-              ≙ {formatMetres(result.surfaceAllowanceM)}
+              {result.surfaceAllowancePct === 0
+                ? 'befestigt und trocken'
+                : `+${unitText(formatNumber(result.surfaceAllowancePct, 0), '%')} des Startlaufs`}
             </span>
           </th>
+          <td>{bahnZuschlag}</td>
+          <td>{bahnZuschlag}</td>
+        </tr>
+        <tr class="summe">
+          <th scope="row">Gesamtstrecke</th>
           <td>{formatMetres(result.groundRollM)}</td>
           <td>{formatMetres(result.overObstacleM)}</td>
         </tr>
@@ -168,28 +198,23 @@
     color: #555;
   }
 
-  .werte {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-    gap: 0.5rem 1.5rem;
-    margin: 0 0 0.5rem;
-  }
-
-  dt {
+  .eckwerte {
+    margin: 0 0 0.75rem;
     font-size: 0.85em;
     color: #555;
   }
 
-  dd {
-    margin: 0;
-    font-variant-numeric: tabular-nums;
-    font-weight: 700;
-    font-size: 1.15em;
-  }
-
-  .eckwerte {
-    margin: 0 0 1rem;
+  /*
+    Die Spaltenueberschriften tragen die beiden Streckenarten. Sie duerfen
+    umbrechen -- "Startstrecke ueber 15 m Hindernis" passt auf einem Telefon
+    nicht in eine Zeile, und eine abgeschnittene Ueberschrift laesst offen,
+    welche der beiden Strecken in der Spalte steht.
+  */
+  thead th {
+    text-align: right;
+    vertical-align: bottom;
     font-size: 0.85em;
+    font-weight: 400;
     color: #555;
   }
 
@@ -221,6 +246,10 @@
   .summe td {
     font-weight: 700;
     border-top: 2px solid #333;
+  }
+
+  .summe td {
+    font-size: 1.1em;
   }
 
   .erlaeuterung {

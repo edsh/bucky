@@ -450,13 +450,16 @@ await page.evaluate(() => window.scrollTo(0, 0));
 await page.setViewportSize({ width: 1024, height: 800 });
 await page.goto(BASE, { waitUntil: 'networkidle' });
 await fuellen(page, { dep: 1000, cruise: 6000, qnh: 1013, dist: 250, power: 70, isa: 0, wind: 0 });
-const startWerte = await page.locator('#startstrecke .werte').innerText();
+const startWerte = await page.locator('#startstrecke .aufschluesselung').innerText();
 const startHinweise = await page.locator('#startstrecke .hinweise').first().innerText();
 const startQuellen = await page.locator('#startstrecke .quellen').innerText();
 pruefe(
   30,
   'die Startstrecke zeigt beide Strecken, die vier Anmerkungen und die Quelle mit Seitenzahl',
   /Startrollstrecke/.test(startWerte) &&
+    /Gesamtstrecke/.test(startWerte) &&
+    // Jede Strecke genau einmal, naemlich als Spaltenueberschrift.
+    (startWerte.match(/Startrollstrecke/g) ?? []).length === 1 &&
     /15\s?m Hindernis/.test(startWerte) &&
     (startWerte.match(new RegExp(`\\d${NBSP}m`, 'g')) ?? []).length >= 2 &&
     /Anmerkung 2|9 Knoten|Knoten/.test(startHinweise) &&
@@ -513,11 +516,11 @@ await regler(page, 'Windkomponente (kt, positiv = Gegenwind)', 0);
 await page.waitForTimeout(200);
 
 // 33: Bahnschalter wirken auf die Startstrecke, nicht auf den Bedarf (FR-018)
-const startVorGras = await page.locator('#startstrecke .werte').innerText();
+const startVorGras = await page.locator('#startstrecke .summe').innerText();
 const bedarfVorGras = await page.locator('#bedarf .summe').innerText();
 await page.locator('#gras').check();
 await page.waitForTimeout(200);
-const startNachGras = await page.locator('#startstrecke .werte').innerText();
+const startNachGras = await page.locator('#startstrecke .summe').innerText();
 const bedarfNachGras = await page.locator('#bedarf .summe').innerText();
 pruefe(
   33,

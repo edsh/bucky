@@ -5,7 +5,8 @@
     formatFeet,
     formatMetres,
     formatNumber,
-    unitText
+    unitText,
+    withNonBreakingUnits
   } from '@edsh-bucky/deelk-poh-core';
   import CalculationSteps from './CalculationSteps.svelte';
   import SourceCitations from './SourceCitations.svelte';
@@ -110,7 +111,7 @@
         <tr>
           <td></td>
           <th scope="col">Startrollstrecke</th>
-          <th scope="col">Startstrecke über {result.obstacleLabel}</th>
+          <th scope="col">Startstrecke über {withNonBreakingUnits(result.obstacleLabel)}</th>
         </tr>
       </thead>
       <tbody>
@@ -202,7 +203,13 @@
     border: 1px solid #ccc;
     border-radius: 0.25rem;
     padding: 0.5rem 0.75rem 0.75rem;
-    margin: 0 0 1rem;
+    /*
+      Seitlich buendig zum uebrigen Text, wie die Fieldsets der Seite: Der
+      Ausbruch entspricht genau Innenabstand plus Rahmenstaerke, damit der
+      *Inhalt* des Rahmens auf der Textkante steht und nicht nach innen
+      versetzt.
+    */
+    margin: 0 calc(-0.75rem - 1px) 1rem;
     min-width: 0;
   }
 
@@ -226,7 +233,12 @@
   */
   thead th {
     text-align: right;
-    vertical-align: bottom;
+    /*
+      Oben ausgerichtet: Die rechte Ueberschrift bricht auf schmalen Anzeigen
+      auf zwei Zeilen um. Bei unterer Ausrichtung saesse die einzeilige linke
+      Ueberschrift dann tiefer als ihre Nachbarin.
+    */
+    vertical-align: top;
     font-size: 0.85em;
     font-weight: 400;
     color: #555;

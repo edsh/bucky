@@ -50,7 +50,10 @@ const TEXT_EINHEITEN = [
   'kg',
   'lbs',
   '%',
-  '°C'
+  '°C',
+  // 'm' steht bewusst hinter 'min' und 'NM': Die Alternation greift von links,
+  // sonst bliebe von "15 min" ein "15 m" mit angehaengtem "in".
+  'm'
 ];
 
 const EINHEIT_IM_TEXT = new RegExp(

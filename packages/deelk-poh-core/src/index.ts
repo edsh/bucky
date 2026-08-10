@@ -43,6 +43,7 @@ export {
 export { interpolate, type InterpolationQuery, type InterpolationResult } from './interpolate.js';
 
 export {
+  NBSP,
   formatFeet,
   formatFuel,
   formatFuelFlow,
@@ -55,6 +56,7 @@ export {
   formatMinutes,
   formatNauticalMiles,
   formatNumber,
+  unitText,
   roundKnots,
   roundLitres,
   roundMinutes,

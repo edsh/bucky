@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { CalculationStep } from '@edsh-bucky/deelk-poh-core';
+  import { type CalculationStep, unitText } from '@edsh-bucky/deelk-poh-core';
 
   /**
    * Stellt die Schrittfolge dar (FR-017). Reine Darstellung — die Werte kommen
@@ -11,7 +11,7 @@
     value.toLocaleString('de-DE', { maximumFractionDigits: 4 });
 
   const mitEinheit = (value: number, unit: string): string =>
-    unit === '' ? zahl(value) : `${zahl(value)} ${unit}`;
+    unitText(zahl(value), unit);
 </script>
 
 <details class="rechenweg">

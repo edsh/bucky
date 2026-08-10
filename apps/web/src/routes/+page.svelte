@@ -304,6 +304,12 @@
   }
 
   /* Der Leistungshebel steht seitlich, wie im Cockpit neben den Anzeigen. */
+  /*
+    Der Rahmen bricht seitlich aus der Textspalte aus, damit sein *Inhalt*
+    buendig zum uebrigen Fliesstext steht statt um Rahmen und Innenabstand
+    nach innen versetzt. Der Ausbruch entspricht genau Innenabstand plus
+    Rahmenstaerke; er bleibt damit innerhalb des Innenabstands von `main`.
+  */
   fieldset {
     display: flex;
     align-items: flex-start;
@@ -311,6 +317,7 @@
     border: 1px solid #ccc;
     border-radius: 0.25rem;
     padding: 0.5rem 0.75rem 0.75rem;
+    margin-inline: calc(-0.75rem - 1px);
     min-width: 0;
   }
 

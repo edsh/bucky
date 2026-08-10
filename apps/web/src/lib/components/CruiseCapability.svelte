@@ -42,7 +42,11 @@
         <dd>{formatFuelFlow(capability.fuelFlowLph, capability.fuelFlowUsGph)}</dd>
       </div>
       <div>
-        <dt aria-label="Verbrauch je NM, informativer Schätzwert">Verbrauch je NM (ⓘ ℮)</dt>
+        <dt>
+          Verbrauch je NM
+          <span aria-hidden="true"> (ⓘ ℮)</span>
+          <span class="sr-only">, informativer Schätzwert</span>
+        </dt>
         <dd>{formatLitresPerNauticalMile(capability.litresPerNm)}</dd>
       </div>
       <div>
@@ -95,6 +99,18 @@
   dt {
     font-size: 0.85em;
     color: #555;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   dd {

@@ -3,6 +3,8 @@ name: GitHub Pages
 on:
   push:
     branches: [main]
+    paths:
+      - 'apps/web/build/**'
   workflow_dispatch:
 
 permissions:

@@ -73,9 +73,9 @@ const dauerMs = Date.now() - start;
 pruefe(1, 'gültiges Flugvorhaben liefert ein Ergebnis', dauerMs < 2000, `${dauerMs} ms`);
 
 // 2: Seitenzahl, Tabellenname und Prüfhinweis sichtbar, ohne Aufklappen (SC-002)
-const quellen = page.locator('.quellen');
+const quellen = page.locator('#bedarf .quellen');
 const quellentext = await quellen.innerText();
-const hinweisSichtbar = await page.locator('.pruefhinweis').isVisible();
+const hinweisSichtbar = await page.locator('#bedarf .pruefhinweis').isVisible();
 pruefe(
   2,
   'Quellen und Prüfhinweis ohne Aufklappen sichtbar',
@@ -95,11 +95,11 @@ pruefe(4, 'Hinweis, dass die Summe keine Reserve enthält', /keine Reserve/i.tes
 await regler(page, 'Lasteinstellung', 80);
 await page.waitForTimeout(150);
 await page.getByRole('heading', { name: 'Kraftstoffbedarf und Geschwindigkeiten' }).waitFor({ timeout: 5000 });
-const hinweise = await page.locator('.hinweise').innerText();
+const hinweise = await page.locator('#bedarf .hinweise').innerText();
 pruefe(
   3,
   'über 75 % Last erzeugt den Hinweis, blockiert die Rechnung aber nicht',
-  /75/.test(hinweise) && (await page.locator('.aufschluesselung').isVisible()),
+  /75/.test(hinweise) && (await page.locator('#bedarf .aufschluesselung').isVisible()),
   hinweise.split('\n')[0] ?? ''
 );
 
@@ -108,7 +108,7 @@ await fuellen(page, { dep: 1000, cruise: 6000, dist: 750, power: 100, isa: 20, w
 await page.waitForTimeout(300);
 const warnung = page.locator('.vergleich.warnung');
 const warnungSichtbar = await warnung.isVisible().catch(() => false);
-const fehlermeldung = await page.locator('.fehler').innerText().catch(() => '');
+const fehlermeldung = await page.locator('#bedarf .fehler').innerText().catch(() => '');
 pruefe(
   5,
   'Bedarf über der ausfliegbaren Menge ist deutlich sichtbar',
@@ -119,16 +119,16 @@ pruefe(
 // Rechenweg aufklappbar (US2)
 await fuellen(page, { dep: 1000, cruise: 6000, dist: 400, power: 70, isa: 20, wind: 10 });
 await page.getByRole('heading', { name: 'Kraftstoffbedarf und Geschwindigkeiten' }).waitFor({ timeout: 5000 });
-const details = page.locator('details').first();
+const details = page.locator('#bedarf details').first();
 await details.click();
 await page.waitForTimeout(200);
-const schritte = await page.locator('details li, details .schritt').count();
+const schritte = await page.locator('#bedarf details li, #bedarf details .schritt').count();
 pruefe(6, 'Rechenweg lässt sich aufklappen und zeigt Schritte', schritte >= 13, `${schritte} Elemente`);
 
 // Fehlerfall: Reiseflughöhe unter Platzhöhe
 await fuellen(page, { dep: 6000, cruise: 2000, dist: 400, power: 70, isa: 0, wind: 0 });
 await page.waitForTimeout(300);
-const meldung = await page.locator('.fehler').innerText().catch(() => '');
+const meldung = await page.locator('#bedarf .fehler').innerText().catch(() => '');
 pruefe(
   7,
   'Reiseflughöhe unter Platzhöhe zeigt die Meldung des Kerns',
@@ -194,7 +194,7 @@ const vorher = await page.locator('#strecke-wert').innerText();
 await page.keyboard.press('ArrowRight');
 await page.waitForTimeout(150);
 const nachher = await page.locator('#strecke-wert').innerText();
-const summeNachTaste = await page.locator('.gesamt, .summe').first().innerText().catch(() => '');
+const summeNachTaste = await page.locator('#bedarf .summe').first().innerText().catch(() => '');
 pruefe(
   14,
   'Pfeiltaste verstellt den Regler, Anzeige und Ergebnis folgen',
@@ -226,12 +226,26 @@ await page.getByRole('button', { name: 'EDSH' }).click();
 await page.waitForTimeout(150);
 const platzWert = await page.locator('#platzhoehe-wert').innerText();
 const platzFolge = await page.locator('#platzhoehe').locator('..').locator('.folge').innerText();
+const grasNachEdsh = await page.locator('#gras').isChecked();
 pruefe(
   18,
   'Schnellwahl EDSH setzt die Platzhöhe auf 971 ft',
   platzWert.includes('971') && /≙ Druckhöhe/.test(platzFolge),
   `${platzWert} — ${platzFolge}`
 );
+
+// 29: EDSH setzt den Grasschalter mit, und ein spaeteres Verstellen der
+// Platzhoehe laesst ihn stehen (FR-023)
+await regler(page, 'Platzhöhe ASL (ft)', 1500);
+await page.waitForTimeout(150);
+const grasNachVerstellen = await page.locator('#gras').isChecked();
+pruefe(
+  29,
+  'EDSH setzt den Grasschalter, Verstellen der Platzhöhe setzt ihn nicht zurück',
+  grasNachEdsh && grasNachVerstellen,
+  `nach EDSH: ${grasNachEdsh}, nach Verstellen: ${grasNachVerstellen}`
+);
+await page.locator('#gras').uncheck();
 
 // 19: im Ergebnis stehen nur noch die Groessen des konkreten Vorhabens
 const leistung = await page.locator('.leistung').innerText();
@@ -257,16 +271,19 @@ pruefe(
 // 21: die Uebersicht steht zwischen den beiden Eingabegruppen und zeigt vier Werte
 await fuellen(page, { dep: 1000, cruise: 6000, qnh: 1013, dist: 400, power: 70, isa: 10, wind: 10 });
 const reihenfolge = await page.evaluate(() => {
-  const marken = [...document.querySelectorAll('legend, .uebersicht h2')].map((e) => e.textContent.trim());
+  const marken = [
+    ...document.querySelectorAll('legend, .uebersicht h2, .bereich-titel')
+  ].map((e) => e.textContent.trim());
   return marken;
 });
 const uebersichtWerte = await page.locator('.uebersicht .werte > div').count();
 pruefe(
   21,
-  'die Übersicht steht zwischen Grundbedingungen und Vorhaben und zeigt fünf Werte',
+  'die Übersicht steht zwischen Grundbedingungen und Start/Streckenflug und zeigt fünf Werte',
   reihenfolge[0].startsWith('Grundbedingungen') &&
     /Reichweite und Flugdauer/.test(reihenfolge[1]) &&
-    reihenfolge[2].startsWith('Streckenflug') &&
+    reihenfolge[2] === 'Start und Streckenflug' &&
+    reihenfolge[3].startsWith('Platzhöhe und Windkomponente') &&
     uebersichtWerte === 5,
   `${reihenfolge.join(' > ')} — ${uebersichtWerte} Werte`
 );
@@ -288,12 +305,12 @@ pruefe(
 
 // 23: Strecke und Wind lassen die Uebersicht unberuehrt, aendern aber den Bedarf
 const uebersichtVorher = await page.locator('.uebersicht .werte').innerText();
-const summeVorher = await page.locator('.summe').innerText();
+const summeVorher = await page.locator('#bedarf .summe').innerText();
 await regler(page, 'Streckenlänge (NM)', 250);
 await regler(page, 'Windkomponente (kt, positiv = Gegenwind)', -20);
 await page.waitForTimeout(200);
 const uebersichtNachher = await page.locator('.uebersicht .werte').innerText();
-const summeNachher = await page.locator('.summe').innerText();
+const summeNachher = await page.locator('#bedarf .summe').innerText();
 pruefe(
   23,
   'Strecke und Wind ändern die Übersicht nicht, den Bedarf aber schon',
@@ -326,7 +343,7 @@ pruefe(
 
 // 17: hoher Luftdruck druckt die Platzhoehe unter den Tabellenrand (SC-006)
 await fuellen(page, { dep: 0, cruise: 6000, qnh: 1030, dist: 400, power: 70, isa: 0, wind: 0 });
-const druckmeldung = await page.locator('.fehler').innerText().catch(() => '');
+const druckmeldung = await page.locator('#bedarf .fehler').innerText().catch(() => '');
 pruefe(
   17,
   'zu hohes QNH führt zur Ablehnung, die Meldung nennt das QNH',
@@ -388,7 +405,14 @@ pruefe(
 
 // 27: Zahl und Einheit haengen zusammen (Issue #13)
 const trennbar = await page.evaluate(() => {
-  const text = document.body.innerText;
+  // Die Bedingungen der Tabellen bleiben aussen vor: Sie sind woertliche
+  // Zitate aus dem Flughandbuch („Geschwindigkeit in 15 m / 50 ft Hoehe")
+  // und werden bewusst nicht umformatiert -- ein Zitat, das der Rechner
+  // anfasst, ist keines mehr (Prinzip I).
+  const text = [...document.querySelectorAll('main *')]
+    .filter((e) => e.children.length === 0 && !e.closest('.bedingungen'))
+    .map((e) => e.textContent)
+    .join('\n');
   // Einheiten, denen ein gewoehnliches Leerzeichen vorausgeht, duerften am
   // Zeilenende auseinanderfallen.
   const treffer = text.match(/\d (?:l|kt|ft|NM|hPa|min|h|%|°C|US gal|KTAS)\b/g);
@@ -402,6 +426,10 @@ pruefe(
 );
 
 // 28: das Avatar bleibt beim Scrollen sichtbar und schrumpft dabei (Issue #14)
+// Erst zurueck nach oben: Das Ausfuellen weiter oben kann die Seite bereits
+// verschoben haben, und dann waere das Avatar schon geschrumpft.
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.waitForTimeout(250);
 const avatarOben = await page.locator('.flugzeug').boundingBox();
 await page.evaluate(() => window.scrollTo(0, 600));
 await page.waitForTimeout(200);
@@ -416,6 +444,134 @@ pruefe(
   `${Math.round(avatarOben.width)} px -> ${Math.round(avatarUnten.width)} px, y = ${Math.round(avatarUnten.y)}`
 );
 await page.evaluate(() => window.scrollTo(0, 0));
+
+// 30: die Startstrecke zeigt beide Werte, die vier Anmerkungen im Wortlaut mit
+// Seitenangabe 5b-2 und eine Quellenangabe mit Seitenzahl (FR-016, SC-004)
+await page.setViewportSize({ width: 1024, height: 800 });
+await page.goto(BASE, { waitUntil: 'networkidle' });
+await fuellen(page, { dep: 1000, cruise: 6000, qnh: 1013, dist: 250, power: 70, isa: 0, wind: 0 });
+const startWerte = await page.locator('#startstrecke .werte').innerText();
+const startHinweise = await page.locator('#startstrecke .hinweise').first().innerText();
+const startQuellen = await page.locator('#startstrecke .quellen').innerText();
+pruefe(
+  30,
+  'die Startstrecke zeigt beide Strecken, die vier Anmerkungen und die Quelle mit Seitenzahl',
+  /Startrollstrecke/.test(startWerte) &&
+    /15\s?m Hindernis/.test(startWerte) &&
+    (startWerte.match(new RegExp(`\\d${NBSP}m`, 'g')) ?? []).length >= 2 &&
+    /Anmerkung 2|9 Knoten|Knoten/.test(startHinweise) &&
+    /15%/.test(startHinweise) &&
+    /20%/.test(startHinweise) &&
+    /Abb\. 5-1a/.test(startQuellen) &&
+    /Seite 5b-2/.test(startQuellen),
+  `${startWerte.replace(/\s+/g, ' ')} — ${startQuellen.split('\n')[0]}`
+);
+
+// 31: Überschrift, Fieldset-Inhalt und Ort der Streckenlänge (FR-012 bis FR-014)
+const gliederung = await page.evaluate(() => {
+  const feld = [...document.querySelectorAll('fieldset')].find(
+    (f) => f.querySelector('legend')?.textContent.trim() === 'Platzhöhe und Windkomponente'
+  );
+  const titel = document.querySelector('.bereich-titel')?.textContent.trim() ?? '';
+  return {
+    titel,
+    // 4 = DOCUMENT_POSITION_FOLLOWING: das Fieldset steht hinter der Ueberschrift
+    titelVorFieldset: feld
+      ? document.querySelector('.bereich-titel').compareDocumentPosition(feld) & 4
+      : 0,
+    reglerImFieldset: feld ? feld.querySelectorAll('input[type="range"]').length : -1,
+    streckeImBedarf: document.querySelector('#bedarf #strecke') !== null
+  };
+});
+pruefe(
+  31,
+  'Überschrift „Start und Streckenflug" über dem Fieldset mit genau zwei Reglern, Streckenlänge beim Bedarf',
+  gliederung.titel === 'Start und Streckenflug' &&
+    gliederung.titelVorFieldset > 0 &&
+    gliederung.reglerImFieldset === 2 &&
+    gliederung.streckeImBedarf,
+  JSON.stringify(gliederung)
+);
+
+// 32: 15 kt Rückenwind bricht nur die Startstrecke, nicht den Bedarf (FR-020)
+await regler(page, 'Windkomponente (kt, positiv = Gegenwind)', -15);
+await page.waitForTimeout(200);
+const rueckenwindMeldung = await page
+  .locator('#startstrecke .fehler')
+  .innerText()
+  .catch(() => '');
+const bedarfLaeuftWeiter = await page.locator('#bedarf .summe').isVisible().catch(() => false);
+pruefe(
+  32,
+  '15 kt Rückenwind zeigt bei der Startstrecke die Meldung des Kerns, der Bedarf bleibt stehen',
+  /Anmerkung 2/.test(rueckenwindMeldung) &&
+    /Rückenwind/.test(rueckenwindMeldung) &&
+    bedarfLaeuftWeiter,
+  rueckenwindMeldung
+);
+await regler(page, 'Windkomponente (kt, positiv = Gegenwind)', 0);
+await page.waitForTimeout(200);
+
+// 33: Bahnschalter wirken auf die Startstrecke, nicht auf den Bedarf (FR-018)
+const startVorGras = await page.locator('#startstrecke .werte').innerText();
+const bedarfVorGras = await page.locator('#bedarf .summe').innerText();
+await page.locator('#gras').check();
+await page.waitForTimeout(200);
+const startNachGras = await page.locator('#startstrecke .werte').innerText();
+const bedarfNachGras = await page.locator('#bedarf .summe').innerText();
+pruefe(
+  33,
+  'der Grasschalter verlängert die Startstrecke und lässt den Kraftstoffbedarf unberührt',
+  startVorGras !== startNachGras && bedarfVorGras === bedarfNachGras,
+  `${startVorGras.replace(/\s+/g, ' ')} -> ${startNachGras.replace(/\s+/g, ' ')}`
+);
+await page.locator('#gras').uncheck();
+
+// 34: zwei Spalten im Querformat, eine im Hochformat -- der Fall, an dem eine
+// reine Breitenabfrage scheitern wuerde (quickstart.md Abschnitt 9)
+const bereicheNebeneinander = () =>
+  page.evaluate(() => {
+    const felder = [...document.querySelectorAll('.bereich')];
+    return new Set(felder.map((e) => Math.round(e.getBoundingClientRect().top))).size === 1;
+  });
+
+await page.setViewportSize({ width: 844, height: 390 });
+await page.waitForTimeout(250);
+const quer = await bereicheNebeneinander();
+
+await page.setViewportSize({ width: 1024, height: 1366 });
+await page.waitForTimeout(250);
+const hoch = await bereicheNebeneinander();
+const startstreckeZuerst = await page.evaluate(() => {
+  const start = document.querySelector('#startstrecke');
+  const bedarf = document.querySelector('#bedarf');
+  return start.getBoundingClientRect().top < bedarf.getBoundingClientRect().top;
+});
+pruefe(
+  34,
+  'bei 844 × 390 nebeneinander, bei 1024 × 1366 untereinander mit der Startstrecke zuerst',
+  quer && !hoch && startstreckeZuerst,
+  `quer nebeneinander: ${quer}, hoch nebeneinander: ${hoch}, Startstrecke zuerst: ${startstreckeZuerst}`
+);
+
+// 35: auf 390 px kein waagerechtes Scrollen und alle Bedienelemente erreichbar
+await page.setViewportSize({ width: 390, height: 844 });
+await page.waitForTimeout(250);
+const engeSicht = await page.evaluate(() => {
+  const ueberbreit = document.documentElement.scrollWidth > window.innerWidth + 1;
+  const bedienbar = [...document.querySelectorAll('input, button')].every((element) => {
+    const kasten = element.getBoundingClientRect();
+    return kasten.width > 0 && kasten.left >= -1 && kasten.right <= window.innerWidth + 1;
+  });
+  return { ueberbreit, bedienbar };
+});
+pruefe(
+  35,
+  'auf 390 px kein waagerechtes Scrollen, alle Bedienelemente innerhalb der Breite',
+  !engeSicht.ueberbreit && engeSicht.bedienbar,
+  JSON.stringify(engeSicht)
+);
+await page.setViewportSize({ width: 1024, height: 800 });
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 

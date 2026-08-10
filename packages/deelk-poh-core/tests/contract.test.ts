@@ -263,3 +263,48 @@ describe('FR-009: die Reiseleistung hängt nicht am Vorhaben', () => {
     expect(geprueft).toBe(80);
   });
 });
+
+describe('C-07: kein Adapter kennt die Spalten und Zuschläge der Startstrecke', () => {
+  /**
+   * Die Anmerkungen 3 und 4 wirken **additiv**: Gras und feucht ergeben 35 %,
+   * nicht 1,15 × 1,20 = 38 %. Und der Zuschlag wird **einmal** aus dem
+   * Startlauf gebildet und als derselbe Meterbetrag auf beide Strecken
+   * geschlagen. Beides steht nirgends im Wortlaut des Handbuchs, sondern ist
+   * eine Auslegung — sie darf deshalb nur an einer Stelle stehen. Ein Adapter,
+   * der die Prozentsätze selbst kennte, könnte sie irgendwann anders anwenden
+   * als der Kern, und der Unterschied fiele niemandem auf.
+   */
+  const adapterDateien = [join(repoRoot, 'apps/web/src'), join(repoRoot, 'apps/mcp/src')].flatMap(
+    (directory) => sourceFiles(directory, ['.ts', '.svelte'])
+  );
+
+  it.each(adapterDateien)('%s liest weder ground_roll noch over_obstacle', (path) => {
+    const source = read(path);
+
+    expect(source, `${relative(repoRoot, path)} verstößt gegen C-07`).not.toMatch(/ground_roll/);
+    expect(source, `${relative(repoRoot, path)} verstößt gegen C-07`).not.toMatch(/over_obstacle/);
+  });
+
+  it.each(adapterDateien)('%s führt 15, 20 oder 35 nicht als Zuschlagsprozentsatz', (path) => {
+    const source = read(path);
+
+    // Getroffen wird die Zahl nur dort, wo sie als Anteil auftritt — also mit
+    // Prozentzeichen oder als Faktor 1,15/1,20/1,35. Eine schlichte 15 in
+    // einem anderen Zusammenhang (etwa „15 m Hindernis") bleibt erlaubt.
+    const verdacht = [/\b(?:15|20|35)\s*%/, /\b1\.(?:15|20|2|35)\s*\*/, /\*\s*1\.(?:15|20|2|35)\b/];
+
+    for (const muster of verdacht) {
+      expect(source, `${relative(repoRoot, path)} verstößt gegen C-07`).not.toMatch(muster);
+    }
+  });
+
+  it('die Zuschläge stehen genau einmal im Kern', () => {
+    const mitZuschlag = sourceFiles(coreSrc, ['.ts']).filter((path) =>
+      /const DRY_GRASS_PCT\b/.test(read(path))
+    );
+
+    expect(mitZuschlag.map((path) => relative(repoRoot, path))).toStrictEqual([
+      'packages/deelk-poh-core/src/takeoff/takeoffDistance.ts'
+    ]);
+  });
+});

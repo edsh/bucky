@@ -33,6 +33,16 @@
     Spalten deshalb nicht ein; sie stehen dort als eigenständige Auskunft über dem Formular.
   </p>
 
+  <p class="einleitung">
+    Die Startstreckentabelle Abb. 5-1a führt zu jeder Kombination aus Druckhöhe und Außentemperatur
+    zwei Werte: die Startrollstrecke bis zum Abheben und die Startstrecke über ein 15 m hohes
+    Hindernis. Beide beschreiben denselben Start, aber zwei verschiedene Fragen — die erste, wo das
+    Fahrwerk den Boden verlässt, die zweite, ob hinter dem Bahnende ein Baum oder ein Zaun noch
+    überflogen wird. Maßgeblich für die Entscheidung ist in aller Regel die zweite. Die Zuschläge
+    für Wind und Bahnzustand aus den Anmerkungen 2 bis 4 sind in den Tabellenwerten noch nicht
+    enthalten; sie legt der Rechner darüber.
+  </p>
+
   {#each tables as table (table.id)}
     <article>
       <h2>{table.figure} — {table.tableName}</h2>

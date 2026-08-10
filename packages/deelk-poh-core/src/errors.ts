@@ -35,6 +35,10 @@ export interface PohCalculationErrorDetails {
   readonly elevationFt?: number;
   /** Der dabei verwendete Luftdruck. */
   readonly qnhHpa?: number;
+  /** Die Druckhöhe, aus der eine Umgebungstemperatur entstand. */
+  readonly pressureAltitudeFt?: number;
+  /** Die dabei verwendete Abweichung von der Standardatmosphäre. */
+  readonly isaDeviationC?: number;
 }
 
 /**
@@ -49,6 +53,8 @@ export class PohCalculationError extends Error {
   readonly actual: number | undefined;
   readonly elevationFt: number | undefined;
   readonly qnhHpa: number | undefined;
+  readonly pressureAltitudeFt: number | undefined;
+  readonly isaDeviationC: number | undefined;
 
   constructor(
     kind: PohCalculationErrorKind,
@@ -64,6 +70,8 @@ export class PohCalculationError extends Error {
     this.actual = details.actual;
     this.elevationFt = details.elevationFt;
     this.qnhHpa = details.qnhHpa;
+    this.pressureAltitudeFt = details.pressureAltitudeFt;
+    this.isaDeviationC = details.isaDeviationC;
   }
 }
 
@@ -124,5 +132,33 @@ export function pressureAltitudeOutOfRange(
     // `actual` erschiene sie ein zweites Mal mit allen Nachkommastellen — eine
     // Genauigkeit, die die Rechnung nicht hat und die nur verunsichert.
     { field, allowedRange, elevationFt, qnhHpa }
+  );
+}
+
+/**
+ * Die aus Druckhöhe und ISA-Abweichung hergeleitete Umgebungstemperatur liegt
+ * außerhalb des Tabellenrasters.
+ *
+ * Dieselbe Überlegung wie bei `pressureAltitudeOutOfRange`: Die beanstandete
+ * Größe ist **keine Eingabe**. Nennte die Meldung nur die Temperatur, suchte
+ * der Pilot den Fehler an einer Stellschraube, die es nicht gibt — deshalb
+ * stehen beide Ursachen im Satz.
+ */
+export function outsideAirTemperatureOutOfRange(
+  field: string,
+  outsideAirTemperatureC: number,
+  allowedRange: NumericRange,
+  pressureAltitudeFt: number,
+  isaDeviationC: number,
+  tableId?: string
+): PohCalculationError {
+  const richtung = outsideAirTemperatureC < allowedRange.min ? 'unter' : 'über';
+  const abweichung = `${isaDeviationC > 0 ? '+' : ''}${formatQuantity(isaDeviationC, 0, '°C')}`;
+  return new PohCalculationError(
+    'OUT_OF_RANGE',
+    `In ${formatQuantity(pressureAltitudeFt, 0, 'ft')} Druckhöhe ergibt eine ISA-Abweichung von ${abweichung} eine Umgebungstemperatur von ${formatQuantity(outsideAirTemperatureC, 0, '°C')}. Das liegt ${richtung} dem Bereich, den die Tabelle abdeckt. Es wird weder auf den Tabellenrand zurückgefallen noch extrapoliert.`,
+    tableId === undefined
+      ? { field, allowedRange, pressureAltitudeFt, isaDeviationC }
+      : { field, allowedRange, pressureAltitudeFt, isaDeviationC, tableId }
   );
 }

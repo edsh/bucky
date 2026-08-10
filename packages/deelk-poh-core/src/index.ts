@@ -22,7 +22,13 @@ export {
 } from './atmosphere/pressureAltitude.js';
 
 export {
+  toOutsideAirTemperature,
+  type OutsideAirTemperatureResult
+} from './atmosphere/temperature.js';
+
+export {
   PohCalculationError,
+  outsideAirTemperatureOutOfRange,
   pressureAltitudeOutOfRange,
   type PohCalculationErrorKind
 } from './errors.js';
@@ -30,8 +36,10 @@ export {
 export {
   CLIMB_TABLE_ID,
   CRUISE_TABLE_ID,
+  TAKEOFF_TABLE_ID,
   USABLE_FUEL_L,
   USABLE_FUEL_US_GAL,
+  getObstacleLabel,
   getSourceReference,
   getTableCondition,
   getTableNote,
@@ -40,11 +48,32 @@ export {
   listTables
 } from './tables.js';
 
-export { interpolate, type InterpolationQuery, type InterpolationResult } from './interpolate.js';
+export {
+  interpolate,
+  interpolateGrid,
+  type GridAxisQuery,
+  type GridInterpolationQuery,
+  type GridInterpolationResult,
+  type InterpolationQuery,
+  type InterpolationResult
+} from './interpolate.js';
+
+export {
+  computeTakeoffDistance,
+  type TakeoffDistanceResult
+} from './takeoff/takeoffDistance.js';
+
+export {
+  getTakeoffInputDomain,
+  type RunwaySurfaceInput,
+  type TakeoffDistanceInput,
+  type TakeoffInputDomain
+} from './takeoff/input.js';
 
 export {
   NBSP,
   formatFeet,
+  formatMetres,
   formatFuel,
   formatFuelFlow,
   formatFuelPerNauticalMile,

@@ -103,6 +103,140 @@ export function interpolate(query: InterpolationQuery): InterpolationResult {
   );
 }
 
+/** Eine Achse der zweidimensionalen Interpolation. */
+export interface GridAxisQuery {
+  /** Spalte der Tabelle, z. B. `pressure_altitude_ft`. */
+  readonly key: string;
+  readonly value: number;
+  /** Name des Eingabefelds für die Fehlermeldung. */
+  readonly field: string;
+  /** Einheit der Achse für die Fehlermeldung. */
+  readonly unit: string;
+}
+
+export interface GridInterpolationQuery {
+  readonly tableId: string;
+  /** Erste und zweite Achse; die Reihenfolge bestimmt nur die Fehlermeldung. */
+  readonly axes: readonly [GridAxisQuery, GridAxisQuery];
+  readonly valueKeys: readonly string[];
+}
+
+export interface GridInterpolationResult {
+  readonly values: Readonly<Record<string, number>>;
+  /**
+   * Alle tatsächlich berührten Stützwerte: vier, wenn beide Achsen zwischen
+   * Stützstellen liegen, zwei bei einer getroffenen Achse, einer bei beiden.
+   * Jeder trägt **beide** Achsenwerte in `at` — ohne sie könnte der Pilot das
+   * Ergebnis nicht gegen die gedruckte Tabelle halten.
+   */
+  readonly anchors: readonly TableAnchor[];
+  /** Lage zwischen den Stützstellen der ersten Achse, 0 bei exaktem Treffer. */
+  readonly fraction: number;
+  /** Dasselbe für die zweite Achse. */
+  readonly secondaryFraction: number;
+}
+
+/**
+ * Bilineare Interpolation über zwei Achsen einer POH-Tabelle.
+ *
+ * Die Startstreckentabelle Abb. 5-1a ist die erste des Projekts, die über zwei
+ * stetige Achsen zugleich aufgespannt ist. Die Mischung zweier Zwischenwerte
+ * ist selbst Interpolation und gehört deshalb hierher und nicht in ein
+ * Fachmodul — dieselbe Überlegung, die die Rundung in `format.ts` hält.
+ *
+ * Innen läuft die Funktion über `interpolate`: Sie klammert die erste Achse
+ * ein und interpoliert für jeden der beiden Nachbarn entlang der zweiten. Die
+ * Achsen bleiben damit voneinander unabhängig, und ein **nicht
+ * gleichabständiges** Raster — die Temperaturachse führt −20, 0, 10, 20 … —
+ * wird von selbst richtig behandelt, weil beide Ebenen die tatsächlichen
+ * Nachbarn suchen statt eine Schrittweite anzunehmen.
+ *
+ * Außerhalb des Rasters wird nicht extrapoliert, sondern geworfen.
+ */
+export function interpolateGrid(query: GridInterpolationQuery): GridInterpolationResult {
+  const [primary, secondary] = query.axes;
+  const table = getTable(query.tableId);
+  const grid = [...new Set(table.rows.map((row) => readCell(row, primary.key)))].sort(
+    (a, b) => a - b
+  );
+
+  const first = grid[0];
+  const last = grid[grid.length - 1];
+  if (first === undefined || last === undefined) {
+    throw new PohCalculationError(
+      'UNSUPPORTED_COMBINATION',
+      'Für diese Kombination enthält die Tabelle keine Zeilen.',
+      { field: primary.field, tableId: query.tableId, actual: primary.value }
+    );
+  }
+
+  const range: NumericRange = {
+    min: first,
+    max: last,
+    unit: primary.unit,
+    // Nur zur Fehlermeldung; siehe `interpolate`.
+    step: 1
+  };
+  if (primary.value < range.min || primary.value > range.max) {
+    throw outOfRange(primary.field, primary.value, range, query.tableId);
+  }
+
+  const [lowerAt, upperAt] = bracket(grid, primary.value);
+
+  const alongSecondary = (primaryValue: number): InterpolationResult =>
+    interpolate({
+      tableId: query.tableId,
+      axisKey: secondary.key,
+      axisValue: secondary.value,
+      valueKeys: query.valueKeys,
+      where: { [primary.key]: primaryValue },
+      field: secondary.field,
+      axisUnit: secondary.unit
+    });
+
+  const lower = alongSecondary(lowerAt);
+
+  if (lowerAt === upperAt) {
+    return {
+      values: lower.values,
+      anchors: lower.anchors,
+      fraction: 0,
+      secondaryFraction: lower.fraction
+    };
+  }
+
+  const upper = alongSecondary(upperAt);
+  const fraction = (primary.value - lowerAt) / (upperAt - lowerAt);
+  const values: Record<string, number> = {};
+  for (const key of query.valueKeys) {
+    const lowerValue = lower.values[key] as number;
+    values[key] = lowerValue + ((upper.values[key] as number) - lowerValue) * fraction;
+  }
+
+  return {
+    values,
+    anchors: [...lower.anchors, ...upper.anchors],
+    fraction,
+    secondaryFraction: lower.fraction
+  };
+}
+
+/** Die beiden Rasterwerte, die einen Wert einschließen; bei Treffer beide gleich. */
+function bracket(grid: readonly number[], value: number): readonly [number, number] {
+  let lower = grid[0] as number;
+  let upper = grid[grid.length - 1] as number;
+  for (const at of grid) {
+    if (at <= value) {
+      lower = at;
+    }
+    if (at >= value) {
+      upper = at;
+      break;
+    }
+  }
+  return [lower, upper];
+}
+
 function selectRows(rows: readonly TableRow[], query: InterpolationQuery): readonly TableRow[] {
   const where = query.where;
   if (where === undefined) {

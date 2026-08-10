@@ -184,7 +184,14 @@ export function bracketingAltitudes(altitude: number): readonly [number, number]
   return [lower, upper];
 }
 
-export function checkRange(field: keyof FlightPlanInput, value: number, range: NumericRange): void {
+/**
+ * Prüft einen Wert gegen seinen zulässigen Bereich.
+ *
+ * `field` ist ein freier Name und nicht auf `FlightPlanInput` eingeschränkt:
+ * Auch die Startstrecke prüft ihre Felder hierüber, und sie in das
+ * Flugvorhaben aufzunehmen wäre falsch — sie gehören nicht dorthin.
+ */
+export function checkRange(field: string, value: number, range: NumericRange): void {
   if (value < range.min || value > range.max) {
     throw outOfRange(field, value, range);
   }
@@ -267,7 +274,7 @@ export function validateFlightPlan(input: unknown): ValidatedFlightPlan {
  * nicht eine zweite, auseinanderlaufende Fassung davon (Feature 006).
  */
 export function checkPressureAltitude(
-  field: keyof FlightPlanInput,
+  field: string,
   result: PressureAltitudeResult,
   range: NumericRange
 ): void {

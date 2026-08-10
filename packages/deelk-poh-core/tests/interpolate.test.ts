@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { interpolate } from '../src/interpolate.js';
+import { interpolate, interpolateGrid } from '../src/interpolate.js';
 import { PohCalculationError } from '../src/errors.js';
-import { CLIMB_TABLE_ID, CRUISE_TABLE_ID } from '../src/tables.js';
+import { CLIMB_TABLE_ID, CRUISE_TABLE_ID, TAKEOFF_TABLE_ID } from '../src/tables.js';
 
 const climbQuery = {
   tableId: CLIMB_TABLE_ID,
@@ -93,5 +93,106 @@ describe('interpolate', () => {
     } catch (error) {
       expect((error as PohCalculationError).kind).toBe('UNSUPPORTED_COMBINATION');
     }
+  });
+});
+
+const takeoffQuery = {
+  tableId: TAKEOFF_TABLE_ID,
+  valueKeys: ['ground_roll', 'over_obstacle']
+} as const;
+
+/** Achsen der Startstreckentabelle in der Reihenfolge Höhe, Temperatur. */
+function achsen(pressureAltitudeFt: number, oatC: number) {
+  return [
+    {
+      key: 'pressure_altitude_ft',
+      value: pressureAltitudeFt,
+      field: 'departureElevationFt',
+      unit: 'ft'
+    },
+    { key: 'oat_c', value: oatC, field: 'isaDeviationC', unit: '°C' }
+  ] as const;
+}
+
+describe('interpolateGrid', () => {
+  it('gibt bei exaktem Treffer beider Achsen den gedruckten Wert und einen Stützwert', () => {
+    const result = interpolateGrid({ ...takeoffQuery, axes: achsen(0, 20) });
+
+    expect(result.values['ground_roll']).toBe(204);
+    expect(result.values['over_obstacle']).toBe(319);
+    expect(result.anchors).toHaveLength(1);
+    expect(result.fraction).toBe(0);
+    expect(result.secondaryFraction).toBe(0);
+  });
+
+  it('liefert zwei Stützwerte, wenn nur eine Achse zwischen Stützstellen liegt', () => {
+    const nurHoehe = interpolateGrid({ ...takeoffQuery, axes: achsen(500, 20) });
+    const nurTemperatur = interpolateGrid({ ...takeoffQuery, axes: achsen(0, 15) });
+
+    expect(nurHoehe.anchors).toHaveLength(2);
+    expect(nurHoehe.fraction).toBeCloseTo(0.5, 10);
+    expect(nurHoehe.secondaryFraction).toBe(0);
+
+    expect(nurTemperatur.anchors).toHaveLength(2);
+    expect(nurTemperatur.fraction).toBe(0);
+    expect(nurTemperatur.secondaryFraction).toBeCloseTo(0.5, 10);
+  });
+
+  it('liefert vier Stützwerte, wenn beide Achsen zwischen Stützstellen liegen', () => {
+    const result = interpolateGrid({ ...takeoffQuery, axes: achsen(500, 15) });
+
+    expect(result.anchors).toHaveLength(4);
+    // Jeder Stützwert trägt beide Achsenwerte — sonst ließe sich das Ergebnis
+    // nicht gegen die gedruckte Tabelle halten.
+    for (const anchor of result.anchors) {
+      expect(anchor.at).toHaveProperty('pressureAltitudeFt');
+      expect(anchor.at).toHaveProperty('oatC');
+    }
+    expect(new Set(result.anchors.map((anchor) => anchor.at['pressureAltitudeFt']))).toEqual(
+      new Set([0, 1000])
+    );
+    expect(new Set(result.anchors.map((anchor) => anchor.at['oatC']))).toEqual(new Set([10, 20]));
+  });
+
+  it('mischt beide Achsen linear', () => {
+    // Mittelwert der vier Eckwerte, weil beide Anteile genau 0,5 betragen.
+    const ecken = [
+      interpolateGrid({ ...takeoffQuery, axes: achsen(0, 10) }),
+      interpolateGrid({ ...takeoffQuery, axes: achsen(0, 20) }),
+      interpolateGrid({ ...takeoffQuery, axes: achsen(1000, 10) }),
+      interpolateGrid({ ...takeoffQuery, axes: achsen(1000, 20) })
+    ].map((eintrag) => eintrag.values['ground_roll'] as number);
+    const erwartet = ecken.reduce((summe, wert) => summe + wert, 0) / 4;
+
+    expect(interpolateGrid({ ...takeoffQuery, axes: achsen(500, 15) }).values['ground_roll']).toBeCloseTo(
+      erwartet,
+      10
+    );
+  });
+
+  it('behandelt das ungleichabständige Temperaturraster richtig', () => {
+    // Zwischen −20 und 0 °C liegen 20 °C, darüber je 10. Eine angenommene
+    // Schrittweite ergäbe hier den falschen Nachbarn.
+    const result = interpolateGrid({ ...takeoffQuery, axes: achsen(0, -10) });
+    const unten = interpolateGrid({ ...takeoffQuery, axes: achsen(0, -20) }).values['ground_roll'] as number;
+    const oben = interpolateGrid({ ...takeoffQuery, axes: achsen(0, 0) }).values['ground_roll'] as number;
+
+    expect(result.secondaryFraction).toBeCloseTo(0.5, 10);
+    expect(result.values['ground_roll']).toBeCloseTo((unten + oben) / 2, 10);
+  });
+
+  it('extrapoliert auf keiner der beiden Achsen', () => {
+    expect(() => interpolateGrid({ ...takeoffQuery, axes: achsen(10001, 20) })).toThrow(
+      PohCalculationError
+    );
+    expect(() => interpolateGrid({ ...takeoffQuery, axes: achsen(-1, 20) })).toThrow(
+      PohCalculationError
+    );
+    expect(() => interpolateGrid({ ...takeoffQuery, axes: achsen(0, 51) })).toThrow(
+      PohCalculationError
+    );
+    expect(() => interpolateGrid({ ...takeoffQuery, axes: achsen(0, -21) })).toThrow(
+      PohCalculationError
+    );
   });
 });

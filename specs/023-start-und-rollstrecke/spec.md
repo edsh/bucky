@@ -156,19 +156,26 @@ erwarteten Anordnung und ohne waagerechtes Scrollen.
 
 **Acceptance Scenarios**:
 
-1. **Given** eine breite Darstellung, **When** die Seite erscheint, **Then**
-   stehen „Roll- und Startstrecke" und „Kraftstoffbedarf und Geschwindigkeiten"
-   nebeneinander.
-2. **Given** eine schmale Darstellung, **When** die Seite erscheint, **Then**
-   stehen dieselben Bereiche untereinander, die Startstrecke zuerst, und es
-   entsteht kein waagerechtes Scrollen.
-3. **Given** die Seite ist geöffnet, **When** der Pilot die Eingabefelder
+1. **Given** ein Anzeigebereich im Querformat von mindestens 640 px Breite,
+   **When** die Seite erscheint, **Then** stehen „Roll- und Startstrecke" und
+   „Kraftstoffbedarf und Geschwindigkeiten" nebeneinander.
+2. **Given** ein Anzeigebereich im Hochformat — auch ein großer, etwa 1032 px
+   breiter Tablet-Bildschirm —, **When** die Seite erscheint, **Then** stehen
+   dieselben Bereiche untereinander, die Startstrecke zuerst, und es entsteht
+   kein waagerechtes Scrollen.
+3. **Given** ein Telefon im Querformat mit 667 px Breite, **When** die Seite
+   erscheint, **Then** stehen beide Bereiche nebeneinander und bleiben lesbar.
+4. **Given** die Seite ist geöffnet, **When** der Pilot die Eingabefelder
    durchgeht, **Then** stehen Platzhöhe und Windkomponente gemeinsam im Fieldset
    „Platzhöhe und Windkomponente", und die Streckenlänge steht beim
    Kraftstoffbedarf.
-4. **Given** die Seite ist geöffnet, **When** der Pilot sie mit der Tastatur
+5. **Given** die Seite ist geöffnet, **When** der Pilot sie mit der Tastatur
    bedient, **Then** folgt die Reihenfolge der Bedienelemente der sichtbaren
    Anordnung.
+6. **Given** die Platzhöhe steht auf einem beliebigen Wert und der Grasschalter
+   ist aus, **When** der Pilot die Schnellwahl „EDSH" betätigt, **Then** stehen
+   die Platzhöhe auf 971 ft und der Grasschalter auf ein, und die Startstrecke
+   weist den Zuschlag nach Anmerkung 3 aus.
 
 ---
 
@@ -261,8 +268,9 @@ erwarteten Anordnung und ohne waagerechtes Scrollen.
   „Kraftstoffbedarf und Geschwindigkeiten" wandern.
 - **FR-015**: Unterhalb des Fieldsets MÜSSEN die Bereiche „Roll- und
   Startstrecke" und „Kraftstoffbedarf und Geschwindigkeiten" stehen —
-  nebeneinander, sobald die Darstellung breit genug ist, sonst untereinander mit
-  der Startstrecke zuerst.
+  nebeneinander im Querformat ab 40 rem (640 px) Breite, sonst untereinander mit
+  der Startstrecke zuerst. Maßgeblich ist die Form des Anzeigebereichs, nicht
+  die Geräteklasse: Hochformat bleibt einspaltig, auch auf großen Tablets.
 - **FR-016**: Der Bereich „Roll- und Startstrecke" MUSS die vier Anmerkungen des
   Handbuchs im Wortlaut mit Seitenangabe 5b-2 zeigen, ebenso die Bedingungen,
   unter denen die Tabelle gilt.
@@ -280,6 +288,10 @@ erwarteten Anordnung und ohne waagerechtes Scrollen.
 - **FR-022**: Der MCP-Zugang MUSS die Startstrecke einschließlich Zuschlägen,
   Quellenangabe und Prüfhinweis ausgeben, mit denselben Werten wie die
   Weboberfläche.
+- **FR-023**: Die Schnellwahl „EDSH" MUSS neben der Platzhöhe auch den Schalter
+  für trockene Grasbahn setzen, weil Backnang-Heiningen eine Graspiste hat. Der
+  Pilot MUSS den Schalter danach wieder abwählen können; eine spätere Änderung
+  der Platzhöhe DARF den Schalter nicht selbsttätig zurücksetzen.
 
 ### Key Entities
 
@@ -312,12 +324,34 @@ erwarteten Anordnung und ohne waagerechtes Scrollen.
   einer Ablehnung mit Begründung, nie zu einem stillschweigend extrapolierten
   Wert.
 - **SC-006**: Auf 390 px Breite sind alle Inhalte ohne waagerechtes Scrollen
-  erreichbar; ab der festgelegten Breite stehen beide Bereiche nebeneinander.
+  erreichbar. Auf den geprüften Gerätegrößen trifft die Spaltigkeit zu: Telefon
+  und Tablet im Hochformat einspaltig, Telefon und Tablet im Querformat sowie
+  Desktop zweispaltig.
 - **SC-007**: Weboberfläche und MCP-Zugang liefern zu denselben Eingaben
   identische Werte, Quellenangaben und Prüfhinweise.
 
 ## Assumptions
 
+- **Zweispaltig heißt Querformat, nicht Bildschirmgröße**: Die Faustregel
+  „Hoch­format einspaltig, Querformat zweispaltig" lässt sich mit einer reinen
+  Breitenabfrage nicht abbilden, weil sich die Bereiche überschneiden: Das
+  schmalste Telefon im Querformat misst 667 px (iPhone SE), das breiteste
+  Tablet im Hochformat 1032 px (iPad Pro 13"). Eine Schwelle, die 667 px
+  zweispaltig macht, würde also auch jedes Tablet-Hochformat zweispaltig
+  machen. Maßgeblich ist deshalb die Form des Anzeigebereichs: zweispaltig ab
+  40 rem Breite **und** Querformat. Das trifft alle Telefone im Querformat
+  (ab 667 px), alle Tablets im Querformat (ab 1133 px) und jedes übliche
+  Desktop-Fenster, lässt aber Tablet- und Telefon-Hochformat einspaltig.
+- **Geteilte Bildschirme fallen von selbst richtig**: Ein halbierter
+  iPad-Bildschirm ist schmaler als hoch und gilt damit als Hochformat —
+  einspaltig, was bei rund 688 px auch richtig ist. Dieselbe Regel greift bei
+  schmalen, hohen Desktop-Fenstern.
+- **Startstrecke als eigenes Kernmodul**: Die Rechnung entsteht als eigenes
+  Modul neben `fuel/`, nicht darin. Druckhöhe und Umgebungstemperatur werden
+  ihm von außen übergeben; es leitet sie nicht selbst aus Platzhöhe, Luftdruck
+  und ISA-Abweichung her. So bleibt es für sich prüfbar und kann später auch
+  von anderen Rechenwegen genutzt werden, ohne die Kraftstoffrechnung
+  mitzuziehen.
 - **Metertabelle als Grundlage**: Das Handbuch führt dieselben Startstrecken in
   Metern (Abb. 5-1a) und in Fuß (Abb. 5-1b) als getrennt gedruckte Tabellen. Die
   Metertabelle ist die Grundlage, weil deutsche Bahnlängen in Metern angegeben

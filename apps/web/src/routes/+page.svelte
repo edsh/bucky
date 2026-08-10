@@ -104,6 +104,11 @@
    * Bildgröße, damit der Schein beim Schrumpfen nicht plump wirkt.
    */
   const avatarScheinPx = $derived(avatarBreitePx * 0.045);
+  /**
+   * Versatz des Schlagschattens nach unten. Er wächst mit dem Bild, damit der
+   * Abstand zum „Boden" beim Schrumpfen gleich wirkt.
+   */
+  const avatarWurfPx = $derived(avatarBreitePx * 0.1);
 
   let result = $state<FuelPlanResult | undefined>(undefined);
   let fehler = $state<string | undefined>(undefined);
@@ -165,7 +170,7 @@
   class="flugzeug"
   src="{base}/D-EELK_pixelart_192px.png"
   alt="Die D-EELK als Pixelgrafik"
-  style="width: {avatarBreitePx}px; top: {avatarObenPx}px; --schein: {avatarScheinPx}px;"
+  style="width: {avatarBreitePx}px; top: {avatarObenPx}px; --schein: {avatarScheinPx}px; --wurf: {avatarWurfPx}px;"
 />
 
 <main>
@@ -423,9 +428,15 @@
       und wirkte als Fleck. Mehrfach gestapelt, weil ein einzelner Schatten
       zu duenn deckt, um Text darunter verschwinden zu lassen; die Radien
       bleiben klein, damit es ein Umriss bleibt und kein Hof.
+
+      Zuletzt faellt ein weicher Schatten nach unten -- das Flugzeug soll
+      fliegen und nicht auf der Seite kleben. Er kommt nach dem Schein, weil
+      Filter nacheinander wirken: So wirft die bereits umrandete Silhouette
+      den Schatten, und der Schein bleibt selbst schattenfrei.
     */
     filter: drop-shadow(0 0 var(--schein) #fff) drop-shadow(0 0 var(--schein) #fff)
-      drop-shadow(0 0 var(--schein) #fff);
+      drop-shadow(0 0 var(--schein) #fff)
+      drop-shadow(0 var(--wurf) calc(var(--wurf) * 1.1) rgba(0, 0, 0, 0.22));
   }
 
   /*

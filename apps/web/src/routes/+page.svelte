@@ -85,7 +85,7 @@
   let scrollY = $state(0);
 
   const AVATAR_GROSS_PX = 96;
-  const AVATAR_KLEIN_PX = 48;
+  const AVATAR_KLEIN_PX = 72;
   /** Nach dieser Scrollstrecke ist die Endgröße erreicht. */
   const SCHRUMPFSTRECKE_PX = 260;
   /** Abstand des Avatars zum oberen Rand, sobald es mitwandert. */

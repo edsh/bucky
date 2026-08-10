@@ -42,7 +42,7 @@
         <dd>{formatFuelFlow(capability.fuelFlowLph, capability.fuelFlowUsGph)}</dd>
       </div>
       <div>
-        <dt>Verbrauch je NM (ⓘ ℮)</dt>
+        <dt aria-label="Verbrauch je NM, informativer Schätzwert">Verbrauch je NM (ⓘ ℮)</dt>
         <dd>{formatLitresPerNauticalMile(capability.litresPerNm)}</dd>
       </div>
       <div>

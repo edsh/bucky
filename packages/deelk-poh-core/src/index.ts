@@ -55,7 +55,7 @@ export {
   formatMinutes,
   formatNauticalMiles,
   formatNumber,
-  formatUnitText,
+  unitText,
   roundKnots,
   roundLitres,
   roundMinutes,

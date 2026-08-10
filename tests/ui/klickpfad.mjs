@@ -220,8 +220,7 @@ pruefe(
 
 // 26: In der Gruppe der Reiseflugbedingungen steht der QNH-Regler zuerst
 const bedingungenLabels = await page
-  .locator('fieldset')
-  .first()
+  .getByRole('group', { name: 'Bedingungen des Reiseflugs' })
   .locator('.regler > .beschriftung > label')
   .evaluateAll((labels) => labels.map((label) => label.textContent.trim()));
 pruefe(

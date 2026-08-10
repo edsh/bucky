@@ -343,7 +343,6 @@
     display: block;
     width: 6rem;
     height: auto;
-    flex: none;
     /* Pixelgrafik: die Kanten sollen Kanten bleiben. */
     image-rendering: pixelated;
   }

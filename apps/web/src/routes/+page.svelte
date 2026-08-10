@@ -27,7 +27,10 @@
    */
   const domain = getFuelPlanInputDomain();
 
-  /** Platzhöhe von EDSH (Hohn) als Schnellwahl — der Heimatplatz der D-EELK. */
+  /**
+   * Platzhöhe von EDSH (Backnang-Heiningen) als Schnellwahl — der Heimatplatz
+   * der D-EELK. Sonderlandeplatz mit Graspiste 10/28, 500 m.
+   */
   const EDSH_ELEVATION_FT = 971;
 
   // Vorgaben eines typischen Fluges ab dem Heimatplatz: EDSH, eine Höhe unter

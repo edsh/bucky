@@ -8,6 +8,11 @@ import {
   handleComputeFuelPlan
 } from './tools/computeFuelPlan.js';
 import {
+  TOOL_DESCRIPTION as TAKEOFF_DESCRIPTION,
+  buildInputShape as buildTakeoffInputShape,
+  handleComputeTakeoffDistance
+} from './tools/computeTakeoffDistance.js';
+import {
   TOOL_DESCRIPTION as LIST_DESCRIPTION,
   handleListPohTables
 } from './tools/listPohTables.js';
@@ -29,6 +34,20 @@ export function createServer(): McpServer {
       annotations: { readOnlyHint: true, openWorldHint: false }
     },
     (args) => handleComputeFuelPlan(args)
+  );
+
+  // Eigenes Werkzeug und kein zusaetzliches Feld im Kraftstoffbedarf: Die
+  // Startstrecke ist eine andere Frage zu einem anderen Zeitpunkt, und ein
+  // Fehler an der Startbahn darf die Kraftstoffplanung nicht mitreissen.
+  server.registerTool(
+    'compute_takeoff_distance',
+    {
+      title: 'Roll- und Startstrecke D-EELK berechnen',
+      description: TAKEOFF_DESCRIPTION,
+      inputSchema: buildTakeoffInputShape(),
+      annotations: { readOnlyHint: true, openWorldHint: false }
+    },
+    (args) => handleComputeTakeoffDistance(args)
   );
 
   server.registerTool(

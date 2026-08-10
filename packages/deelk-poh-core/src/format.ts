@@ -181,6 +181,15 @@ export function formatFeet(value: number): string {
   return formatQuantity(value, 0, 'ft');
 }
 
+/**
+ * Strecke am Boden auf ganze Meter. Mehr Stellen behaupteten eine Genauigkeit,
+ * die die Interpolation nicht hat — die Tabelle selbst ist auf ganze Meter
+ * gedruckt.
+ */
+export function formatMetres(value: number): string {
+  return formatQuantity(value, 0, 'm');
+}
+
 /** Luftdruck auf ganze hPa. Das QNH wird auch im Wetterbericht so genannt. */
 export function formatHectopascal(value: number): string {
   return formatQuantity(value, 0, 'hPa');

@@ -3,10 +3,20 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { computeCruiseCapability, computeFuelPlan, listTables } from '@edsh-bucky/deelk-poh-core';
 import {
+  computeTakeoffDistance,
+  toOutsideAirTemperature,
+  toPressureAltitude
+} from '@edsh-bucky/deelk-poh-core';
+import {
   buildInputShape,
   formatSummary,
   handleComputeFuelPlan
 } from '../src/tools/computeFuelPlan.js';
+import {
+  buildInputShape as buildTakeoffInputShape,
+  formatSummary as formatTakeoffSummary,
+  handleComputeTakeoffDistance
+} from '../src/tools/computeTakeoffDistance.js';
 import { handleListPohTables } from '../src/tools/listPohTables.js';
 import { createServer } from '../src/server.js';
 
@@ -116,11 +126,12 @@ describe('M-03: keine Rohtabellen', () => {
     }
   });
 
-  it('stellt der Server genau die beiden vereinbarten Werkzeuge bereit', async () => {
+  it('stellt der Server genau die drei vereinbarten Werkzeuge bereit', async () => {
     const { tools } = await withClient((client) => client.listTools());
 
     expect(tools.map((tool) => tool.name).sort()).toStrictEqual([
       'compute_fuel_plan',
+      'compute_takeoff_distance',
       'list_poh_tables'
     ]);
   });
@@ -214,5 +225,107 @@ describe('Reiseleistungs-Übersicht über den MCP-Weg (Feature 006)', () => {
     // verschiedene Zahlen — sie dürfen nicht ineinanderlaufen.
     expect(text).toContain('Das ist keine Reserve.');
     expect(text).toContain('45\u00a0min. Reserve');
+  });
+});
+
+
+/**
+ * Startstrecke über den MCP-Weg (Feature 023). Zwei Wege, eine Zahl
+ * (Prinzip IV): Der Adapter darf weder nachrechnen noch anders zusammensetzen
+ * als der Kern (SC-007).
+ */
+const startFallA = {
+  departureElevationFt: 0,
+  qnhHpa: 1013.25,
+  isaDeviationC: 0,
+  windComponentKt: 0,
+  dryGrassRunway: false,
+  wetOrSnowRunway: false
+};
+
+const startFallEdsh = {
+  departureElevationFt: 971,
+  qnhHpa: 1013.25,
+  isaDeviationC: 20,
+  windComponentKt: 9,
+  dryGrassRunway: true,
+  wetOrSnowRunway: false
+};
+
+/** Derselbe Fall, unmittelbar über den Kern gerechnet. */
+function ueberDenKern(eingabe: typeof startFallA) {
+  const pressureAltitude = toPressureAltitude(eingabe.departureElevationFt, eingabe.qnhHpa);
+  return computeTakeoffDistance({
+    pressureAltitude,
+    outsideAirTemperature: toOutsideAirTemperature(
+      pressureAltitude.pressureAltitudeFt,
+      eingabe.isaDeviationC
+    ),
+    windComponentKt: eingabe.windComponentKt,
+    dryGrassRunway: eingabe.dryGrassRunway,
+    wetOrSnowRunway: eingabe.wetOrSnowRunway
+  });
+}
+
+describe('SC-007: Startstrecke über den MCP-Weg', () => {
+  it.each([startFallA, startFallEdsh])(
+    'liefert feldgleiche Werte wie der unmittelbare Kernaufruf',
+    (eingabe) => {
+      const ueberAdapter = handleComputeTakeoffDistance(eingabe);
+
+      expect(ueberAdapter.isError).toBeUndefined();
+      expect(ueberAdapter.structuredContent).toStrictEqual(ueberDenKern(eingabe));
+    }
+  );
+
+  it('nennt Quellenangabe, Anmerkungen und Prüfhinweis wortgleich', () => {
+    const direkt = ueberDenKern(startFallEdsh);
+    const text = formatTakeoffSummary(direkt);
+
+    expect(text).toContain(direkt.source.tableName);
+    expect(text).toContain(direkt.source.citation);
+    for (const page of direkt.source.pohPages) {
+      expect(text).toContain(page);
+    }
+    for (const note of direkt.notes) {
+      expect(text).toContain(note.text);
+    }
+    expect(text).toContain(direkt.preflightCheckNotice);
+  });
+
+  it('gibt auch über das Protokoll dieselben Zahlen heraus wie der Kern', async () => {
+    const antwort = await withClient((client) =>
+      client.callTool({ name: 'compute_takeoff_distance', arguments: startFallEdsh })
+    );
+
+    expect(antwort.structuredContent).toStrictEqual(
+      JSON.parse(JSON.stringify(ueberDenKern(startFallEdsh)))
+    );
+  });
+
+  it('gibt bei zu viel Rückenwind keinen Zahlenwert heraus', () => {
+    const antwort = handleComputeTakeoffDistance({ ...startFallA, windComponentKt: -15 });
+
+    expect(antwort.isError).toBe(true);
+    expect(antwort.structuredContent).toBeUndefined();
+    expect(antwort.content[0]?.text ?? '').toContain('Anmerkung 2');
+  });
+
+  it('beschreibt genau die sechs Felder der Startstrecke', () => {
+    expect(Object.keys(buildTakeoffInputShape()).sort()).toStrictEqual([
+      'departureElevationFt',
+      'dryGrassRunway',
+      'isaDeviationC',
+      'qnhHpa',
+      'wetOrSnowRunway',
+      'windComponentKt'
+    ]);
+  });
+
+  it('nimmt keine Druckhöhe und keine Streckenlänge entgegen', () => {
+    const felder = Object.keys(buildTakeoffInputShape());
+
+    expect(felder).not.toContain('pressureAltitudeFt');
+    expect(felder).not.toContain('distanceNm');
   });
 });

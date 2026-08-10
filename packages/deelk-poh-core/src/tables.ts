@@ -37,6 +37,8 @@ export interface PohTable {
   };
   readonly conditions: readonly string[];
   readonly notes: readonly string[];
+  /** Bezeichnung des Hindernisses, sofern die Tabelle eines führt. */
+  readonly obstacle_label?: string;
   readonly rows: readonly TableRow[];
   /** Beim Digitalisieren vermerkte Widersprüche des Originals. */
   readonly source_anomalies?: readonly SourceAnomaly[];
@@ -78,6 +80,12 @@ const APPLICABLE_TABLES: ReadonlyMap<string, PohTable> = new Map(
 /** Kennungen der beiden für den Kraftstoffrechner benötigten Tabellen. */
 export const CLIMB_TABLE_ID = '5b-climb-time-dist-fuel-1043kg';
 export const CRUISE_TABLE_ID = '5b-cruise-standard-1043kg';
+
+/**
+ * Kennung der Startstreckentabelle. Die Metervariante, weil die Oberfläche
+ * durchgehend metrisch rechnet; die Fußvariante Abb. 5-1b bleibt ungenutzt.
+ */
+export const TAKEOFF_TABLE_ID = '5b-takeoff-distance-m-1043kg';
 
 /** Ausfliegbare Menge der Standardtanks laut Katalog (FR-016). */
 export const USABLE_FUEL_L: number = catalogue.aircraft.usable_fuel_l;
@@ -172,6 +180,22 @@ export function getTableCondition(tableId: string, keyword: string): string {
   // Typografie, kein Nachdichten: Der Wortlaut bleibt, nur Zahl und Einheit
   // werden aneinander gebunden (Issue #13).
   return withNonBreakingUnits(condition);
+}
+
+/**
+ * Die Bezeichnung des Hindernisses im Wortlaut der Digitalisierung, etwa
+ * „15 m Hindernis“. Auch sie wird nicht in der Oberfläche formuliert.
+ */
+export function getObstacleLabel(tableId: string): string {
+  const label = getTable(tableId).obstacle_label;
+  if (label === undefined) {
+    throw new PohCalculationError(
+      'NOT_COMPUTABLE',
+      `Die Tabelle "${tableId}" führt kein Hindernis.`,
+      { tableId }
+    );
+  }
+  return withNonBreakingUnits(label);
 }
 
 /**

@@ -88,6 +88,46 @@ nachgeschlagen und nie gebildet: Eine eigene Rechnung wiese systematisch zu
 wenig aus, also in die gefährliche Richtung. Ein Vertragstest (C-06) hält fest,
 dass kein Adapter diese Spalten anfasst.
 
+### Roll- und Startstrecke: reicht die Bahn?
+
+Neben dem Kraftstoffbedarf steht die zweite Frage vor dem Start: ob die Bahn
+lang genug ist. Ausgewiesen werden beide Werte aus Abb. 5-1a — die
+Startrollstrecke bis zum Abheben und die Startstrecke über ein 15 m hohes
+Hindernis. Die zweite ist die maßgebliche, wenn am Bahnende Bäume, Zäune oder
+eine Straße stehen; die erste sagt nur, wo das Fahrwerk den Boden verlässt.
+
+Die Tabelle ist zweifach gestützt: Druckhöhe (0 bis 10 000 ft) und
+Außentemperatur (−20 bis 50 °C). Zwischen den Stützstellen wird bilinear
+interpoliert, außerhalb wird abgelehnt statt fortgeschrieben. Die
+Außentemperatur wird aus Druckhöhe und ISA-Abweichung gebildet und nicht
+eigens eingegeben — dieselben Grundbedingungen, die schon die Reiseleistung
+tragen (Prinzip IV).
+
+Darauf wirken die Anmerkungen des Handbuchs, in dieser Reihenfolge:
+
+1. **Wind (Anmerkung 2)** — je 9 kt Gegenwind 10 % weniger, je 2 kt Rückenwind
+   10 % mehr. Angewandt wird das *anteilig* statt in vollen Stufen: 4,5 kt
+   Gegenwind ergeben 5 %, nicht 0 %. Die Stufen addieren sich, sie
+   multiplizieren sich nicht — 18 kt Gegenwind ergeben 20 % und nicht 19 %.
+   Über 10 kt Rückenwind endet der Wortlaut der Anmerkung; dort wird
+   abgelehnt.
+2. **Bahnzustand (Anmerkungen 3 und 4)** — 15 % für trockenes Gras, mindestens
+   20 % für feuchtes Gras, aufgeweichten Untergrund oder Schnee.
+
+Beide Bahnzuschläge wirken **additiv**: Gras und feucht ergeben 35 %, nicht
+1,15 × 1,20 = 38 %. Der Wortlaut („um 15 % erhöhen") beschreibt eine Erhöhung
+des Tabellenwerts, nicht eine Erhöhung des schon erhöhten Werts. Und die
+Anmerkungen sprechen ausdrücklich vom *Startlauf*: Der Zuschlag wird deshalb
+einmal aus dem windkorrigierten Startlauf gebildet und als **derselbe
+Meterbetrag** auf beide Strecken geschlagen — die zusätzliche Strecke entsteht
+am Boden, nicht in der Luft. Beides ist eine Auslegung und steht deshalb genau
+einmal im Kern; ein Vertragstest (C-07) hält fest, dass kein Adapter diese
+Prozentsätze kennt.
+
+Die Schnellwahl **EDSH** setzt neben der Platzhöhe von 971 ft auch den Schalter
+für trockenes Gras: Der Heimatplatz hat eine Graspiste. Der Schalter bleibt
+danach frei wählbar und wird beim Verstellen der Platzhöhe nicht zurückgesetzt.
+
 ## Veröffentlichte Oberfläche
 
 <https://edsh.github.io/bucky/>

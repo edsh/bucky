@@ -10,7 +10,7 @@ import type { StandardSourceReference } from '../types.js';
  */
 
 /** Temperatur auf Meereshöhe der Standardatmosphäre in K. */
-const T0_K = 288.15;
+export const T0_K = 288.15;
 
 /** Temperaturgradient der Troposphäre in K/m. */
 const LAPSE_RATE_K_PER_M = 0.0065;
@@ -28,7 +28,7 @@ const BAROMETRIC_EXPONENT = 5.25588;
 const M_PER_FT = 0.3048;
 
 /** Temperaturgradient je Fuß, damit gar nicht erst in Meter gewechselt wird. */
-const LAPSE_RATE_K_PER_FT = LAPSE_RATE_K_PER_M * M_PER_FT;
+export const LAPSE_RATE_K_PER_FT = LAPSE_RATE_K_PER_M * M_PER_FT;
 
 /** Höhe der Troposphärenskala T₀/L in ft. */
 const SCALE_HEIGHT_FT = T0_K / LAPSE_RATE_K_PER_FT;

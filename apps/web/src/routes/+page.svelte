@@ -4,6 +4,7 @@
     PohCalculationError,
     computeCruiseCapability,
     computeFuelPlan,
+    computeTakeoffDistance,
     formatCelsius,
     formatFeet,
     formatHectopascal,
@@ -11,14 +12,17 @@
     formatNauticalMiles,
     formatPercent,
     getFuelPlanInputDomain,
+    toOutsideAirTemperature,
     toPressureAltitude,
     type CruiseCapability,
-    type FuelPlanResult
+    type FuelPlanResult,
+    type TakeoffDistanceResult
   } from '@edsh-bucky/deelk-poh-core';
   import CruiseCapabilityView from '$lib/components/CruiseCapability.svelte';
   import FuelResult from '$lib/components/FuelResult.svelte';
   import PowerLever from '$lib/components/PowerLever.svelte';
   import RangeField from '$lib/components/RangeField.svelte';
+  import TakeoffDistance from '$lib/components/TakeoffDistance.svelte';
 
   /**
    * Dünner Adapter: nimmt die sechs Felder entgegen und reicht sie an den Kern
@@ -27,7 +31,10 @@
    */
   const domain = getFuelPlanInputDomain();
 
-  /** Platzhöhe von EDSH (Hohn) als Schnellwahl — der Heimatplatz der D-EELK. */
+  /**
+   * Platzhöhe von EDSH (Backnang-Heiningen) als Schnellwahl — der Heimatplatz
+   * der D-EELK. Sonderlandeplatz mit Graspiste 10/28, 500 m.
+   */
   const EDSH_ELEVATION_FT = 971;
 
   // Vorgaben eines typischen Fluges ab dem Heimatplatz: EDSH, eine Höhe unter
@@ -42,6 +49,25 @@
   let windComponentKt = $state(10);
 
   /**
+   * Der Bahnzustand wirkt allein auf die Startstrecke (FR-018). Beide Schalter
+   * stehen hier und nicht in der Komponente, weil die Schnellwahl „EDSH" den
+   * Grasschalter mitsetzt — der Heimatplatz hat eine Graspiste (FR-023).
+   */
+  let dryGrassRunway = $state(false);
+  let wetOrSnowRunway = $state(false);
+
+  /**
+   * Setzt Platzhöhe **und** Bahnzustand auf EDSH. Der Schalter bleibt danach
+   * frei wählbar: Wer die Platzhöhe anschließend verstellt, hat deshalb nicht
+   * zwingend eine andere Bahnart vor sich — der Schalter wird also nicht
+   * zurückgesetzt (FR-023).
+   */
+  function edshWaehlen(): void {
+    departureElevationFt = EDSH_ELEVATION_FT;
+    dryGrassRunway = true;
+  }
+
+  /**
    * Die Druckhöhe zu beiden Höhen, unabhängig von der Gesamtrechnung. Sie soll
    * auch dann unter dem Regler stehen, wenn die Rechnung scheitert — gerade
    * dann erklärt sie nämlich, warum. Gerechnet wird dabei nicht selbst: die
@@ -49,6 +75,39 @@
    */
   const platzDruckhoehe = $derived(toPressureAltitude(departureElevationFt, qnhHpa));
   const reiseDruckhoehe = $derived(toPressureAltitude(cruiseAltitudeAmslFt, qnhHpa));
+
+  /**
+   * Die Startstrecke steht für sich: Sie hängt an Platzhöhe, Luftdruck,
+   * Temperatur, Wind und Bahnzustand — nicht an Strecke oder Lasteinstellung.
+   * Sie wird deshalb eigens ermittelt und in `{ wert, fehler }` gekapselt,
+   * damit ein Fehler hier den Kraftstoffbedarf nicht mitreißt und umgekehrt
+   * (FR-020).
+   */
+  const startstrecke = $derived.by((): { wert?: TakeoffDistanceResult; fehler?: string } => {
+    try {
+      return {
+        wert: computeTakeoffDistance({
+          // Druckhöhe und Temperatur kommen als fertige Ergebnisse des Kerns
+          // herein; der Adapter rechnet sie nicht selbst (Zusicherung C-04).
+          pressureAltitude: platzDruckhoehe,
+          outsideAirTemperature: toOutsideAirTemperature(
+            platzDruckhoehe.pressureAltitudeFt,
+            isaDeviationC
+          ),
+          windComponentKt,
+          dryGrassRunway,
+          wetOrSnowRunway
+        })
+      };
+    } catch (error) {
+      return {
+        fehler:
+          error instanceof PohCalculationError
+            ? error.message
+            : 'Unerwarteter Fehler bei der Startstreckenberechnung.'
+      };
+    }
+  });
 
   /**
    * Die Reiseleistung hängt allein an den Bedingungen des Reiseflugs. Sie wird
@@ -244,12 +303,18 @@
 
   <CruiseCapabilityView capability={reiseleistung.wert} fehler={reiseleistung.fehler} />
 
+  <!--
+    Platzhöhe und Wind gehören beiden Bereichen darunter: Die Startstrecke
+    braucht sie ebenso wie der Kraftstoffbedarf. Sie stehen deshalb einmal
+    oben und nicht doppelt in den Spalten (FR-013).
+  -->
+  <h2 class="bereich-titel">Start und Streckenflug</h2>
+
   <form onsubmit={(event) => event.preventDefault()}>
     <fieldset>
-      <legend>Streckenflug</legend>
+      <legend>Platzhöhe und Windkomponente</legend>
 
       <div class="felder">
-
         <RangeField
           id="platzhoehe"
           label="Platzhöhe ASL (ft)"
@@ -258,26 +323,12 @@
           format={formatFeet}
         >
           {#snippet neben()}
-            <button
-              type="button"
-              class="schnellwahl"
-              onclick={() => (departureElevationFt = EDSH_ELEVATION_FT)}
-            >
-              EDSH
-            </button>
+            <button type="button" class="schnellwahl" onclick={edshWaehlen}>EDSH</button>
           {/snippet}
           {#snippet folge()}
             ≙ Druckhöhe {formatFeet(platzDruckhoehe.pressureAltitudeFt)} @ {formatHectopascal(qnhHpa)}
           {/snippet}
         </RangeField>
-
-        <RangeField
-          id="strecke"
-          label="Streckenlänge (NM)"
-          range={domain.distanceNm}
-          bind:value={distanceNm}
-          format={formatNauticalMiles}
-        />
 
         <RangeField
           id="wind"
@@ -290,13 +341,49 @@
     </fieldset>
   </form>
 
-  {#if fehler}
-    <p class="fehler" role="alert">{fehler}</p>
-  {/if}
+  <!--
+    Zwei nebeneinanderstehende Bereiche, sobald genug Breite da ist. Die
+    Startstrecke steht zuerst, weil sie zeitlich zuerst gebraucht wird — beim
+    Rollen zur Bahn, nicht unterwegs.
+  -->
+  <div class="bereiche">
+    <section id="startstrecke" class="bereich" aria-labelledby="startstrecke-titel">
+      <h2 id="startstrecke-titel">Roll- und Startstrecke</h2>
+      <TakeoffDistance
+        result={startstrecke.wert}
+        fehler={startstrecke.fehler}
+        bind:dryGrass={dryGrassRunway}
+        bind:wetOrSnow={wetOrSnowRunway}
+      />
+    </section>
 
-  {#if result}
-    <FuelResult {result} />
-  {/if}
+    <section id="bedarf" class="bereich" aria-labelledby="bedarf-titel">
+      <h2 id="bedarf-titel">Kraftstoffbedarf und Geschwindigkeiten</h2>
+
+      <!--
+        Die Streckenlänge steht erst hier: Vor diesem Bereich wird sie nicht
+        gebraucht — weder die Reiseleistung noch die Startstrecke hängen an
+        ihr (FR-014).
+      -->
+      <form onsubmit={(event) => event.preventDefault()}>
+        <div class="felder">
+          <RangeField
+            id="strecke"
+            label="Streckenlänge (NM)"
+            range={domain.distanceNm}
+            bind:value={distanceNm}
+            format={formatNauticalMiles}
+          />
+        </div>
+      </form>
+
+      {#if fehler}
+        <p class="fehler" role="alert">{fehler}</p>
+      {:else if result}
+        <FuelResult {result} />
+      {/if}
+    </section>
+  </div>
 </main>
 
 <style>
@@ -310,6 +397,56 @@
 
   form {
     margin: 0 0 1rem;
+  }
+
+  .bereich-titel,
+  .bereich h2 {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 1.05rem;
+  }
+
+  /*
+    Untereinander als Vorgabe, nebeneinander erst ab genug Breite. Die
+    Startstrecke steht in der Reihenfolge des Auszeichnungstexts zuerst und
+    damit im Hochformat oben (FR-015).
+  */
+  .bereiche {
+    display: grid;
+    gap: 0 2rem;
+  }
+
+  .bereich {
+    min-width: 0;
+  }
+
+  .bereich h2 {
+    margin-top: 0;
+  }
+
+  /*
+    Zwei Spalten erst im Querformat und nicht allein nach Breite. Eine reine
+    Breitenabfrage kann beides nicht auseinanderhalten: Ein Telefon im
+    Querformat ist 667 px breit, ein Tablet im Hochformat 1032 px. Ein
+    Haltepunkt dazwischen wuerde genau falsch herum entscheiden -- einspaltig
+    auf dem Telefon quer, zweispaltig auf dem Tablet hoch. Ein Haltepunkt
+    darunter ergaebe zwei Spalten auf dem Telefon *hochkant*; einer darueber
+    keine im Querformat. Erst Breite **und** Ausrichtung zusammen treffen die
+    Faustregel: hochkant einspaltig, quer zweispaltig.
+  */
+  @media (min-width: 40rem) and (orientation: landscape) {
+    main {
+      max-width: 64rem;
+    }
+
+    .bereiche {
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+    }
+
+    /* Das Avatar folgt der breiteren Textspalte, sonst ueberdeckt es sie. */
+    .flugzeug {
+      right: max(1.5rem, calc((100vw - 64rem) / 2 + 1.5rem));
+    }
   }
 
   /* Der Leistungshebel steht seitlich, wie im Cockpit neben den Anzeigen. */

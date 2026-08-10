@@ -93,3 +93,23 @@ describe('Schrittfolge (FR-017)', () => {
     );
   });
 });
+
+describe('Die Startstrecke bleibt aus dem Rechenweg des Bedarfs heraus (FR-020)', () => {
+  /**
+   * Bewusst festgehalten und nicht bloß nicht getestet: Die Startstrecke geht
+   * nicht in `computeFuelPlan` ein. Der Startlauf verbraucht zwar Kraftstoff,
+   * aber die Pauschale „Anlassen, Rollen und Start" deckt ihn bereits ab —
+   * ihn zusätzlich aus der Startstreckenrechnung abzuleiten, hieße doppelt zu
+   * zählen. Umgekehrt darf ein Fehler an der Startbahn den Bedarf nicht
+   * mitreißen: Beide Rechnungen stehen für sich.
+   */
+  it.each(eingaben)('führt keinen Schritt mit dem Präfix takeoff.', (input) => {
+    const ids = computeFuelPlan(input).steps.map((step) => step.id);
+
+    expect(ids.filter((id) => id.startsWith('takeoff.'))).toStrictEqual([]);
+  });
+
+  it('führt auch die erwartete Schrittfolge keine Startstreckenkennung', () => {
+    expect(ERWARTETE_SCHRITTE.filter((id) => id.startsWith('takeoff.'))).toStrictEqual([]);
+  });
+});

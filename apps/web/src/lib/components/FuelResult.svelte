@@ -13,9 +13,12 @@
 
 </script>
 
+<!--
+  Die Ueberschrift des Bereichs steht in der Seite und nicht hier: Sie muss
+  auch dann stehen bleiben, wenn statt eines Ergebnisses eine Meldung
+  erscheint -- und diese Komponente wird dann gar nicht erst gezeigt.
+-->
 <section class="ergebnis">
-  <h2>Kraftstoffbedarf und Geschwindigkeiten</h2>
-
   <!--
     Die Druckhöhen stehen unter den Reglern, die sie erzeugen, nicht hier. Eine
     zweite Anzeige an dieser Stelle waere ein Duplikat und muesste bei jeder
@@ -86,16 +89,6 @@
 </section>
 
 <style>
-  /*
-    Der Bedarf ist die Folge der Angaben zum Streckenflug, keine eigene
-    Hauptsache. Die Ueberschriftebene bleibt deshalb erhalten -- sie traegt die
-    Gliederung fuer Vorlesewerkzeuge --, das optische Gewicht nicht.
-  */
-  h2 {
-    margin: 0 0 0.5rem;
-    font-size: 1.05rem;
-  }
-
   .leistung {
     display: flex;
     flex-wrap: wrap;
@@ -116,7 +109,7 @@
   }
 
   .ergebnis {
-    margin-top: 2rem;
+    margin-top: 0;
   }
 
   .aufschluesselung {

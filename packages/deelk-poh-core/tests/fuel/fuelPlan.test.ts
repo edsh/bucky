@@ -204,7 +204,7 @@ describe('Abgrenzung von Bedarf und Auskunft (Feature 006)', () => {
     // Die 45 Minuten stecken in den Tabellenwerten für Strecke und Dauer,
     // nicht in der aufsummierten Bedarfsmenge. Beide Aussagen stehen im
     // Ergebnis nebeneinander und dürfen sich nicht vermischen.
-    expect(result.cruiseCapability.inclusionsNote).toContain('45 min');
+    expect(result.cruiseCapability.inclusionsNote).toContain('45\u00a0min');
     expect(result.exact.totalL).toBeLessThan(result.usableFuelL);
   });
 

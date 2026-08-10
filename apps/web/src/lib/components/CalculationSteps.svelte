@@ -10,8 +10,7 @@
   const zahl = (value: number): string =>
     value.toLocaleString('de-DE', { maximumFractionDigits: 4 });
 
-  const mitEinheit = (value: number, unit: string): string =>
-    unitText(zahl(value), unit);
+  const mitEinheit = (value: number, unit: string): string => unitText(zahl(value), unit);
 </script>
 
 <details class="rechenweg">

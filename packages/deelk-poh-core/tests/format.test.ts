@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  formatFuel,
   formatFuelFlow,
+  formatFuelPerNauticalMile,
   formatHours,
   formatKnots,
   formatLitres,
@@ -35,6 +37,11 @@ describe('Rundung (FR-021)', () => {
     expect(roundLitres(0.45)).toBe(0.5);
   });
 
+  /**
+   * Zwischen Zahl und Einheit steht ein geschütztes Leerzeichen: "87,6" allein
+   * am Zeilenende wäre bei einer Kraftstoffangabe im schlimmsten Fall
+   * irreführend (Issue #13).
+   */
   it('schreibt Zahlen in deutscher Schreibweise mit Einheit', () => {
     expect(formatLitres(87.567)).toBe(`87,6${NBSP}l`);
     expect(formatLitres(4)).toBe(`4,0${NBSP}l`);
@@ -46,6 +53,14 @@ describe('Rundung (FR-021)', () => {
   it('verwendet geschützte Leerzeichen auch in mehrteiligen Einheiten', () => {
     expect(formatUsGallons(5.8)).toBe(`5,8${NBSP}US${NBSP}gal`);
     expect(formatFuelFlow(22.1, 5.8)).toBe(`22,1${NBSP}l/h (5,8${NBSP}US${NBSP}gal/h)`);
+    expect(formatFuel(87.567, 23.14)).toBe(`87,6${NBSP}l (23,1${NBSP}US${NBSP}gal)`);
     expect(formatHours(2.09)).toBe(`2${NBSP}h 05${NBSP}min`);
+  });
+
+  /** Verbrauch je Seemeile, zwei Nachkommastellen (Issue #12). */
+  it('schreibt den Verbrauch je Seemeile in beiden Einheiten', () => {
+    expect(formatFuelPerNauticalMile(0.1937, 0.0512)).toBe(
+      `0,19${NBSP}l/NM (0,05${NBSP}US${NBSP}gal/NM)`
+    );
   });
 });

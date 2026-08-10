@@ -1,4 +1,5 @@
 import type { PohSourceReference, SourceAnomaly, TableSummary } from './types.js';
+import { withNonBreakingUnits } from './format.js';
 import { PohCalculationError } from './errors.js';
 
 import catalogue from '../../../data/poh/d-eelk/index.json' with { type: 'json' };
@@ -168,7 +169,9 @@ export function getTableCondition(tableId: string, keyword: string): string {
       { tableId }
     );
   }
-  return condition;
+  // Typografie, kein Nachdichten: Der Wortlaut bleibt, nur Zahl und Einheit
+  // werden aneinander gebunden (Issue #13).
+  return withNonBreakingUnits(condition);
 }
 
 /**
@@ -184,5 +187,5 @@ export function getTableNote(tableId: string, noteNumber: number): string {
       { tableId }
     );
   }
-  return note;
+  return withNonBreakingUnits(note);
 }

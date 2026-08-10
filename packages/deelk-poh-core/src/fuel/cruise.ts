@@ -2,7 +2,7 @@ import type { CalculationStep, PohSourceReference } from '../types.js';
 import { PohCalculationError } from '../errors.js';
 import { interpolate } from '../interpolate.js';
 import { CRUISE_TABLE_ID, getSourceReference } from '../tables.js';
-import { formatNumber } from '../format.js';
+import { formatNumber, formatQuantity } from '../format.js';
 import type { ValidatedFlightPlan } from './input.js';
 
 export interface CruiseComputation {
@@ -62,7 +62,7 @@ export function computeCruise(
   if (distanceNm <= 0) {
     throw new PohCalculationError(
       'NOT_COMPUTABLE',
-      `Die Steigflugstrecke von ${formatNumber(climbDistanceNm, 1)} NM ist nicht kürzer als die Gesamtstrecke. Für den Reiseflug bleibt nichts übrig; das Handbuchverfahren setzt einen Reiseflugabschnitt voraus.`,
+      `Die Steigflugstrecke von ${formatQuantity(climbDistanceNm, 1, 'NM')} ist nicht kürzer als die Gesamtstrecke. Für den Reiseflug bleibt nichts übrig; das Handbuchverfahren setzt einen Reiseflugabschnitt voraus.`,
       { field: 'distanceNm', actual: plan.distanceNm }
     );
   }
@@ -71,7 +71,7 @@ export function computeCruise(
   if (groundSpeedKt <= 0) {
     throw new PohCalculationError(
       'NOT_COMPUTABLE',
-      `Der Gegenwind von ${formatNumber(plan.windComponentKt, 0)} kt erreicht oder übersteigt die Eigengeschwindigkeit von ${formatNumber(ktas, 0)} kt. Es käme keine Geschwindigkeit über Grund zustande.`,
+      `Der Gegenwind von ${formatQuantity(plan.windComponentKt, 0, 'kt')} erreicht oder übersteigt die Eigengeschwindigkeit von ${formatQuantity(ktas, 0, 'kt')}. Es käme keine Geschwindigkeit über Grund zustande.`,
       { field: 'windComponentKt', actual: plan.windComponentKt }
     );
   }
@@ -110,7 +110,7 @@ export function computeCruise(
       explanation:
         plan.isaDeviationC <= 0
           ? 'Keine Korrektur: Anmerkung 3 sieht nur einen Zuschlag über der Normtemperatur vor.'
-          : `Faktor 1 + (${formatNumber(plan.isaDeviationC, 0)} °C / 10 °C) × 0,01 = ${formatNumber(factor, 4)}. Die Verbrauchsrate bleibt unverändert; Anmerkung 3 nennt nur Geschwindigkeit und Reichweite.`,
+          : `Faktor 1 + (${formatQuantity(plan.isaDeviationC, 0, '°C')} / 10\u00a0°C) × 0,01 = ${formatNumber(factor, 4)}. Die Verbrauchsrate bleibt unverändert; Anmerkung 3 nennt nur Geschwindigkeit und Reichweite.`,
       sources: [source]
     },
     {

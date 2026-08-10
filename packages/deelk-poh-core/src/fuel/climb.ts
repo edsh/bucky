@@ -1,7 +1,7 @@
 import type { CalculationStep, PohSourceReference, Quantity } from '../types.js';
 import { interpolate, type InterpolationResult } from '../interpolate.js';
 import { CLIMB_TABLE_ID, getSourceReference } from '../tables.js';
-import { formatNumber } from '../format.js';
+import { formatNumber, formatQuantity } from '../format.js';
 import type { FlightPlanInput, ValidatedFlightPlan } from './input.js';
 
 /** Zeit, Strecke und Kraftstoff eines Steigflugabschnitts. */
@@ -106,7 +106,7 @@ export function computeClimb(validated: ValidatedFlightPlan): ClimbComputation {
       inputs: { departureAltitudeFt: { value: departureAltitudeFt, unit: 'ft' } },
       results: segmentQuantities(departure),
       anchors: atDeparture.anchors,
-      explanation: `Aus ${source.figure} bei ${formatNumber(departureAltitudeFt, 0)} ft Druckhöhe abgelesen. Die Tabelle gibt die Werte ab dem Start an, nicht ab der Platzhöhe — deshalb wird dieser Anteil im nächsten Schritt abgezogen.`,
+      explanation: `Aus ${source.figure} bei ${formatQuantity(departureAltitudeFt, 0, 'ft')} Druckhöhe abgelesen. Die Tabelle gibt die Werte ab dem Start an, nicht ab der Platzhöhe — deshalb wird dieser Anteil im nächsten Schritt abgezogen.`,
       sources: [source]
     },
     {
@@ -115,7 +115,7 @@ export function computeClimb(validated: ValidatedFlightPlan): ClimbComputation {
       inputs: { cruiseAltitudeFt: { value: cruiseAltitudeFt, unit: 'ft' } },
       results: segmentQuantities(cruise),
       anchors: atCruise.anchors,
-      explanation: `Aus ${source.figure} bei ${formatNumber(cruiseAltitudeFt, 0)} ft Druckhöhe abgelesen.`,
+      explanation: `Aus ${source.figure} bei ${formatQuantity(cruiseAltitudeFt, 0, 'ft')} Druckhöhe abgelesen.`,
       sources: [source]
     },
     {
@@ -144,7 +144,7 @@ export function computeClimb(validated: ValidatedFlightPlan): ClimbComputation {
       explanation:
         plan.isaDeviationC <= 0
           ? 'Keine Korrektur: die Anmerkung 2 der Steigflugtabelle sieht nur einen Zuschlag über der Normtemperatur vor, keinen Abschlag darunter.'
-          : `Faktor 1 + (${formatNumber(plan.isaDeviationC, 0)} °C / 10 °C) × 0,10 = ${formatNumber(temperatureFactor, 3)}. Anmerkung 2 nennt Zeit und Steigstrecke; der Kraftstoff wird mitkorrigiert, weil das Rechenbeispiel des Handbuchs so verfährt (FR-019).`,
+          : `Faktor 1 + (${formatQuantity(plan.isaDeviationC, 0, '°C')} / 10\u00a0°C) × 0,10 = ${formatNumber(temperatureFactor, 3)}. Anmerkung 2 nennt Zeit und Steigstrecke; der Kraftstoff wird mitkorrigiert, weil das Rechenbeispiel des Handbuchs so verfährt (FR-019).`,
       sources: [source]
     }
   ];

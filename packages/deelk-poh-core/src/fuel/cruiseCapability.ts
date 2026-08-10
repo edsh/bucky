@@ -8,7 +8,7 @@ import {
   getTableCondition,
   getTableNote
 } from '../tables.js';
-import { formatNumber } from '../format.js';
+import { formatNumber, formatQuantity } from '../format.js';
 import {
   ICAO_STANDARD_ATMOSPHERE_SOURCE,
   toPressureAltitude,
@@ -60,6 +60,19 @@ export interface CruiseCapability {
   readonly maxRangeNm: number;
   /** Maximale Flugdauer; nicht temperaturkorrigiert (FR-003). */
   readonly enduranceH: number;
+  /**
+   * Verbrauch je zurückgelegter Seemeile, aus Stundenverbrauch und
+   * temperaturkorrigierter Eigengeschwindigkeit. Kein Tabellenwert, sondern
+   * eine Division zweier abgelesener Größen — die Kennzahl macht zwei
+   * Lasteinstellungen unmittelbar vergleichbar, was der Blick auf Verbrauch
+   * und Geschwindigkeit einzeln nicht leistet.
+   *
+   * Gilt für den reinen Reiseflug bei Windstille; Rollen, Steigflug und
+   * Reserve stecken nicht darin — anders als in Reichweite und Flugdauer.
+   */
+  readonly fuelPerNmL: number;
+  /** Dasselbe aus der US-gph-Spalte der Tabelle, nicht umgerechnet. */
+  readonly fuelPerNmUsGal: number;
   /** Der angewandte Faktor; 1 bei ISA-Abweichung von null oder darunter. */
   readonly temperatureFactor: number;
   readonly steps: readonly CalculationStep[];
@@ -136,6 +149,12 @@ export function computeCruiseCapability(input: unknown): CruiseCapability {
   const ktas = tableKtas * temperatureFactor;
   const maxRangeNm = tableRangeNm * temperatureFactor;
 
+  // Der Verbrauch je Seemeile folgt aus beidem und wird deshalb erst hier
+  // gebildet: Die Temperaturkorrektur betrifft die Geschwindigkeit, nicht die
+  // Verbrauchsrate — wärmere Luft macht die Strecke also etwas billiger.
+  const fuelPerNmL = fuelFlowLph / ktas;
+  const fuelPerNmUsGal = fuelFlowUsGph / ktas;
+
   const steps: CalculationStep[] = [
     {
       id: 'capability.pressureAltitude',
@@ -146,7 +165,7 @@ export function computeCruiseCapability(input: unknown): CruiseCapability {
       },
       results: { pressureAltitudeFt: { value: pressureAltitude.pressureAltitudeFt, unit: 'ft' } },
       anchors: [],
-      explanation: `${formatNumber(pressureAltitude.elevationFt, 0)} ft über dem Meeresspiegel bei einem QNH von ${formatNumber(pressureAltitude.qnhHpa, 2)} hPa ergeben ${formatNumber(pressureAltitude.pressureAltitudeFt, 0)} ft Druckhöhe. Gerechnet nach der barometrischen Höhenformel der ICAO-Standardatmosphäre: ${ICAO_STANDARD_ATMOSPHERE_SOURCE.formula}. Diese Größe stammt nicht aus dem Flughandbuch.`,
+      explanation: `${formatQuantity(pressureAltitude.elevationFt, 0, 'ft')} über dem Meeresspiegel bei einem QNH von ${formatQuantity(pressureAltitude.qnhHpa, 2, 'hPa')} ergeben ${formatQuantity(pressureAltitude.pressureAltitudeFt, 0, 'ft')} Druckhöhe. Gerechnet nach der barometrischen Höhenformel der ICAO-Standardatmosphäre: ${ICAO_STANDARD_ATMOSPHERE_SOURCE.formula}. Diese Größe stammt nicht aus dem Flughandbuch.`,
       sources: []
     },
     {
@@ -185,7 +204,23 @@ export function computeCruiseCapability(input: unknown): CruiseCapability {
       explanation:
         conditions.isaDeviationC <= 0
           ? 'Keine Korrektur: Anmerkung 3 sieht nur einen Zuschlag über der Normtemperatur vor. Die Flugdauer bleibt in jedem Fall unverändert.'
-          : `Faktor 1 + (${formatNumber(conditions.isaDeviationC, 0)} °C / 10 °C) × 0,01 = ${formatNumber(temperatureFactor, 4)}. Anmerkung 3 nennt nur Geschwindigkeit und Reichweite; die Flugdauer bleibt unverändert.`,
+          : `Faktor 1 + (${formatQuantity(conditions.isaDeviationC, 0, '°C')} / 10\u00a0°C) × 0,01 = ${formatNumber(temperatureFactor, 4)}. Anmerkung 3 nennt nur Geschwindigkeit und Reichweite; die Flugdauer bleibt unverändert.`,
+      sources: [source]
+    },
+    {
+      id: 'capability.fuelPerNm',
+      label: 'Verbrauch je Seemeile',
+      inputs: {
+        fuelFlowLph: { value: fuelFlowLph, unit: 'l/h' },
+        fuelFlowUsGph: { value: fuelFlowUsGph, unit: 'US gal/h' },
+        ktas: { value: ktas, unit: 'kt' }
+      },
+      results: {
+        fuelPerNmL: { value: fuelPerNmL, unit: 'l/NM' },
+        fuelPerNmUsGal: { value: fuelPerNmUsGal, unit: 'US gal/NM' }
+      },
+      anchors: [],
+      explanation: `${formatQuantity(fuelFlowLph, 1, 'l')}/h geteilt durch ${formatQuantity(ktas, 0, 'kt')} ergeben ${formatQuantity(fuelPerNmL, 2, 'l')}/NM. Beide Größen stammen aus ${source.figure}; die Division selbst steht nicht im Flughandbuch. Der Wert gilt für den Reiseflug bei Windstille und enthält weder Rollen noch Steigflug noch Reserve.`,
       sources: [source]
     }
   ];
@@ -199,6 +234,8 @@ export function computeCruiseCapability(input: unknown): CruiseCapability {
     tableRangeNm,
     maxRangeNm,
     enduranceH,
+    fuelPerNmL,
+    fuelPerNmUsGal,
     temperatureFactor,
     steps,
     source,

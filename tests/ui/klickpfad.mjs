@@ -68,7 +68,7 @@ await page.goto(BASE, { waitUntil: 'networkidle' });
 // 1: gültiges Flugvorhaben liefert zügig ein Ergebnis (SC-001)
 const start = Date.now();
 await fuellen(page, { dep: 1000, cruise: 6000, dist: 400, power: 70, isa: 20, wind: 10 });
-await page.getByRole('heading', { name: 'Kraftstoffbedarf' }).waitFor({ timeout: 5000 });
+await page.getByRole('heading', { name: 'Kraftstoffbedarf und Geschwindigkeiten' }).waitFor({ timeout: 5000 });
 const dauerMs = Date.now() - start;
 pruefe(1, 'gültiges Flugvorhaben liefert ein Ergebnis', dauerMs < 2000, `${dauerMs} ms`);
 
@@ -94,7 +94,7 @@ pruefe(4, 'Hinweis, dass die Summe keine Reserve enthält', /keine Reserve/i.tes
 // 3: Lasteinstellung über 75 % erzeugt den Hinweis aus Anmerkung 4, blockiert nicht
 await regler(page, 'Lasteinstellung', 80);
 await page.waitForTimeout(150);
-await page.getByRole('heading', { name: 'Kraftstoffbedarf' }).waitFor({ timeout: 5000 });
+await page.getByRole('heading', { name: 'Kraftstoffbedarf und Geschwindigkeiten' }).waitFor({ timeout: 5000 });
 const hinweise = await page.locator('.hinweise').innerText();
 pruefe(
   3,
@@ -118,7 +118,7 @@ pruefe(
 
 // Rechenweg aufklappbar (US2)
 await fuellen(page, { dep: 1000, cruise: 6000, dist: 400, power: 70, isa: 20, wind: 10 });
-await page.getByRole('heading', { name: 'Kraftstoffbedarf' }).waitFor({ timeout: 5000 });
+await page.getByRole('heading', { name: 'Kraftstoffbedarf und Geschwindigkeiten' }).waitFor({ timeout: 5000 });
 const details = page.locator('details').first();
 await details.click();
 await page.waitForTimeout(200);
@@ -212,8 +212,10 @@ const druckhoehenzeilen = [platzFolgeZeile, reiseFolge];
 // Bei 1043 hPa liegen beide Druckhoehen unter den eingestellten Hoehen.
 pruefe(
   15,
-  'Druckhöhe steht unter beiden Höhenreglern, mit ≙ als Zeichen',
-  druckhoehenzeilen.every((z) => z.includes('≙') && /Druckhöhe/.test(z)) &&
+  'Druckhöhe steht unter beiden Höhenreglern, mit ≙ als Zeichen und dem QNH als Bezug',
+  druckhoehenzeilen.every(
+    (z) => z.includes('≙') && /Druckhöhe/.test(z) && new RegExp(`@\\s*1043${NBSP}hPa`).test(z)
+  ) &&
     new RegExp(`\\b2\\d{2}${NBSP}ft`).test(druckhoehenzeilen[0]) &&
     new RegExp(`\\b5\\d{3}${NBSP}ft`).test(druckhoehenzeilen[1]),
   druckhoehenzeilen.join(' | ')
@@ -261,11 +263,11 @@ const reihenfolge = await page.evaluate(() => {
 const uebersichtWerte = await page.locator('.uebersicht .werte > div').count();
 pruefe(
   21,
-  'die Übersicht steht zwischen Bedingungen und Vorhaben und zeigt vier Werte',
-  reihenfolge[0].startsWith('Bedingungen') &&
+  'die Übersicht steht zwischen Grundbedingungen und Vorhaben und zeigt fünf Werte',
+  reihenfolge[0].startsWith('Grundbedingungen') &&
     /Reichweite und Flugdauer/.test(reihenfolge[1]) &&
     reihenfolge[2].startsWith('Streckenflug') &&
-    uebersichtWerte === 4,
+    uebersichtWerte === 5,
   `${reihenfolge.join(' > ')} — ${uebersichtWerte} Werte`
 );
 
@@ -275,9 +277,9 @@ const uebersichtQuelle = await page.locator('.uebersicht .quelle').innerText();
 pruefe(
   22,
   'der Hinweis nennt 4 l, Steigflug, 45 min Reserve und Windstille, die Quelle eine Seitenzahl',
-  /4 l/.test(uebersichtHinweis) &&
+  /4\u00a0l/.test(uebersichtHinweis) &&
     /Steigflug/.test(uebersichtHinweis) &&
-    /45 min/.test(uebersichtHinweis) &&
+    /45\u00a0min/.test(uebersichtHinweis) &&
     /Windstille/.test(uebersichtHinweis) &&
     /Abb\. 5-4a/.test(uebersichtQuelle) &&
     /Seite 5b-14/.test(uebersichtQuelle),
@@ -328,7 +330,7 @@ const druckmeldung = await page.locator('.fehler').innerText().catch(() => '');
 pruefe(
   17,
   'zu hohes QNH führt zur Ablehnung, die Meldung nennt das QNH',
-  /1030 hPa/.test(druckmeldung) &&
+  /1030\u00a0hPa/.test(druckmeldung) &&
     /unter dem Bereich/.test(druckmeldung) &&
     /Ursache ist hier der Luftdruck/.test(druckmeldung),
   druckmeldung
@@ -369,6 +371,51 @@ const alleAsl = hoehenfelder.length === 2 && hoehenfelder.every((t) => t.include
 const ueberbreite = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
 pruefe(11, 'Höhenfelder sind als Höhe ASL gekennzeichnet, nicht als Druckhöhe', alleAsl, hoehenfelder.join(' | '));
 pruefe(12, 'kein waagerechtes Scrollen auf 390 px Breite', !ueberbreite);
+
+// 26: Verbrauch je Seemeile in der Übersicht (Issue #12)
+await page.setViewportSize({ width: 1024, height: 800 });
+await page.goto(BASE, { waitUntil: 'networkidle' });
+await fuellen(page, { dep: 1000, cruise: 6000, qnh: 1013, dist: 250, power: 70, isa: 0, wind: 0 });
+const uebersichtWerteText = await page.locator('.uebersicht .werte').innerText();
+pruefe(
+  26,
+  'die Übersicht nennt den Verbrauch je Seemeile in beiden Einheiten',
+  /Verbrauch je Seemeile/.test(uebersichtWerteText) &&
+    /0,\d{2}\u00a0l\/NM/.test(uebersichtWerteText) &&
+    /US\u00a0gal\/NM/.test(uebersichtWerteText),
+  uebersichtWerteText.replace(/\s+/g, ' ')
+);
+
+// 27: Zahl und Einheit haengen zusammen (Issue #13)
+const trennbar = await page.evaluate(() => {
+  const text = document.body.innerText;
+  // Einheiten, denen ein gewoehnliches Leerzeichen vorausgeht, duerften am
+  // Zeilenende auseinanderfallen.
+  const treffer = text.match(/\d (?:l|kt|ft|NM|hPa|min|h|%|°C|US gal|KTAS)\b/g);
+  return treffer ?? [];
+});
+pruefe(
+  27,
+  'zwischen Zahl und Einheit steht überall ein geschütztes Leerzeichen',
+  trennbar.length === 0,
+  trennbar.join(' | ')
+);
+
+// 28: das Avatar bleibt beim Scrollen sichtbar und schrumpft dabei (Issue #14)
+const avatarOben = await page.locator('.flugzeug').boundingBox();
+await page.evaluate(() => window.scrollTo(0, 600));
+await page.waitForTimeout(200);
+const avatarUnten = await page.locator('.flugzeug').boundingBox();
+pruefe(
+  28,
+  'das Flugzeug-Avatar wandert beim Scrollen mit und wird dabei kleiner',
+  avatarUnten !== null &&
+    avatarUnten.width < avatarOben.width &&
+    avatarUnten.y >= 0 &&
+    avatarUnten.y < 100,
+  `${Math.round(avatarOben.width)} px -> ${Math.round(avatarUnten.width)} px, y = ${Math.round(avatarUnten.y)}`
+);
+await page.evaluate(() => window.scrollTo(0, 0));
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 

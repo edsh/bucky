@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { computeCruiseCapability } from '../../src/fuel/cruiseCapability.js';
 import { getTable } from '../../src/tables.js';
+import { withNonBreakingUnits } from '../../src/format.js';
 import { PohCalculationError } from '../../src/errors.js';
 
 /**
@@ -38,6 +39,42 @@ describe('Reiseleistung an den Stützstellen', () => {
       expect(result.enduranceH).toBe(row['endurance_h']);
       expect(result.temperatureFactor).toBe(1);
     }
+  });
+
+  /**
+   * Der Verbrauch je Seemeile ist kein Tabellenwert, sondern die Division
+   * zweier abgelesener Größen (Issue #12). Geprüft wird deshalb der
+   * Zusammenhang, nicht eine abgeschriebene Zahl.
+   */
+  it('bildet den Verbrauch je Seemeile aus Stundenverbrauch und Geschwindigkeit', () => {
+    for (const row of TABLE.rows) {
+      const result = computeCruiseCapability({
+        cruiseAltitudeAmslFt: row['pressure_altitude_ft'] as number,
+        qnhHpa: STANDARD_QNH,
+        powerSettingPct: row['power_setting_pct'] as number,
+        isaDeviationC: 0
+      });
+
+      expect(result.fuelPerNmL).toBeCloseTo(result.fuelFlowLph / result.ktas, 10);
+      expect(result.fuelPerNmUsGal).toBeCloseTo(result.fuelFlowUsGph / result.ktas, 10);
+    }
+  });
+
+  /**
+   * Anmerkung 3 korrigiert die Geschwindigkeit, nicht die Verbrauchsrate:
+   * Wärmere Luft macht dieselbe Strecke also etwas billiger.
+   */
+  it('senkt den Verbrauch je Seemeile bei Temperatur über der Norm', () => {
+    const bedingungen = {
+      cruiseAltitudeAmslFt: 6000,
+      qnhHpa: STANDARD_QNH,
+      powerSettingPct: 70
+    };
+    const norm = computeCruiseCapability({ ...bedingungen, isaDeviationC: 0 });
+    const warm = computeCruiseCapability({ ...bedingungen, isaDeviationC: 20 });
+
+    expect(warm.fuelFlowLph).toBe(norm.fuelFlowLph);
+    expect(warm.fuelPerNmL).toBeLessThan(norm.fuelPerNmL);
   });
 
   it('nennt die verwendete Tabelle mit Seitenzahl', () => {
@@ -164,16 +201,19 @@ describe('Wortlaut des Handbuchs', () => {
     isaDeviationC: 0
   });
 
-  it('führt Anmerkung 2 unverändert mit', () => {
+  it('führt Anmerkung 2 im Wortlaut mit, nur mit geschützten Einheiten', () => {
     const note = TABLE.notes.find((entry) => entry.startsWith('2.'));
-    expect(result.inclusionsNote).toBe(note);
+    expect(result.inclusionsNote).toBe(withNonBreakingUnits(note as string));
+    // Der Wortlaut selbst ist unverändert: Es unterscheiden sich allein die
+    // Leerzeichen zwischen Zahl und Einheit (Issue #13).
+    expect(result.inclusionsNote.replace(/\u00a0/g, ' ')).toBe(note);
   });
 
   it('nennt alle vier Bestandteile der Anmerkung', () => {
-    expect(result.inclusionsNote).toContain('4 l');
+    expect(result.inclusionsNote).toContain('4\u00a0l');
     expect(result.inclusionsNote).toContain('Steigflug');
     expect(result.inclusionsNote).toContain('Kraftstoff');
-    expect(result.inclusionsNote).toContain('45 min');
+    expect(result.inclusionsNote).toContain('45\u00a0min');
   });
 
   it('führt die Bedingung „Windstille" unverändert mit', () => {

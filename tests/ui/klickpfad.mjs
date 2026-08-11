@@ -220,7 +220,7 @@ const ausgaben = await page.locator('output').count();
 // Anmerkung 3 zu Abb. 5-4), der Streckenwind kennt diese Grenze nicht.
 const erwarteteGrenzen = {
   last: { min: '50', max: '100', step: '10' },
-  platzhoehe: { min: '0', max: '10000', step: '10' },
+  platzhoehe: { min: '-20', max: '6900', step: '10' },
   reiseflughoehe: { min: '0', max: '18000', step: '100' },
   qnh: { min: '950', max: '1050', step: '1' },
   strecke: { min: '1', max: '750', step: '1' },

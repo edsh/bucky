@@ -284,7 +284,7 @@ pruefe(
 );
 
 // 18: Schnellwahl EDSH setzt die Platzhöhe und die Druckhöhe folgt
-await page.getByRole('button', { name: 'Platzhöhe von EDSH übernehmen' }).click();
+await page.getByRole('button', { name: 'Platzhöhe und Bahnzustand von EDSH übernehmen' }).click();
 await page.waitForTimeout(150);
 const platzWert = await page.locator('#platzhoehe-wert').innerText();
 const platzFolge = await page.locator('#platzhoehe').locator('..').locator('.folge').innerText();
@@ -813,6 +813,10 @@ pruefe(
 );
 
 // 41: der Klick öffnet einen Dialog, der aufklärt, statt die Werte zu setzen
+// Der Grasschalter wird vorher ausdruecklich geleert: Ab hier gehoert er zu
+// dem, was die Uebernahme setzt, und ein Rest aus einer frueheren Pruefung
+// wuerde das verdecken.
+await page.locator('#gras').uncheck();
 await antwortMit(GUTE_ANTWORT, 400);
 const qnhVorher = await page.locator('#qnh-wert').innerText();
 await wetterKnopf.click();
@@ -824,7 +828,10 @@ pruefe(
     /Wettermodell/.test(dialogText) &&
     /keine Messung am Platz/.test(dialogText) &&
     /ATIS/.test(dialogText) &&
-    (await page.locator('#qnh-wert').innerText()) === qnhVorher,
+    (await page.locator('#qnh-wert').innerText()) === qnhVorher &&
+    // Auch der Bahnzustand nicht: Er wird zwar bei jeder Uebernahme
+    // mitgesetzt, aber eben erst dann.
+    !(await page.locator('#gras').isChecked()),
   qnhVorher
 );
 
@@ -870,12 +877,14 @@ const nachUebernahme = {
   isa: await page.locator('#temperatur').inputValue(),
   pistenwind: await page.locator('#pistenwind').inputValue(),
   streckenwind: await page.locator('#streckenwind').inputValue(),
+  gras: await page.locator('#gras').isChecked(),
   offen: await page.locator('dialog[open]').count()
 };
 pruefe(
   45,
-  '„Übernehmen" setzt QNH, Außentemperatur und Pistenwind; die Streckenwindkomponente bleibt unberührt',
-  nachUebernahme.qnh === '1023' &&
+  '„Übernehmen" setzt QNH, Außentemperatur, Pistenwind und den Bahnzustand; die Streckenwindkomponente bleibt unberührt',
+  nachUebernahme.gras &&
+    nachUebernahme.qnh === '1023' &&
     nachUebernahme.isa === '29' &&
     nachUebernahme.pistenwind === '10' &&
     nachUebernahme.streckenwind === streckenwindVorher &&
@@ -1427,6 +1436,58 @@ pruefe(
   JSON.stringify({ vorUmschalten, nachUmschalten })
 );
 await page.getByRole('button', { name: 'Abbrechen' }).click();
+
+// 74: der Bahnzustand steht als feststehende Zeile im Dialog -- angekuendigt,
+// aber nicht abwaehlbar. Er ist keine Wetterangabe, sondern eine Eigenschaft
+// des Platzes; ein Kaestchen haette ihn zur Ansichtssache gemacht.
+await page.locator('#gras').uncheck();
+await antwortMit(GUTE_ANTWORT);
+await wetterKnoepfe.first().click();
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
+const bahnzustandZeile = page.getByTestId('wetter-zeile-bahnzustand');
+const bahnzustand = {
+  vorhanden: await bahnzustandZeile.count(),
+  kaestchen: await bahnzustandZeile.locator('input').count(),
+  text: (await bahnzustandZeile.innerText()).replace(/\s+/g, ' ')
+};
+pruefe(
+  74,
+  'der Bahnzustand steht als feststehende, nicht abwählbare Zeile im Dialog',
+  bahnzustand.vorhanden === 1 &&
+    bahnzustand.kaestchen === 0 &&
+    /trockenes Gras/.test(bahnzustand.text) &&
+    /immer mitgesetzt/.test(bahnzustand.text),
+  bahnzustand.text
+);
+
+// 75: „Abbrechen" laesst auch den Bahnzustand unberuehrt -- das ist der Weg
+// fuer den, der ihn nicht mitgesetzt haben will.
+await page.getByRole('button', { name: 'Abbrechen' }).click();
+await page.waitForTimeout(150);
+pruefe(
+  75,
+  '„Abbrechen" setzt den Bahnzustand nicht',
+  !(await page.locator('#gras').isChecked())
+);
+
+// 76: der Knopf an der Platzhoehe kuendigt beide Werte an, die er setzt.
+// Sichtbar traegt er nur „EDSH"; fuer Vorlesewerkzeuge ist die Beschriftung
+// alles, was es gibt.
+const platzKnopf = page.getByRole('button', { name: 'Platzhöhe und Bahnzustand von EDSH übernehmen' });
+await platzKnopf.click();
+await page.waitForTimeout(150);
+pruefe(
+  76,
+  'der Platzknopf nennt beide Werte in seiner Beschriftung und setzt beide',
+  (await platzKnopf.count()) === 1 &&
+    (await page.locator('#gras').isChecked()) &&
+    // Geprueft wird die Wertanzeige, nicht die Reglerstellung: Der Regler
+    // rastet in 10-ft-Schritten und steht deshalb auf 970, waehrend gerechnet
+    // wird mit den 971 ft, die der Knopf gesetzt hat.
+    (await page.locator('#platzhoehe-wert').innerText()).trim() === `971${NBSP}ft`,
+  (await page.locator('#platzhoehe-wert').innerText()).trim()
+);
+await page.locator('#gras').uncheck();
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 

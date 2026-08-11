@@ -145,8 +145,10 @@ einmal im Kern; ein Vertragstest (C-07) hält fest, dass kein Adapter diese
 Prozentsätze kennt.
 
 Die Schnellwahl **EDSH** setzt neben der Platzhöhe von 971 ft auch den Schalter
-für trockenes Gras: Der Heimatplatz hat eine Graspiste. Der Schalter bleibt
-danach frei wählbar und wird beim Verstellen der Platzhöhe nicht zurückgesetzt.
+für trockenes Gras: Der Heimatplatz hat eine Graspiste. Dasselbe tut die
+Übernahme im Wetterdialog — jeder Weg, der EDSH als Platz benennt, bringt
+dessen Belag mit. Der Schalter bleibt danach frei wählbar und wird weder beim
+Verstellen der Platzhöhe noch sonst zurückgesetzt.
 
 ### Temperatur statt Abweichung
 
@@ -183,7 +185,14 @@ nicht erst danach. Ist genau diese Bahn gewählt, steht das Zeichen zusätzlich
 neben dem Windwert: Rückenwind unterscheidet sich vom Gegenwind nur durch ein
 Vorzeichen, und das übersieht man beim Überfliegen einer Zahlenreihe leicht.
 
-Jede Zeile hat ein Kästchen; „Übernehmen" setzt **nur** die angehakten Regler.
+Unter den drei Zeilen steht der **Bahnzustand: trockenes Gras** — ohne Kästchen.
+Er ist kein abgerufener Messwert, sondern eine feste Eigenschaft des Platzes,
+und wird bei jeder Übernahme mitgesetzt. Ein viertes Kästchen hätte die
+Graspiste zu einer Ansichtssache gemacht, die sie nicht ist; ein vergessener
+Haken ginge zulasten der Startstrecke. Wer ihn nicht mitgesetzt haben will,
+bricht ab und stellt ihn von Hand ein.
+
+Jede Wetterzeile hat ein Kästchen; „Übernehmen" setzt **nur** die angehakten Regler.
 Was fehlt oder außerhalb eines Reglerbereichs liegt, sperrt seine eigene Zeile
 und nicht den ganzen Abruf. Die Bahnwahl steht **in** der Windzeile, weil sie nur
 dort etwas ändert: Vorausgewählt ist die Bahn mit Gegenwind, ein Wechsel rechnet

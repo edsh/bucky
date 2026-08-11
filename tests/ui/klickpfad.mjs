@@ -900,9 +900,12 @@ const vermerke = {
 };
 pruefe(
   46,
-  'unter allen drei Reglern stehen Dienst, Gültigkeitszeit und der unverbindliche Charakter',
+  'unter allen drei Reglern stehen Dienst, Ort, Gültigkeitszeit und der unverbindliche Charakter',
   Object.values(vermerke).every(
-    (text) => /Open-Meteo/.test(text) && /gültig für/.test(text) && /unverbindlich/.test(text)
+    (text) =>
+      /Open-Meteo/.test(text) &&
+      /gültig für EDSH \d/.test(text) &&
+      /unverbindlich/.test(text)
   ),
   JSON.stringify(vermerke)
 );

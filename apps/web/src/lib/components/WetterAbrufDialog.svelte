@@ -77,7 +77,7 @@
     /** Wird mit den angehakten Größen und ihrer gemeinsamen Herkunft gerufen. */
     uebernehmen: (
       werte: Uebernahmewerte,
-      herkunft: { dienst: string; gueltigkeit: string }
+      herkunft: { dienst: string; ort: string; gueltigkeit: string }
     ) => void;
   } = $props();
 
@@ -389,6 +389,10 @@
     werte.dryGrassRunway = true;
     uebernehmen(werte, {
       dienst: zustand.abruf.dienst.name,
+      // Der Ort gehört in den Vermerk, weil die Werte einer Modellzelle über
+      // EDSH gelten und nicht dort, wo der Nutzer gerade sitzt. Ohne ihn liest
+      // sich „gilt für 16:45 Uhr“ so, als gälte es überall.
+      ort: EDSH.kennung,
       gueltigkeit: zustand.abruf.gueltigkeit
     });
     schliessen();

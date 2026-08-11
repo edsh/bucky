@@ -3,12 +3,15 @@
   import {
     formatCelsius,
     formatFeet,
+    formatKnots,
     formatMetres,
     formatNumber,
+    getTakeoffInputDomain,
     unitText,
     withNonBreakingUnits
   } from '@edsh-bucky/deelk-poh-core';
   import CalculationSteps from './CalculationSteps.svelte';
+  import RangeField from './RangeField.svelte';
   import SourceCitations from './SourceCitations.svelte';
   import SurfaceSwitch from './SurfaceSwitch.svelte';
 
@@ -19,20 +22,40 @@
    *
    * Die beiden Schalter für den Bahnzustand stehen in dieser Komponente und
    * nicht bei den Grundbedingungen: Sie wirken allein auf die Startstrecke
-   * (FR-018). Druckhöhe und Temperatur kommen dagegen von außen — sie gelten
-   * für den ganzen Flug (FR-019).
+   * (FR-018). Der Pistenwind steht seit Feature 026 aus demselben Grund hier —
+   * er ist der Wind auf der Bahn 10/28 und hat mit dem Wind entlang der
+   * Reisestrecke nichts zu tun. Druckhöhe und Temperatur kommen dagegen von
+   * außen: Sie gelten für den ganzen Flug (FR-019).
    */
   let {
     result,
     fehler,
     dryGrass = $bindable(),
-    wetOrSnow = $bindable()
+    wetOrSnow = $bindable(),
+    windComponentKt = $bindable()
   }: {
     result?: TakeoffDistanceResult;
     fehler?: string;
     dryGrass: boolean;
     wetOrSnow: boolean;
+    windComponentKt: number;
   } = $props();
+
+  /**
+   * Der Wertebereich des Pistenwinds kommt aus dem Kern und wird hier bezogen
+   * statt als Prop durchgereicht (Zusicherung C-05: kein Adapter legt eigene
+   * Grenzen fest). Der Umweg über die aufrufende Seite wäre der schlechtere
+   * Weg: Dort steht bereits der Bereich der *anderen* Windgröße, und zwei
+   * gleich aussehende Bereiche nebeneinander sind genau die Verwechslung, die
+   * Feature 026 abbaut.
+   *
+   * Die untere Grenze von 10 kt Rückenwind ist keine Betriebsgrenze — das
+   * Original-POH nennt in Abschnitt 2 überhaupt keinen Windwert. Sie ist das
+   * Ende der Tabelle: „For operation with tailwinds up to 10 knots"
+   * (POH-Seite 5-12, Anmerkung 3 zu Abb. 5-4; im Diesel-Anhang Anmerkung 2 zu
+   * Abb. 5-1a). Jenseits davon gibt es nichts zu interpolieren.
+   */
+  const pistenwindBereich = getTakeoffInputDomain().windComponentKt;
 
   /**
    * Die Erläuterung des Windschritts stammt wortgleich aus dem Kern. Sie steht
@@ -103,6 +126,21 @@
       bind:checked={wetOrSnow}
     />
   </fieldset>
+
+  <!--
+    Der Pistenwind steht über der Ergebnistabelle: Eingaben oben, Ergebnis
+    unten — dieselbe Leserichtung wie beim Kraftstoffbedarf, wo die
+    Streckenlänge ebenfalls über dem Ergebnis steht.
+  -->
+  <div class="pistenwind">
+    <RangeField
+      id="pistenwind"
+      label="Pistenwind (kt, positiv = Gegenwind)"
+      range={pistenwindBereich}
+      bind:value={windComponentKt}
+      format={formatKnots}
+    />
+  </div>
 
   {#if fehler}
     <p class="fehler" role="alert">{fehler}</p>
@@ -255,6 +293,11 @@
     */
     margin: 0 calc(-0.75rem - 1px) 1rem;
     min-width: 0;
+  }
+
+  /* Derselbe Abstand nach unten wie beim Fieldset darüber. */
+  .pistenwind {
+    margin-bottom: 1rem;
   }
 
   legend {

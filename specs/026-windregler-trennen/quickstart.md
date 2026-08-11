@@ -27,7 +27,9 @@ kommen wortgleich aus dem Kern) und C-05 (kein Adapter legt Grenzen fest) in
 ## 2 — Typen und Stil
 
 ```bash
-npm run lint && npm run check
+npm run lint
+npm exec --workspace @edsh-bucky/web -- svelte-kit sync
+npm run check --workspace @edsh-bucky/web
 ```
 
 **Erwartet**: ESLint ohne Befund, `svelte-check` mit 0 Fehlern und 0 Warnungen.

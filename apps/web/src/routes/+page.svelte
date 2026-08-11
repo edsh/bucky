@@ -83,7 +83,24 @@
   let distanceNm = $state(75);
   let powerSettingPct = $state(70);
   let isaDeviationC = $state(10);
-  let windComponentKt = $state(10);
+
+  /**
+   * Zwei Windgrößen, die nichts miteinander zu tun haben: der Wind auf der Bahn
+   * 10/28 am Boden und der Wind entlang der Strecke in Reiseflughöhe. Sie
+   * standen bis Feature 026 in einem einzigen Regler und wurden in beide
+   * Rechnungen geschickt — der Pilot musste sich für einen Kompromisswert
+   * entscheiden.
+   *
+   * Sie sind bewusst **nicht** gekoppelt: Kein `$effect` leitet den einen aus
+   * dem anderen ab, auch nicht als Anfangsbelegung. Eine Kopplung stellte genau
+   * die Vermischung wieder her, die dieses Feature auflöst.
+   *
+   * Der Kern führt beide längst getrennt (`getTakeoffInputDomain()` und
+   * `getFuelPlanInputDomain()`) — bis hierher war es die Oberfläche, die diese
+   * Trennung wieder eingeebnet hat.
+   */
+  let runwayWindComponentKt = $state(10);
+  let routeWindComponentKt = $state(10);
 
   /**
    * Der Bahnzustand wirkt allein auf die Startstrecke (FR-018). Beide Schalter
@@ -131,7 +148,7 @@
             platzDruckhoehe.pressureAltitudeFt,
             isaDeviationC
           ),
-          windComponentKt,
+          windComponentKt: runwayWindComponentKt,
           dryGrassRunway,
           wetOrSnowRunway
         })
@@ -219,7 +236,7 @@
         distanceNm,
         powerSettingPct,
         isaDeviationC,
-        windComponentKt
+        windComponentKt: routeWindComponentKt
       });
       fehler = undefined;
     } catch (error) {
@@ -232,7 +249,10 @@
   }
 
   $effect(() => {
-    // Liest alle sieben Eingaben und läuft daher bei jeder Änderung erneut.
+    // Liest die sieben Eingaben von `computeFuelPlan` und läuft daher bei jeder
+    // ihrer Änderungen erneut. Der Pistenwind steht bewusst **nicht** darin: Er
+    // geht in die Startstrecke ein, und die ist ein `$derived` — sie folgt ihm
+    // von selbst. Ihn hier aufzuführen ließe den Bedarf ohne Anlass neu rechnen.
     void [
       departureElevationFt,
       cruiseAltitudeAmslFt,
@@ -240,7 +260,7 @@
       distanceNm,
       powerSettingPct,
       isaDeviationC,
-      windComponentKt
+      routeWindComponentKt
     ];
     berechnen();
   });
@@ -377,15 +397,19 @@
   <CruiseCapabilityView capability={reiseleistung.wert} fehler={reiseleistung.fehler} />
 
   <!--
-    Platzhöhe und Wind gehören beiden Bereichen darunter: Die Startstrecke
-    braucht sie ebenso wie der Kraftstoffbedarf. Sie stehen deshalb einmal
-    oben und nicht doppelt in den Spalten (FR-013).
+    Die Platzhöhe gehört beiden Bereichen darunter: Die Startstrecke braucht sie
+    ebenso wie der Kraftstoffbedarf. Sie steht deshalb einmal oben und nicht
+    doppelt in den Spalten (FR-013).
+
+    Der Wind stand bis Feature 026 aus demselben Grund hier — zu Unrecht: Es
+    sind zwei Größen, nicht eine. Der Wind auf der Bahn und der Wind auf der
+    Strecke stehen jetzt jeweils bei dem Ergebnis, auf das sie wirken.
   -->
   <h2 class="bereich-titel">Start und Streckenflug</h2>
 
   <form onsubmit={(event) => event.preventDefault()}>
     <fieldset>
-      <legend>Platzhöhe und Windkomponente</legend>
+      <legend>Platzhöhe</legend>
 
       <div class="felder">
         <RangeField
@@ -412,14 +436,6 @@
             ≙ Druckhöhe {formatFeet(platzDruckhoehe.pressureAltitudeFt)} @ {formatHectopascal(qnhHpa)}
           {/snippet}
         </RangeField>
-
-        <RangeField
-          id="wind"
-          label="Windkomponente (kt, positiv = Gegenwind)"
-          range={domain.windComponentKt}
-          bind:value={windComponentKt}
-          format={formatKnots}
-        />
       </div>
     </fieldset>
   </form>
@@ -437,6 +453,7 @@
         fehler={startstrecke.fehler}
         bind:dryGrass={dryGrassRunway}
         bind:wetOrSnow={wetOrSnowRunway}
+        bind:windComponentKt={runwayWindComponentKt}
       />
     </section>
 
@@ -456,6 +473,21 @@
             range={domain.distanceNm}
             bind:value={distanceNm}
             format={formatNauticalMiles}
+          />
+
+          <!--
+            Der Streckenwind steht hier und nicht mehr oben bei der Platzhöhe:
+            Er wirkt allein auf Kraftstoffbedarf und Reisezeit. Sein Bereich
+            reicht weiter als der des Pistenwinds (−50 statt −10 kt), weil die
+            Reiseleistung über die Geschwindigkeit über Grund rechnet und dabei
+            keine Tabellengrenze für Rückenwind kennt.
+          -->
+          <RangeField
+            id="streckenwind"
+            label="Streckenwindkomponente (kt, positiv = Gegenwind)"
+            range={domain.windComponentKt}
+            bind:value={routeWindComponentKt}
+            format={formatKnots}
           />
         </div>
       </form>

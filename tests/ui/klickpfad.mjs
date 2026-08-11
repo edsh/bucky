@@ -51,7 +51,15 @@ async function fuellen(page, werte) {
   await regler(page, 'Streckenlänge (NM)', werte.dist);
   await regler(page, 'Lasteinstellung', werte.power);
   await regler(page, 'ISA-Abweichung (°C)', werte.isa);
-  await regler(page, 'Windkomponente (kt, positiv = Gegenwind)', werte.wind);
+  // Seit Feature 026 sind es zwei Windgroessen. `wind` setzt beide auf
+  // denselben Wert, damit die aelteren Pruefungen ihre Aussage behalten; wer
+  // sie unterscheiden will, uebergibt `pistenwind` und `streckenwind` einzeln.
+  await regler(page, 'Pistenwind (kt, positiv = Gegenwind)', werte.pistenwind ?? werte.wind);
+  await regler(
+    page,
+    'Streckenwindkomponente (kt, positiv = Gegenwind)',
+    werte.streckenwind ?? werte.wind
+  );
   // Gerechnet wird bei jeder Bewegung; ein Lidschlag reicht fuer den Durchlauf.
   await page.waitForTimeout(150);
 }
@@ -167,8 +175,11 @@ pruefe(9, 'Rückweg zum Rechner funktioniert', true);
 const reglerZahl = await page.locator('input[type="range"]').count();
 const zahlenfelder = await page.locator('input[type="number"], input[type="text"]').count();
 const ausgaben = await page.locator('output').count();
-// Die Grenzen stammen aus getFuelPlanInputDomain(); hier stehen sie als
-// erwarteter Aushang, damit ein stilles Abweichen der Oberflaeche auffaellt.
+// Die Grenzen stammen aus dem Rechenkern; hier stehen sie als erwarteter
+// Aushang, damit ein stilles Abweichen der Oberflaeche auffaellt. Die beiden
+// Windregler haben bewusst *verschiedene* Bereiche: Der Pistenwind endet dort,
+// wo die Startstreckentabelle endet (10 kt Rueckenwind, POH-Seite 5-12,
+// Anmerkung 3 zu Abb. 5-4), der Streckenwind kennt diese Grenze nicht.
 const erwarteteGrenzen = {
   last: { min: '50', max: '100', step: '10' },
   platzhoehe: { min: '0', max: '10000', step: '10' },
@@ -176,7 +187,8 @@ const erwarteteGrenzen = {
   qnh: { min: '950', max: '1050', step: '1' },
   strecke: { min: '1', max: '750', step: '1' },
   isa: { min: '-30', max: '40', step: '1' },
-  wind: { min: '-50', max: '50', step: '1' }
+  pistenwind: { min: '-10', max: '50', step: '1' },
+  streckenwind: { min: '-50', max: '50', step: '1' }
 };
 const grenzen = await page.evaluate(
   (ids) =>
@@ -191,8 +203,8 @@ const grenzen = await page.evaluate(
 const grenzenStimmen = JSON.stringify(grenzen) === JSON.stringify(erwarteteGrenzen);
 pruefe(
   13,
-  'sieben Schieberegler mit Wertanzeige und den Grenzen des Rechenkerns',
-  reglerZahl === 7 && ausgaben === 7 && zahlenfelder === 0 && grenzenStimmen,
+  'acht Schieberegler mit Wertanzeige und den Grenzen des Rechenkerns',
+  reglerZahl === 8 && ausgaben === 8 && zahlenfelder === 0 && grenzenStimmen,
   `${reglerZahl} Regler, ${ausgaben} Anzeigen, ${zahlenfelder} Zahlenfelder, Grenzen ${grenzenStimmen ? 'wie erwartet' : JSON.stringify(grenzen)}`
 );
 
@@ -293,7 +305,7 @@ pruefe(
   reihenfolge[0].startsWith('Grundbedingungen') &&
     /Reichweite und Flugdauer/.test(reihenfolge[1]) &&
     reihenfolge[2] === 'Start und Streckenflug' &&
-    reihenfolge[3].startsWith('Platzhöhe und Windkomponente') &&
+    reihenfolge[3].startsWith('Platzhöhe') &&
     uebersichtWerte === 4,
   `${reihenfolge.join(' > ')} — ${uebersichtWerte} Werte`
 );
@@ -313,11 +325,12 @@ pruefe(
   `${uebersichtHinweis.replace(/\s+/g, ' ')} — ${uebersichtQuelle}`
 );
 
-// 23: Strecke und Wind lassen die Uebersicht unberuehrt, aendern aber den Bedarf
+// 23: Strecke und Streckenwind lassen die Uebersicht unberuehrt, aendern aber
+// den Bedarf
 const uebersichtVorher = await page.locator('.uebersicht .werte').innerText();
 const summeVorher = await page.locator('#bedarf .summe').innerText();
 await regler(page, 'Streckenlänge (NM)', 250);
-await regler(page, 'Windkomponente (kt, positiv = Gegenwind)', -20);
+await regler(page, 'Streckenwindkomponente (kt, positiv = Gegenwind)', -20);
 await page.waitForTimeout(200);
 const uebersichtNachher = await page.locator('.uebersicht .werte').innerText();
 const summeNachher = await page.locator('#bedarf .summe').innerText();
@@ -490,7 +503,7 @@ pruefe(
 // 31: Überschrift, Fieldset-Inhalt und Ort der Streckenlänge (FR-012 bis FR-014)
 const gliederung = await page.evaluate(() => {
   const feld = [...document.querySelectorAll('fieldset')].find(
-    (f) => f.querySelector('legend')?.textContent.trim() === 'Platzhöhe und Windkomponente'
+    (f) => f.querySelector('legend')?.textContent.trim() === 'Platzhöhe'
   );
   const titel = document.querySelector('.bereich-titel')?.textContent.trim() ?? '';
   return {
@@ -505,31 +518,43 @@ const gliederung = await page.evaluate(() => {
 });
 pruefe(
   31,
-  'Überschrift „Start und Streckenflug" über dem Fieldset mit genau zwei Reglern, Streckenlänge beim Bedarf',
+  'Überschrift „Start und Streckenflug" über dem Fieldset mit genau einem Regler, Streckenlänge beim Bedarf',
   gliederung.titel === 'Start und Streckenflug' &&
     gliederung.titelVorFieldset > 0 &&
-    gliederung.reglerImFieldset === 2 &&
+    gliederung.reglerImFieldset === 1 &&
     gliederung.streckeImBedarf,
   JSON.stringify(gliederung)
 );
 
-// 32: 15 kt Rückenwind bricht nur die Startstrecke, nicht den Bedarf (FR-020)
-await regler(page, 'Windkomponente (kt, positiv = Gegenwind)', -15);
+// 32: der Pistenwindregler endet bei 10 kt Rueckenwind -- dort endet die
+// Startstreckentabelle (POH-Seite 5-12, Anmerkung 3 zu Abb. 5-4; im
+// Diesel-Anhang Anmerkung 2 zu Abb. 5-1a). Die Grenze sitzt seit Feature 026
+// am Regler statt in einer Meldung danach; die Meldung des Kerns besteht
+// weiter und ist dort geprueft, ueber die Oberflaeche aber nicht mehr
+// ausloesbar (siehe research.md R3).
+// Die Home-Taste faehrt einen Schieberegler auf sein Minimum -- naeher am
+// „zieh ihn ans Ende" als ein gesetzter Wert, und `fill` liesse einen Wert
+// ausserhalb des Bereichs ohnehin nicht zu.
+await page.locator('#pistenwind').focus();
+await page.keyboard.press('Home');
 await page.waitForTimeout(200);
-const rueckenwindMeldung = await page
+const pistenwindAmAnschlag = await page.locator('#pistenwind').inputValue();
+const startstreckeAmAnschlag = await page
+  .locator('#startstrecke .summe')
+  .isVisible()
+  .catch(() => false);
+const startfehlerAmAnschlag = await page
   .locator('#startstrecke .fehler')
-  .innerText()
-  .catch(() => '');
-const bedarfLaeuftWeiter = await page.locator('#bedarf .summe').isVisible().catch(() => false);
+  .isVisible()
+  .catch(() => false);
 pruefe(
   32,
-  '15 kt Rückenwind zeigt bei der Startstrecke die Meldung des Kerns, der Bedarf bleibt stehen',
-  /Anmerkung 2/.test(rueckenwindMeldung) &&
-    /Rückenwind/.test(rueckenwindMeldung) &&
-    bedarfLaeuftWeiter,
-  rueckenwindMeldung
+  'der Pistenwindregler endet bei −10 kt und die Startstrecke wird dort noch ausgewiesen',
+  pistenwindAmAnschlag === '-10' && startstreckeAmAnschlag && !startfehlerAmAnschlag,
+  `Anschlag ${pistenwindAmAnschlag} kt, Strecke ${startstreckeAmAnschlag ? 'sichtbar' : 'fehlt'}`
 );
-await regler(page, 'Windkomponente (kt, positiv = Gegenwind)', 0);
+await page.locator('#pistenwind').fill('0');
+await page.dispatchEvent('#pistenwind', 'input');
 await page.waitForTimeout(200);
 
 // 33: Bahnschalter wirken auf die Startstrecke, nicht auf den Bedarf (FR-018)
@@ -549,8 +574,8 @@ await page.locator('#gras').uncheck();
 
 // 36: der Wind steht als Anteil in der Zeilenbeschriftung und als Meterbetrag
 // in den Zellen -- so addiert sich die Spalte sichtbar auf (FR-020)
-await page.locator('#wind').fill('9');
-await page.dispatchEvent('#wind', 'input');
+await page.locator('#pistenwind').fill('9');
+await page.dispatchEvent('#pistenwind', 'input');
 await page.waitForTimeout(200);
 const windZeile = (
   await page.locator('#startstrecke tbody tr').nth(1).innerText()
@@ -561,8 +586,8 @@ pruefe(
   /−10,0 %/.test(windZeile) && (windZeile.match(/−\d+ m/g) ?? []).length === 2,
   windZeile
 );
-await page.locator('#wind').fill('0');
-await page.dispatchEvent('#wind', 'input');
+await page.locator('#pistenwind').fill('0');
+await page.dispatchEvent('#pistenwind', 'input');
 await page.waitForTimeout(200);
 
 // 37: Anmerkung 4 macht aus dem Ergebnis einen Mindestwert -- sichtbar am
@@ -898,6 +923,59 @@ pruefe(
 );
 await page.unroute('**://*.open-meteo.com/**').catch(() => {});
 netzfehlerErwartet = false;
+
+// 56: die Kernaussage von Feature 026 -- die beiden Windgroessen beeinflussen
+// einander nicht mehr (SC-002). Erst den Pistenwind bewegen, dann den
+// Streckenwind; jedes Mal darf sich nur das zugehoerige Ergebnis ruehren.
+await page.goto(BASE, { waitUntil: 'networkidle' });
+await fuellen(page, { dep: 971, cruise: 4500, dist: 200, power: 70, isa: 10, wind: 10 });
+const vorPistenwind = {
+  start: await page.locator('#startstrecke .summe').innerText(),
+  bedarf: await page.locator('#bedarf .summe').innerText()
+};
+await regler(page, 'Pistenwind (kt, positiv = Gegenwind)', 30);
+await page.waitForTimeout(250);
+const nachPistenwind = {
+  start: await page.locator('#startstrecke .summe').innerText(),
+  bedarf: await page.locator('#bedarf .summe').innerText()
+};
+await regler(page, 'Streckenwindkomponente (kt, positiv = Gegenwind)', -30);
+await page.waitForTimeout(250);
+const nachStreckenwind = {
+  start: await page.locator('#startstrecke .summe').innerText(),
+  bedarf: await page.locator('#bedarf .summe').innerText()
+};
+pruefe(
+  56,
+  'der Pistenwind ändert nur die Startstrecke, die Streckenwindkomponente nur den Bedarf',
+  nachPistenwind.start !== vorPistenwind.start &&
+    nachPistenwind.bedarf === vorPistenwind.bedarf &&
+    nachStreckenwind.bedarf !== nachPistenwind.bedarf &&
+    nachStreckenwind.start === nachPistenwind.start,
+  `Start ${vorPistenwind.start.replace(/\s+/g, ' ')} -> ${nachPistenwind.start.replace(/\s+/g, ' ')} -> ${nachStreckenwind.start.replace(/\s+/g, ' ')}; Bedarf ${vorPistenwind.bedarf.replace(/\s+/g, ' ')} -> ${nachPistenwind.bedarf.replace(/\s+/g, ' ')} -> ${nachStreckenwind.bedarf.replace(/\s+/g, ' ')}`
+);
+
+// 57: bei gleichem Wert in beiden Reglern stehen dieselben Zahlen wie vor der
+// Trennung (SC-003, FR-010). Die Sollwerte stammen aus dem Stand vor Feature
+// 026 und wurden mit den Vorgabewerten der Oberflaeche ermittelt; weicht hier
+// etwas ab, ist unterwegs eine Umrechnung entstanden, die es nicht geben darf.
+await page.goto(BASE, { waitUntil: 'networkidle' });
+await page.waitForTimeout(250);
+const anfangsstand = {
+  start: (await page.locator('#startstrecke .summe').innerText()).replace(/\s+/g, ' '),
+  bedarf: (await page.locator('#bedarf .summe').innerText()).replace(/\s+/g, ' '),
+  pistenwind: await page.locator('#pistenwind').inputValue(),
+  streckenwind: await page.locator('#streckenwind').inputValue()
+};
+pruefe(
+  57,
+  'beide Regler stehen anfangs auf 10 kt und liefern die Zahlen des Stands vor der Trennung',
+  anfangsstand.pistenwind === '10' &&
+    anfangsstand.streckenwind === '10' &&
+    /198\D*m/.test(anfangsstand.start) &&
+    /310\D*m/.test(anfangsstand.start),
+  JSON.stringify(anfangsstand)
+);
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 

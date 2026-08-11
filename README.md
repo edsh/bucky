@@ -57,6 +57,26 @@ damit die einzige Größe, die nicht aus dem Flughandbuch stammt und wird deshal
 getrennt ausgewiesen: in der Oberfläche unmittelbar unter dem Regler, der sie
 erzeugt, im Rechenweg als eigener Schritt mit eigener Quellenangabe.
 
+### Zwei Windangaben, nicht eine
+
+Der Wind steht an zwei Stellen, weil es zwei verschiedene Größen sind: der
+**Pistenwind** bei der Startstrecke — der Wind auf der Bahn 10/28 am Boden —
+und die **Streckenwindkomponente** beim Kraftstoffbedarf, der Wind entlang der
+Reisestrecke in Reiseflughöhe. Beide zählen positiv als Gegenwind und wirken
+jeweils nur auf das Ergebnis, bei dem sie stehen.
+
+Sie unterscheiden sich auch im Bereich. Der Pistenwind endet bei 10 kt
+Rückenwind, weil dort die Startstreckentabelle endet („For operation with
+tailwinds up to 10 knots", POH-Seite 5-12). Das ist **keine** Betriebsgrenze —
+die nennt für die 172N überhaupt keinen Wind. Für die Strecke gibt es keine
+solche Tabellengrenze; dort reicht der Regler von 50 kt Rückenwind bis 50 kt
+Gegenwind.
+
+Der demonstrierte Seitenwind von 15 kt (POH-Seite 4-20) ist hier bewusst nicht
+abgebildet: Er ist eine Querkomponente, während beide Regler die
+Längskomponente führen, und er ist ausdrücklich pilotenabhängig statt eine
+Grenze.
+
 ### Reichweite und Flugdauer: eine Auskunft, kein Bedarf
 
 Über den Angaben zum Streckenflug steht, was die Maschine unter den
@@ -109,8 +129,9 @@ Darauf wirken die Anmerkungen des Handbuchs, in dieser Reihenfolge:
    10 % mehr. Angewandt wird das *anteilig* statt in vollen Stufen: 4,5 kt
    Gegenwind ergeben 5 %, nicht 0 %. Die Stufen addieren sich, sie
    multiplizieren sich nicht — 18 kt Gegenwind ergeben 20 % und nicht 19 %.
-   Über 10 kt Rückenwind endet der Wortlaut der Anmerkung; dort wird
-   abgelehnt.
+   Über 10 kt Rückenwind endet der Wortlaut der Anmerkung; der Regler
+   „Pistenwind" endet deshalb genau dort. Der Kern lehnt darüber hinausgehende
+   Werte weiterhin ab — über die Oberfläche kommen sie nur nicht mehr an.
 2. **Bahnzustand (Anmerkungen 3 und 4)** — 15 % für trockenes Gras, mindestens
    20 % für feuchtes Gras, aufgeweichten Untergrund oder Schnee.
 

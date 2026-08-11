@@ -1438,6 +1438,25 @@ pruefe(
     nachUmschalten.beschriftung === 'Rückenwind',
   JSON.stringify({ vorUmschalten, nachUmschalten })
 );
+
+// 77: das Warnzeichen steht links vom Wert. Rechts davon wanderte es beim
+// Umschalten der Bahn mit, weil "-10 kt" breiter ist als "10 kt" -- die Zeile
+// wuerde beim Vergleichen der beiden Bahnen unruhig. Geprueft an der Reihenfolge
+// im Dokument, nicht an Pixeln: Das ist die Aussage, die halten soll.
+const zeichenPosition = await page
+  .getByTestId('wetter-wert-wind')
+  .evaluate((wert) => {
+    const zeichen = wert.parentElement?.querySelector('[data-testid="wetter-rueckenwind-wert"]');
+    if (!zeichen) return 'kein Zeichen';
+    // Node.DOCUMENT_POSITION_PRECEDING = 2: Das Zeichen steht vor dem Wert.
+    return (wert.compareDocumentPosition(zeichen) & 2) === 2 ? 'davor' : 'dahinter';
+  });
+pruefe(
+  77,
+  'das Warnzeichen steht vor dem Wert, damit die Zahl beim Umschalten nicht wandert',
+  zeichenPosition === 'davor',
+  zeichenPosition
+);
 await page.getByRole('button', { name: 'Abbrechen' }).click();
 
 // 74: der Bahnzustand steht als feststehende Zeile im Dialog -- angekuendigt,
@@ -1459,7 +1478,7 @@ pruefe(
   bahnzustand.vorhanden === 1 &&
     bahnzustand.kaestchen === 0 &&
     /trockenes Gras/.test(bahnzustand.text) &&
-    /immer mitgesetzt/.test(bahnzustand.text),
+    /wird gesetzt/.test(bahnzustand.text),
   bahnzustand.text
 );
 

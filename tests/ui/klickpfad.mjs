@@ -1396,6 +1396,38 @@ pruefe(
 );
 await page.getByRole('button', { name: 'Abbrechen' }).click();
 
+// 73: ein Rueckenwind wird an beiden Stellen mit einem Warnzeichen kenntlich
+// gemacht -- an der Bahn, auf der er von hinten kaeme, und beim Wert selbst,
+// wenn genau diese Bahn gewaehlt ist. Der Wind aus 250 Grad kommt auf Bahn 28
+// von vorn und auf Bahn 10 von hinten; anfangs ist Bahn 28 vorausgewaehlt.
+await antwortMit(GUTE_ANTWORT);
+await wetterKnoepfe.first().click();
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
+const vorUmschalten = {
+  bahn10: await page.getByTestId('wetter-rueckenwind-bahn-10').count(),
+  bahn28: await page.getByTestId('wetter-rueckenwind-bahn-28').count(),
+  amWert: await page.getByTestId('wetter-rueckenwind-wert').count()
+};
+await page.getByTestId('wetter-bahnwahl').getByRole('radio', { name: '10' }).check();
+await page.waitForTimeout(150);
+const nachUmschalten = {
+  amWert: await page.getByTestId('wetter-rueckenwind-wert').count(),
+  wert: (await page.getByTestId('wetter-wert-wind').innerText()).trim(),
+  beschriftung: await page.getByTestId('wetter-rueckenwind-bahn-10').getAttribute('aria-label')
+};
+pruefe(
+  73,
+  'R\u00fcckenwind ist an der betroffenen Bahn und am Wert mit einem Warnzeichen versehen',
+  vorUmschalten.bahn10 === 1 &&
+    vorUmschalten.bahn28 === 0 &&
+    vorUmschalten.amWert === 0 &&
+    nachUmschalten.amWert === 1 &&
+    nachUmschalten.wert === `-10${NBSP}kt` &&
+    nachUmschalten.beschriftung === 'R\u00fcckenwind',
+  JSON.stringify({ vorUmschalten, nachUmschalten })
+);
+await page.getByRole('button', { name: 'Abbrechen' }).click();
+
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 
 await browser.close();

@@ -224,6 +224,33 @@
    */
   const windGeliefert = $derived(zustand.art === 'vorschau' && zustand.abruf.wind !== undefined);
 
+  /**
+   * Zu jeder Bahn, ob der abgerufene Wind auf ihr von hinten kommt.
+   *
+   * Gerechnet wird für **beide** Bahnen, nicht nur für die gewählte: So sieht
+   * der Pilot schon an den Auswahlknöpfen, welche Bahn Rückenwind hätte,
+   * statt es erst nach dem Umschalten zu erfahren.
+   *
+   * Maßgeblich ist die ungerundete Komponente, nicht der einstellbare
+   * Vorschlag: Bei −0,4 kt zeigt der Regler 0 kt, von hinten kommt der Wind
+   * trotzdem. Und der Vorschlag fehlt ganz, wenn er jenseits der Reglergrenze
+   * liegt — also gerade bei kräftigem Rückenwind, wo die Warnung am nötigsten
+   * ist.
+   */
+  const rueckenwindJeBahn = $derived.by((): Record<string, boolean> => {
+    if (zustand.art !== 'vorschau' || zustand.abruf.wind === undefined) {
+      return {};
+    }
+    const wind = zustand.abruf.wind;
+    return Object.fromEntries(
+      RUNWAYS.map((bahn) => [
+        bahn.ident,
+        toRunwayWindComponent(wind.fromDegTrue, wind.speedKt, bahn.bearingDegTrue)
+          .headwindComponentKt < 0
+      ])
+    );
+  });
+
   const windVorschlag = $derived.by((): Vorschlag => {
     if (zustand.art !== 'vorschau') {
       return {};
@@ -407,6 +434,22 @@
                   {zeile.vorschlag.angezeigt}
                 </span>
               {/if}
+              <!--
+                Ein Rückenwind ist der Fall, den man beim Überfliegen einer
+                Zahlenreihe am ehesten übersieht — er unterscheidet sich vom
+                Gegenwind nur durch ein Vorzeichen, und gerade bei den kleinen
+                Beträgen fällt das kaum auf. Das Zeichen trägt eine
+                Textalternative, weil ein Warnbild ohne Worte keine Warnung ist.
+              -->
+              {#if zeile.bahnwahl && rueckenwindJeBahn[gewaehlteBahn.ident]}
+                <span
+                  class="warnzeichen"
+                  role="img"
+                  aria-label="Rückenwind"
+                  title="Der Wind kommt auf dieser Bahn von hinten."
+                  data-testid="wetter-rueckenwind-wert">⚠️</span
+                >
+              {/if}
             </label>
             {#if zeile.vorschlag.erlaeuterung}
               <p class="genauer" data-testid={`wetter-genauer-${zeile.schluessel}`}>
@@ -442,6 +485,15 @@
                       onchange={() => (gewaehlteBahn = bahn)}
                     />
                     {bahn.ident}
+                    {#if rueckenwindJeBahn[bahn.ident]}
+                      <span
+                        class="warnzeichen"
+                        role="img"
+                        aria-label="Rückenwind"
+                        title="Auf dieser Bahn käme der Wind von hinten."
+                        data-testid={`wetter-rueckenwind-bahn-${bahn.ident}`}>⚠️</span
+                      >
+                    {/if}
                   </label>
                 {/each}
               </fieldset>
@@ -571,6 +623,14 @@
     display: flex;
     gap: 0.3rem;
     align-items: center;
+  }
+
+  /*
+    Ohne eigene Schriftgroesse: Das Zeichen soll die Zeile begleiten, nicht sie
+    beherrschen. `cursor: help` weist auf den Hinweistext hin, den es traegt.
+  */
+  .warnzeichen {
+    cursor: help;
   }
 
   .zeilen {

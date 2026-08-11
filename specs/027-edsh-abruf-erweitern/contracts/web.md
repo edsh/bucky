@@ -165,3 +165,16 @@ Neu in diesem Feature:
 - Die Anzeige der Seitenwindkomponente. Der Kern liefert sie, die Oberfläche
   zeigt sie in diesem Feature nicht.
 - Andere Plätze als EDSH.
+
+## Nachtrag: gegen welchen Wert die Übernehmbarkeit geprüft wird
+
+Geprüft wird der **übernehmbare** Wert (`settable…`), nicht der ungerundete.
+
+Das ist keine Kleinigkeit. Ein Rückenwind von 10,06 kt rundet auf 10 kt und
+liegt damit genau auf der unteren Reglergrenze aus Feature 026 — also innerhalb.
+Wer gegen den ungerundeten Wert prüfte, sperrte eine Zeile, deren Wert sich
+sehr wohl setzen ließe, und der Pilot sähe eine Begründung, die auf dem
+angezeigten Wert nicht nachvollziehbar ist.
+
+Dieselbe Regel gilt bereits für den QNH aus Feature 025 und wird hier nur auf
+die beiden neuen Größen ausgedehnt.

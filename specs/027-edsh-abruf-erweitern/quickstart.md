@@ -36,11 +36,17 @@ Zwei Handproben für die Windzerlegung, mit den Bahnrichtungen aus
 | aus 013°, 20 kt | 10 (103°) | 0 kt, genau quer |
 | aus 283°, 20 kt | 10 (103°) | −20 kt, genau Rückenwind |
 | aus 250°, 12 kt | 28 (283°) | +10,06 kt → 10 kt übernehmbar |
-| aus 250°, 12 kt | 10 (103°) | −10,06 kt → 10 kt Rückenwind, **nicht** übernehmbar |
+| aus 250°, 12 kt | 10 (103°) | −10,06 kt → −10 kt, gerade noch übernehmbar |
+| aus 250°, 20 kt | 10 (103°) | −16,77 kt → −17 kt, **nicht** übernehmbar |
 
-Die letzte Zeile ist die wichtigste: Sie ist der Fall, in dem die Reglergrenze
-aus Feature 026 greift und das Kästchen gesperrt bleibt, während QNH und
-Temperatur weiter übernehmbar sind.
+Die letzten beiden Zeilen sind die wichtigsten und liegen dicht beieinander —
+absichtlich. −10,06 kt rundet auf −10 kt und liegt damit **genau** auf der
+unteren Reglergrenze aus Feature 026; erst −17 kt fällt heraus. Wer die Grenze
+gegen den ungerundeten Wert prüft statt gegen den übernehmbaren, sperrt hier
+eine Zeile, die zulässig ist. Geprüft wird der Wert, der auch gesetzt würde.
+
+Bei −17 kt greift die Reglergrenze wirklich: Das Kästchen bleibt gesperrt,
+während QNH und Temperatur weiter übernehmbar sind.
 
 ## 2 — Typen und Stil
 

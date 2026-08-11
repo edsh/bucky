@@ -44,13 +44,46 @@ async function regler(page, beschriftung, wert) {
   }, wert);
 }
 
+/**
+ * Stellt die gewuenschte ISA-Abweichung ueber den Temperaturregler ein.
+ *
+ * Seit Feature 031 gibt es keinen ISA-Regler mehr; eingestellt wird die
+ * Aussentemperatur, die Abweichung folgt daraus. Die aelteren Pruefungen sind
+ * aber in ISA-Abweichungen formuliert, weil das Handbuch es ist -- sie
+ * umzuschreiben haette ihre Aussage veraendert.
+ *
+ * Statt die Normtemperaturformel hier nachzubauen (das waere eine zweite
+ * Wahrheit neben dem Kern, genau das, was Prinzip IV ausschliesst), wird die
+ * Seite selbst als Umrechner benutzt: Ein beliebiger Temperaturwert wird
+ * gesetzt, die daraus angezeigte Abweichung abgelesen und der Regler um die
+ * Differenz verschoben. Das geht, weil die Beziehung zwischen beiden Groessen
+ * die Steigung 1 hat.
+ *
+ * Der Regler nimmt nur ganze Grad, die Normtemperatur ist es fast nie -- die
+ * eingestellte Abweichung trifft den Wunschwert daher auf etwa ein halbes Grad
+ * genau. Fuer die angezeigten, gerundeten Ergebnisse macht das keinen
+ * Unterschied (nachgewiesen in T002 der Feature-031-Aufgaben).
+ */
+async function setzeIsa(page, gewuenschteAbweichung) {
+  const probe = 20;
+  await regler(page, 'Außentemperatur am Platz (°C)', probe);
+  const angezeigt = (await page.getByTestId('isa-ableitung').innerText()).trim();
+  const treffer = angezeigt.match(/(-?\d+(?:,\d+)?)/);
+  if (!treffer) {
+    throw new Error(`ISA-Ableitung nicht lesbar: ${angezeigt}`);
+  }
+  const istAbweichung = Number(treffer[1].replace(',', '.'));
+  const ziel = Math.round(probe + (gewuenschteAbweichung - istAbweichung));
+  await regler(page, 'Außentemperatur am Platz (°C)', ziel);
+}
+
 async function fuellen(page, werte) {
   await regler(page, 'Platzhöhe ASL (ft)', werte.dep);
   await regler(page, 'Reiseflughöhe ASL (ft)', werte.cruise);
   await regler(page, 'Luftdruck QNH (hPa)', werte.qnh ?? 1013);
   await regler(page, 'Streckenlänge (NM)', werte.dist);
   await regler(page, 'Lasteinstellung', werte.power);
-  await regler(page, 'ISA-Abweichung (°C)', werte.isa);
+  await setzeIsa(page, werte.isa);
   // Seit Feature 026 sind es zwei Windgroessen. `wind` setzt beide auf
   // denselben Wert, damit die aelteren Pruefungen ihre Aussage behalten; wer
   // sie unterscheiden will, uebergibt `pistenwind` und `streckenwind` einzeln.
@@ -172,6 +205,11 @@ await page.getByRole('heading', { name: 'POH-Rechner D-EELK' }).waitFor({ timeou
 pruefe(9, 'Rückweg zum Rechner funktioniert', true);
 
 // 13: stufenlose Eingaben sind Schieberegler mit Wertanzeige (FR-001, FR-013)
+// Platzhoehe und QNH werden vorher gesetzt, weil der Temperaturregler seit
+// Feature 031 einen mitwandernden Bereich hat: Ohne festen Ausgangszustand
+// waere sein Aushang unten nicht vorhersagbar.
+await regler(page, 'Platzhöhe ASL (ft)', 970);
+await regler(page, 'Luftdruck QNH (hPa)', 1013);
 const reglerZahl = await page.locator('input[type="range"]').count();
 const zahlenfelder = await page.locator('input[type="number"], input[type="text"]').count();
 const ausgaben = await page.locator('output').count();
@@ -186,7 +224,10 @@ const erwarteteGrenzen = {
   reiseflughoehe: { min: '0', max: '18000', step: '100' },
   qnh: { min: '950', max: '1050', step: '1' },
   strecke: { min: '1', max: '750', step: '1' },
-  isa: { min: '-30', max: '40', step: '1' },
+  // Der Temperaturbereich gilt fuer die oben eingestellten 970 ft bei QNH 1013
+  // (Druckhoehe 976,8 ft, Normtemperatur 13,1 Grad). Er entspricht der
+  // unveraenderten Abweichungsspanne -30 bis +40, nach innen gerundet.
+  temperatur: { min: '-16', max: '53', step: '1' },
   pistenwind: { min: '-10', max: '50', step: '1' },
   streckenwind: { min: '-50', max: '50', step: '1' }
 };
@@ -733,7 +774,8 @@ async function antwortMit(rumpf, verzoegerungMs = 0) {
 /*
   Die Prüfdaten. 987,9 hPa in 971 ft ergeben einen QNH von 1023,3 — abgerundet
   1023. Bei 29,2 °C in der zugehörigen Druckhöhe von 699 ft liegt die
-  ISA-Abweichung bei 15,59 °C, gerundet 16. Der Wind aus 250° mit 12 kt ergibt
+  ISA-Abweichung bei 15,40 °C; der Temperaturregler nimmt seit Feature 031 die
+  Temperatur selbst, gerundet 29. Der Wind aus 250° mit 12 kt ergibt
   auf Bahn 28 (283° rechtweisend) 10,06 kt Gegenwind, gerundet 10 — und auf
   Bahn 10 denselben Betrag als Rückenwind.
 */
@@ -749,11 +791,26 @@ const GUTE_ANTWORT = {
   current_units: { wind_speed_10m: 'kn' }
 };
 
-const wetterKnopf = page.getByRole('button', { name: 'Wetterwerte für EDSH abrufen' });
+const wetterKnoepfe = page.getByRole('button', { name: 'Wetterwerte für EDSH abrufen' });
+// Alle drei Knoepfe oeffnen denselben Dialog; fuer die folgenden Pruefungen
+// genuegt daher einer. Genommen wird der erste, weil das der am QNH ist -- der
+// Weg, den ein Pilot zuerst geht.
+const wetterKnopf = wetterKnoepfe.first();
 const uebernehmen = page.getByRole('button', { name: 'Übernehmen', exact: true });
 
-// 40: der Knopf steht neben dem QNH-Regler
-pruefe(40, 'neben dem QNH-Regler steht ein Knopf „EDSH"', (await wetterKnopf.count()) === 1);
+// 40: an jedem der drei abrufbaren Regler steht ein Knopf „EDSH" (FR-004)
+const knopfPositionen = await page.evaluate(() =>
+  [...document.querySelectorAll('button[aria-label="Wetterwerte für EDSH abrufen"]')].map(
+    (knopf) => knopf.closest('.regler')?.querySelector('input[type="range"]')?.id ?? '?'
+  )
+);
+pruefe(
+  40,
+  'neben QNH, Außentemperatur und Pistenwind steht je ein Knopf „EDSH"',
+  (await wetterKnoepfe.count()) === 3 &&
+    ['qnh', 'temperatur', 'pistenwind'].every((id) => knopfPositionen.includes(id)),
+  JSON.stringify(knopfPositionen)
+);
 
 // 41: der Klick öffnet einen Dialog, der aufklärt, statt die Werte zu setzen
 await antwortMit(GUTE_ANTWORT, 400);
@@ -786,17 +843,17 @@ pruefe(
 await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
 const vorschau = {
   qnh: (await page.getByTestId('wetter-wert-qnh').innerText()).trim(),
-  isa: (await page.getByTestId('wetter-wert-isa').innerText()).trim(),
+  isa: (await page.getByTestId('wetter-wert-temperatur').innerText()).trim(),
   wind: (await page.getByTestId('wetter-wert-wind').innerText()).trim(),
   hakenQnh: await page.getByTestId('wetter-haken-qnh').isChecked(),
-  hakenIsa: await page.getByTestId('wetter-haken-isa').isChecked(),
+  hakenIsa: await page.getByTestId('wetter-haken-temperatur').isChecked(),
   hakenWind: await page.getByTestId('wetter-haken-wind').isChecked()
 };
 pruefe(
   44,
-  'die Vorschau zeigt 1023 hPa, 16 °C und 10 kt, alle drei Kästchen angehakt',
+  'die Vorschau zeigt 1023 hPa, 29 °C und 10 kt, alle drei Kästchen angehakt',
   vorschau.qnh === `1023${NBSP}hPa` &&
-    vorschau.isa === `16${NBSP}°C` &&
+    vorschau.isa === `29${NBSP}°C` &&
     vorschau.wind === `10${NBSP}kt` &&
     vorschau.hakenQnh &&
     vorschau.hakenIsa &&
@@ -810,16 +867,16 @@ await uebernehmen.click();
 await page.waitForTimeout(150);
 const nachUebernahme = {
   qnh: await page.locator('#qnh').inputValue(),
-  isa: await page.locator('#isa').inputValue(),
+  isa: await page.locator('#temperatur').inputValue(),
   pistenwind: await page.locator('#pistenwind').inputValue(),
   streckenwind: await page.locator('#streckenwind').inputValue(),
   offen: await page.locator('dialog[open]').count()
 };
 pruefe(
   45,
-  '„Übernehmen" setzt QNH, ISA und Pistenwind; die Streckenwindkomponente bleibt unberührt',
+  '„Übernehmen" setzt QNH, Außentemperatur und Pistenwind; die Streckenwindkomponente bleibt unberührt',
   nachUebernahme.qnh === '1023' &&
-    nachUebernahme.isa === '16' &&
+    nachUebernahme.isa === '29' &&
     nachUebernahme.pistenwind === '10' &&
     nachUebernahme.streckenwind === streckenwindVorher &&
     nachUebernahme.offen === 0,
@@ -829,7 +886,7 @@ pruefe(
 // 46: unter jedem übernommenen Regler steht ein Herkunftsvermerk
 const vermerke = {
   qnh: await page.getByTestId('qnh-herkunft').innerText(),
-  isa: await page.getByTestId('isa-herkunft').innerText(),
+  isa: await page.getByTestId('temperatur-herkunft').innerText(),
   wind: await page.getByTestId('pistenwind-herkunft').innerText()
 };
 pruefe(
@@ -861,7 +918,7 @@ pruefe(
   48,
   'eigenes Verstellen eines Reglers löscht allein dessen Herkunftsvermerk',
   (await page.getByTestId('qnh-herkunft').count()) === 0 &&
-    (await page.getByTestId('isa-herkunft').count()) === 1 &&
+    (await page.getByTestId('temperatur-herkunft').count()) === 1 &&
     (await page.getByTestId('pistenwind-herkunft').count()) === 1
 );
 
@@ -891,17 +948,17 @@ pruefe(
 
 // 58: ein abgewähltes Kästchen lässt seinen Regler UND dessen bisherigen
 // Vermerk unverändert — Abwählen ist kein Zurücksetzen (W-09).
-const isaVorAbwahl = await page.locator('#isa').inputValue();
+const isaVorAbwahl = await page.locator('#temperatur').inputValue();
 await wetterKnopf.click();
 await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
-await page.getByTestId('wetter-haken-isa').uncheck();
+await page.getByTestId('wetter-haken-temperatur').uncheck();
 await page.getByTestId('wetter-haken-wind').uncheck();
 await uebernehmen.click();
 await page.waitForTimeout(150);
 const nachAbwahl = {
   qnh: await page.locator('#qnh').inputValue(),
-  isa: await page.locator('#isa').inputValue(),
-  isaVermerk: await page.getByTestId('isa-herkunft').count(),
+  isa: await page.locator('#temperatur').inputValue(),
+  isaVermerk: await page.getByTestId('temperatur-herkunft').count(),
   windVermerk: await page.getByTestId('pistenwind-herkunft').count()
 };
 pruefe(
@@ -918,7 +975,7 @@ pruefe(
 await wetterKnopf.click();
 await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
 await page.getByTestId('wetter-haken-qnh').uncheck();
-await page.getByTestId('wetter-haken-isa').uncheck();
+await page.getByTestId('wetter-haken-temperatur').uncheck();
 await page.getByTestId('wetter-haken-wind').uncheck();
 await page.waitForTimeout(100);
 pruefe(59, 'ohne angehaktes Kästchen ist „Übernehmen" gesperrt', await uebernehmen.isDisabled());
@@ -977,19 +1034,23 @@ pruefe(
   windVorschau
 );
 
-// 62: die Erläuterungen nennen Windrichtung, Windgeschwindigkeit, Bahn und die
-// absolute Platztemperatur — ohne sie wäre kein Vorschlag nachprüfbar.
+// 62: die Erläuterungen nennen Windrichtung, Windgeschwindigkeit, Bahn, die
+// ungerundete Platztemperatur und die daraus folgende ISA-Abweichung — ohne
+// sie wäre kein Vorschlag nachprüfbar. Seit Feature 031 sind die beiden
+// Temperaturangaben vertauscht: Der Regler trägt die Temperatur, die
+// Abweichung steht in der Erläuterung.
 const erlaeuterungen = {
   qnh: await page.getByTestId('wetter-genauer-qnh').innerText(),
-  isa: await page.getByTestId('wetter-genauer-isa').innerText(),
+  isa: await page.getByTestId('wetter-genauer-temperatur').innerText(),
   wind: await page.getByTestId('wetter-genauer-wind').innerText()
 };
 pruefe(
   62,
-  'die Erläuterungen nennen ungerundeten QNH, Platztemperatur, Windrichtung, Windgeschwindigkeit und Bahn',
+  'die Erläuterungen nennen ungerundeten QNH, Platztemperatur, ISA-Abweichung, Windrichtung, Windgeschwindigkeit und Bahn',
   /1023,3\d? hPa/.test(erlaeuterungen.qnh) &&
     /gültig für/.test(erlaeuterungen.qnh) &&
-    /bei 29,2 °C am Platz/.test(erlaeuterungen.isa) &&
+    /ungerundet 29,2 °C/.test(erlaeuterungen.isa) &&
+    new RegExp(`entspricht ISA 15,6${NBSP}°C`).test(erlaeuterungen.isa) &&
     /250°/.test(erlaeuterungen.wind) &&
     new RegExp(`12${NBSP}kt`).test(erlaeuterungen.wind) &&
     /Bahn 28/.test(erlaeuterungen.wind),
@@ -1013,7 +1074,7 @@ const teilweise = {
   windGesperrt: await page.getByTestId('wetter-haken-wind').isDisabled(),
   windAngehakt: await page.getByTestId('wetter-haken-wind').isChecked(),
   qnhAngehakt: await page.getByTestId('wetter-haken-qnh').isChecked(),
-  isaAngehakt: await page.getByTestId('wetter-haken-isa').isChecked(),
+  isaAngehakt: await page.getByTestId('wetter-haken-temperatur').isChecked(),
   uebernehmenGesperrt: await uebernehmen.isDisabled()
 };
 pruefe(
@@ -1038,7 +1099,7 @@ await wetterKnopf.click();
 await page.getByTestId('wetter-hindernis-wind').waitFor({ timeout: 5000 });
 const ohneWind = {
   qnhAngehakt: await page.getByTestId('wetter-haken-qnh').isChecked(),
-  isaAngehakt: await page.getByTestId('wetter-haken-isa').isChecked(),
+  isaAngehakt: await page.getByTestId('wetter-haken-temperatur').isChecked(),
   windGesperrt: await page.getByTestId('wetter-haken-wind').isDisabled(),
   uebernehmenGesperrt: await uebernehmen.isDisabled()
 };
@@ -1152,6 +1213,14 @@ pruefe(
 // Trennung (SC-003, FR-010). Die Sollwerte stammen aus dem Stand vor Feature
 // 026 und wurden mit den Vorgabewerten der Oberflaeche ermittelt; weicht hier
 // etwas ab, ist unterwegs eine Umrechnung entstanden, die es nicht geben darf.
+//
+// Die Startstrecke steht seit Feature 031 auf 197 statt 198 m. Das ist keine
+// Umrechnung, sondern eine andere Ausgangslage: Eingestellt wird jetzt die
+// Temperatur in ganzen Grad, und bei der Platzdruckhoehe von 977,8 ft trifft
+// keine ganze Zahl die frueheren ISA+10 genau -- 23 Grad ergeben ISA+9,94.
+// Die Rollstrecke faellt damit von 197,57 auf 197,49 m und rundet auf die
+// andere Seite. Bei *gleicher* Lage rechnet die Anwendung unveraendert
+// (nachgewiesen in T002 der Feature-031-Aufgaben).
 await page.goto(BASE, { waitUntil: 'networkidle' });
 await page.waitForTimeout(250);
 const anfangsstand = {
@@ -1165,10 +1234,167 @@ pruefe(
   'beide Regler stehen anfangs auf 10 kt und liefern die Zahlen des Stands vor der Trennung',
   anfangsstand.pistenwind === '10' &&
     anfangsstand.streckenwind === '10' &&
-    /198\D*m/.test(anfangsstand.start) &&
+    /197\D*m/.test(anfangsstand.start) &&
     /310\D*m/.test(anfangsstand.start),
   JSON.stringify(anfangsstand)
 );
+
+/*
+  Feature 031: die Aussentemperatur als Eingabegroesse, die Anordnung und die
+  Bahnwahl in der Windzeile. Der Ausgangszustand ist der frisch geladene, den
+  Pruefung 57 gerade hergestellt hat.
+*/
+
+// 64: die ISA-Abweichung steht als Folgezeile unter dem Temperaturregler und
+// nennt eine Nachkommastelle -- sie ist der Beleg, mit dem der Pilot die
+// Handbuchzeile findet (FR-002, FR-003, Prinzip I).
+const ableitungAnfang = (await page.getByTestId('isa-ableitung').innerText()).trim();
+pruefe(
+  64,
+  'unter dem Temperaturregler steht die abgeleitete ISA-Abweichung mit einer Nachkommastelle',
+  (await page.locator('#temperatur').inputValue()) === '23' &&
+    new RegExp(`ISA-Abweichung 9,9${NBSP}\u00b0C`).test(ableitungAnfang),
+  ableitungAnfang
+);
+
+// 65: die Abweichung folgt der Temperatur mit der Steigung 1 -- ein Grad mehr
+// am Regler ist ein Grad mehr Abweichung, solange die Hoehe steht.
+await regler(page, 'Au\u00dfentemperatur am Platz (\u00b0C)', 25);
+const ableitungWaermer = (await page.getByTestId('isa-ableitung').innerText()).trim();
+pruefe(
+  65,
+  'zwei Grad mehr am Regler sind zwei Grad mehr Abweichung',
+  new RegExp(`ISA-Abweichung 11,9${NBSP}\u00b0C`).test(ableitungWaermer),
+  ableitungWaermer
+);
+
+// 66: der Temperaturbereich wandert mit der Druckhoehe (FR-020). Ein fester
+// Bereich waere oben zu weit und unten zu eng; hier steigt die Platzhoehe von
+// 970 auf 6000 ft und der Bereich sinkt entsprechend um rund zehn Grad.
+const bereichUnten = await page.evaluate(() => {
+  const element = document.getElementById('temperatur');
+  return { min: element.min, max: element.max };
+});
+await regler(page, 'Platzh\u00f6he ASL (ft)', 6000);
+const bereichOben = await page.evaluate(() => {
+  const element = document.getElementById('temperatur');
+  return { min: element.min, max: element.max };
+});
+pruefe(
+  66,
+  'der Temperaturbereich wandert mit der Platzh\u00f6he',
+  bereichUnten.min === '-16' &&
+    bereichUnten.max === '53' &&
+    bereichOben.min === '-26' &&
+    bereichOben.max === '43',
+  `${JSON.stringify(bereichUnten)} -> ${JSON.stringify(bereichOben)}`
+);
+
+// 67: die Hoehenaenderung verschiebt die Abweichung, ohne die eingestellte
+// Temperatur anzutasten (FR-021). Die Temperatur ist eine Messung; sie darf
+// nicht aus einer Reglerbewegung an anderer Stelle folgen -- dieselbe
+// Trennung, die Feature 026 fuer die Winde herstellte.
+const nachHoehenwechsel = {
+  temperatur: await page.locator('#temperatur').inputValue(),
+  ableitung: (await page.getByTestId('isa-ableitung').innerText()).trim()
+};
+pruefe(
+  67,
+  'ein H\u00f6henwechsel l\u00e4sst die Temperatur stehen und verschiebt nur die Abweichung',
+  nachHoehenwechsel.temperatur === '25' &&
+    new RegExp(`ISA-Abweichung 21,9${NBSP}\u00b0C`).test(nachHoehenwechsel.ableitung),
+  JSON.stringify(nachHoehenwechsel)
+);
+
+// 68: die Anordnung -- beide Windregler stehen zuoberst in ihrem Bereich und
+// auf einer Hoehe (FR-016 bis FR-018). Gemessen wird an den Kastenoberkanten
+// bei einem breiten Fenster, weil genau dort der Nebeneinander-Fall auftritt.
+await page.setViewportSize({ width: 1400, height: 1000 });
+await page.waitForTimeout(150);
+const anordnung = await page.evaluate(() => {
+  const oben = (auswahl) => document.querySelector(auswahl).getBoundingClientRect().top;
+  return {
+    pistenwind: oben('#pistenwind'),
+    bahn: oben('#startstrecke fieldset'),
+    streckenwind: oben('#streckenwind'),
+    strecke: oben('#strecke')
+  };
+});
+pruefe(
+  68,
+  'beide Windregler stehen zuoberst in ihrem Bereich und liegen auf einer H\u00f6he',
+  anordnung.pistenwind < anordnung.bahn &&
+    anordnung.streckenwind < anordnung.strecke &&
+    Math.abs(anordnung.pistenwind - anordnung.streckenwind) < 24,
+  JSON.stringify(anordnung)
+);
+
+// 69: Streckenlaenge und Streckenwind stehen untereinander, auch wenn Platz
+// fuer zwei Spalten waere (FR-019). Verschiedene Einheiten bei fast
+// gleichlautender Beschriftung liest man nebeneinander leicht am falschen.
+pruefe(
+  69,
+  'Streckenwind und Streckenl\u00e4nge stehen auch auf breiten Schirmen untereinander',
+  anordnung.strecke - anordnung.streckenwind > 24,
+  `${anordnung.streckenwind} -> ${anordnung.strecke}`
+);
+
+// 70: die Bahnwahl im Wetterdialog steht in der Windzeile und nirgends sonst
+// (FR-012). Beim Luftdruck und bei der Temperatur ist die Bahn bedeutungslos.
+await antwortMit(GUTE_ANTWORT);
+await page.locator('#pistenwind').scrollIntoViewIfNeeded();
+await wetterKnoepfe.last().click();
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
+const bahnwahlSitzt = await page.evaluate(() => {
+  const wahl = document.querySelector('[data-testid="wetter-bahnwahl"]');
+  return {
+    anzahl: document.querySelectorAll('[data-testid="wetter-bahnwahl"]').length,
+    inWindzeile: wahl?.closest('[data-testid="wetter-zeile-wind"]') !== null
+  };
+});
+pruefe(
+  70,
+  'die Bahnwahl steht genau einmal, und zwar in der Windzeile',
+  bahnwahlSitzt.anzahl === 1 && bahnwahlSitzt.inWindzeile,
+  JSON.stringify(bahnwahlSitzt)
+);
+
+// 71: der dritte Knopf oeffnet denselben Dialog wie der erste -- er setzt also
+// nicht etwa nur den Wind. Die Windzeile traegt ausserdem den Hinweis auf die
+// Vorzeichenrichtung, weil ein Vorzeichen allein nicht sagt, wohin es zeigt.
+const windzeileText = (await page.getByTestId('wetter-zeile-wind').innerText()).trim();
+pruefe(
+  71,
+  'der Knopf am Pistenwind \u00f6ffnet denselben Dialog; die Windzeile nennt die Vorzeichenrichtung',
+  (await page.getByTestId('wetter-zeile-qnh').count()) === 1 &&
+    (await page.getByTestId('wetter-zeile-temperatur').count()) === 1 &&
+    /positiv = Gegenwind/.test(windzeileText),
+  windzeileText.split('\n')[0]
+);
+
+// 72: die Bahnwahl bleibt erreichbar, auch wenn der Wind auf der gewaehlten
+// Bahn jenseits der Reglergrenze liegt. Haenge sie am Vorschlagswert, waere
+// sie im selben Moment verschwunden -- eine Sackgasse ohne Rueckweg.
+await page.getByRole('button', { name: 'Abbrechen' }).click();
+await antwortMit({ ...GUTE_ANTWORT, current: { ...GUTE_ANTWORT.current, wind_speed_10m: 20 } });
+await wetterKnoepfe.last().click();
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
+await page.getByTestId('wetter-bahnwahl').getByRole('radio', { name: '10' }).check();
+await page.getByTestId('wetter-hindernis-wind').waitFor({ timeout: 5000 });
+const rueckweg = {
+  wahlNochDa: await page.getByTestId('wetter-bahnwahl').count(),
+  windGesperrt: await page.getByTestId('wetter-haken-wind').isDisabled()
+};
+await page.getByTestId('wetter-bahnwahl').getByRole('radio', { name: '28' }).check();
+await page.waitForTimeout(150);
+const zurueck = await page.getByTestId('wetter-haken-wind').isDisabled();
+pruefe(
+  72,
+  'ein unm\u00f6glicher Wind sperrt die Zeile, l\u00e4sst aber den Weg zur anderen Bahn offen',
+  rueckweg.wahlNochDa === 1 && rueckweg.windGesperrt && !zurueck,
+  JSON.stringify({ ...rueckweg, zurueck })
+);
+await page.getByRole('button', { name: 'Abbrechen' }).click();
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 

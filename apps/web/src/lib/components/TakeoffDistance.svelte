@@ -34,7 +34,8 @@
     wetOrSnow = $bindable(),
     windComponentKt = $bindable(),
     windHerkunft,
-    windBedient
+    windBedient,
+    wetterAbrufen
   }: {
     result?: TakeoffDistanceResult;
     fehler?: string;
@@ -49,6 +50,14 @@
     windHerkunft?: string;
     /** Meldet, dass der Pilot den Regler selbst bewegt hat (FR-015). */
     windBedient?: () => void;
+    /**
+     * Öffnet den Wetterabruf. Ein reiner Auslöser ohne Rückgabe, und das mit
+     * Absicht: Diese Komponente soll nicht wissen, dass am anderen Ende ein
+     * Dialog hängt, geschweige denn was er liefert — dieselbe Trennung wie bei
+     * `windHerkunft`. Ohne diesen Prop erscheint kein Knopf; die Komponente
+     * bleibt damit auch ohne Wetterabruf verwendbar.
+     */
+    wetterAbrufen?: () => void;
   } = $props();
 
   /**
@@ -121,6 +130,42 @@
 </script>
 
 <div class="startstrecke">
+  <!--
+    Der Pistenwind steht seit Feature 031 ganz oben, nicht mehr nur über der
+    Ergebnistabelle. Damit liegt er auf einer Höhe mit der
+    Streckenwindkomponente des Nachbarbereichs — zwei Regler nebeneinander, die
+    verschiedene Werte tragen, sind sichtbar zwei Regler. Das ist die
+    Fortsetzung der Trennung aus Feature 026 mit den Mitteln des Auges.
+  -->
+  <div class="pistenwind">
+    <RangeField
+      id="pistenwind"
+      label="Pistenwind (kt, positiv = Gegenwind)"
+      range={pistenwindBereich}
+      bind:value={windComponentKt}
+      format={formatKnots}
+      bedient={windBedient}
+    >
+      {#snippet neben()}
+        {#if wetterAbrufen}
+          <button
+            type="button"
+            class="schnellwahl"
+            aria-label="Wetterwerte für EDSH abrufen"
+            onclick={wetterAbrufen}
+          >
+            EDSH
+          </button>
+        {/if}
+      {/snippet}
+      {#snippet folge()}
+        {#if windHerkunft}
+          <span data-testid="pistenwind-herkunft">{windHerkunft}</span>
+        {/if}
+      {/snippet}
+    </RangeField>
+  </div>
+
   <fieldset class="bahn">
     <legend>Bahnzustand</legend>
     <SurfaceSwitch
@@ -136,28 +181,6 @@
       bind:checked={wetOrSnow}
     />
   </fieldset>
-
-  <!--
-    Der Pistenwind steht über der Ergebnistabelle: Eingaben oben, Ergebnis
-    unten — dieselbe Leserichtung wie beim Kraftstoffbedarf, wo die
-    Streckenlänge ebenfalls über dem Ergebnis steht.
-  -->
-  <div class="pistenwind">
-    <RangeField
-      id="pistenwind"
-      label="Pistenwind (kt, positiv = Gegenwind)"
-      range={pistenwindBereich}
-      bind:value={windComponentKt}
-      format={formatKnots}
-      bedient={windBedient}
-    >
-      {#snippet folge()}
-        {#if windHerkunft}
-          <span data-testid="pistenwind-herkunft">{windHerkunft}</span>
-        {/if}
-      {/snippet}
-    </RangeField>
-  </div>
 
   {#if fehler}
     <p class="fehler" role="alert">{fehler}</p>
@@ -315,6 +338,22 @@
   /* Derselbe Abstand nach unten wie beim Fieldset darüber. */
   .pistenwind {
     margin-bottom: 1rem;
+  }
+
+  /*
+    Derselbe Knopf wie an den Reglern der Grundbedingungen. Die Regeln stehen
+    hier ein zweites Mal, weil Svelte Stile je Komponente kapselt — ein
+    gemeinsamer Ort dafür wäre ein eigenes Stilblatt und damit mehr Umstand als
+    Nutzen bei acht Zeilen.
+  */
+  .schnellwahl {
+    padding: 0.05rem 0.4rem;
+    font: inherit;
+    color: #036;
+    background: none;
+    border: 1px solid #036;
+    border-radius: 0.75rem;
+    cursor: pointer;
   }
 
   legend {

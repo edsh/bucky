@@ -118,10 +118,9 @@ eine Straße stehen; die erste sagt nur, wo das Fahrwerk den Boden verlässt.
 
 Die Tabelle ist zweifach gestützt: Druckhöhe (0 bis 10 000 ft) und
 Außentemperatur (−20 bis 50 °C). Zwischen den Stützstellen wird bilinear
-interpoliert, außerhalb wird abgelehnt statt fortgeschrieben. Die
-Außentemperatur wird aus Druckhöhe und ISA-Abweichung gebildet und nicht
-eigens eingegeben — dieselben Grundbedingungen, die schon die Reiseleistung
-tragen (Prinzip IV).
+interpoliert, außerhalb wird abgelehnt statt fortgeschrieben. Eingegeben wird
+die Außentemperatur am Platz — dieselbe Grundbedingung, die auch die
+Reiseleistung trägt (Prinzip IV).
 
 Darauf wirken die Anmerkungen des Handbuchs, in dieser Reihenfolge:
 
@@ -149,24 +148,42 @@ Die Schnellwahl **EDSH** setzt neben der Platzhöhe von 971 ft auch den Schalter
 für trockenes Gras: Der Heimatplatz hat eine Graspiste. Der Schalter bleibt
 danach frei wählbar und wird beim Verstellen der Platzhöhe nicht zurückgesetzt.
 
+### Temperatur statt Abweichung
+
+Eingestellt wird die **Außentemperatur am Platz** — die Zahl, die ATIS, Thermometer
+und Wetterdienst nennen. Die ISA-Abweichung, mit der das Handbuch rechnet, steht
+als Folgezeile darunter und wird laufend mitgeführt. Sie ist damit der Beleg, mit
+dem sich die verwendete Handbuchzeile nachschlagen lässt, und wird deshalb mit
+einer Nachkommastelle angezeigt: Die gezeigte Zahl ist die, mit der gerechnet
+wurde (Prinzip I).
+
+Der einstellbare Temperaturbereich wandert mit der Druckhöhe. Er entspricht immer
+derselben Abweichungsspanne von −30 bis +40 °C — in Bodennähe reicht er deshalb
+weiter nach oben, in großer Höhe weiter nach unten. Ein Wechsel der Platzhöhe
+verschiebt nur die Abweichung, nicht die eingestellte Temperatur: Die Temperatur
+ist eine Messung und folgt nicht aus einer Reglerbewegung an anderer Stelle.
+
 ### Wetterwerte aus dem Netz
 
-Neben dem QNH-Regler steht ein zweiter Knopf **EDSH**. Er setzt keinen Wert
-sofort, sondern öffnet einen Dialog: Bei Open-Meteo werden in **einer** Anfrage
-Luftdruck, Temperatur und Wind für den Platz geholt und daraus drei Vorschläge
-gebildet.
+Neben dem QNH-Regler, dem Temperaturregler und dem Pistenwindregler steht je ein
+Knopf **EDSH**. Alle drei öffnen denselben Dialog — der Abruf holt bei Open-Meteo
+in **einer** Anfrage Luftdruck, Temperatur und Wind für den Platz und bildet daraus
+drei Vorschläge. Drei Einstiege, weil ein Pilot von der Größe her denkt, die er
+gerade sucht, und nicht wissen muss, dass sie zusammen ankommen.
 
 | Zeile im Dialog | Woraus sie entsteht |
 |---|---|
 | Luftdruck QNH | Stationsdruck, auf die Platzhöhe von 971 ft bezogen |
-| ISA-Abweichung | Platztemperatur gegen die Normtemperatur in der Druckhöhe |
+| Außentemperatur | Platztemperatur des Modells; die Erläuterung nennt die zugehörige ISA-Abweichung |
 | Pistenwind | Wind, zerlegt gegen die gewählte Bahn 10 oder 28 |
 
 Jede Zeile hat ein Kästchen; „Übernehmen" setzt **nur** die angehakten Regler.
 Was fehlt oder außerhalb eines Reglerbereichs liegt, sperrt seine eigene Zeile
-und nicht den ganzen Abruf. Über den Zeilen steht die Bahnwahl: Vorausgewählt
-ist die Bahn mit Gegenwind, ein Wechsel rechnet allein den Pistenwind neu und
-löst keine zweite Anfrage aus.
+und nicht den ganzen Abruf. Die Bahnwahl steht **in** der Windzeile, weil sie nur
+dort etwas ändert: Vorausgewählt ist die Bahn mit Gegenwind, ein Wechsel rechnet
+allein den Pistenwind neu und löst keine zweite Anfrage aus. Sie bleibt auch dann
+stehen, wenn der Wind auf der gewählten Bahn jenseits der Reglergrenze liegt —
+sonst gäbe es keinen Weg zurück zur anderen Bahn.
 
 Der Unterschied zur Schnellwahl der Platzhöhe ist beabsichtigt. Die Platzhöhe
 ist eine feste Eigenschaft des Platzes; die Wetterwerte sind **Rechenwerte aus

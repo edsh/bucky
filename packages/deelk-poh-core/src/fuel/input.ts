@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { InputDomain, NumericRange, PowerSettingAvailability } from '../types.js';
 import { PohCalculationError, outOfRange, pressureAltitudeOutOfRange } from '../errors.js';
 import { toPressureAltitude, type PressureAltitudeResult } from '../atmosphere/pressureAltitude.js';
+import { ISA_DEVIATION_RANGE } from '../atmosphere/temperature.js';
 import { CLIMB_TABLE_ID, CRUISE_TABLE_ID, getTable } from '../tables.js';
 
 /** Das vom Piloten erfasste Flugvorhaben. Alle Felder sind Pflicht (FR-008). */
@@ -39,7 +40,12 @@ const QNH_RANGE: NumericRange = { min: 950, max: 1050, unit: 'hPa', step: 1 };
  * als ein Textfeld ohnehin ein Ende.
  */
 const DISTANCE_RANGE: NumericRange = { min: 1, max: 750, unit: 'NM', step: 1 };
-const ISA_DEVIATION_RANGE: NumericRange = { min: -30, max: 40, unit: '°C', step: 1 };
+/*
+  `ISA_DEVIATION_RANGE` stand bis Feature 031 hier. Er ist nach
+  `atmosphere/temperature.ts` gewandert, weil der dortige Bereichsrechner für
+  die Außentemperatur ihn braucht und ein Import zurück einen Ringschluss
+  ergäbe — diese Datei importiert bereits aus `atmosphere/`.
+*/
 const WIND_COMPONENT_RANGE: NumericRange = { min: -50, max: 50, unit: 'kt', step: 1 };
 
 const flightPlanSchema = z.object({

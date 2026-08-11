@@ -1,6 +1,6 @@
-import type { StandardSourceReference } from '../types.js';
+import type { NumericRange, StandardSourceReference } from '../types.js';
 import { PohCalculationError } from '../errors.js';
-import { roundCelsius } from '../format.js';
+import { ceilInward, floorInward, roundCelsius } from '../format.js';
 import {
   ICAO_STANDARD_ATMOSPHERE_SOURCE,
   LAPSE_RATE_K_PER_FT,
@@ -31,6 +31,57 @@ const T0_C = T0_K - KELVIN_OFFSET;
 /** Dieselbe Quelle wie die Druckhöhe; beide folgen derselben Norm. */
 export const ISA_TEMPERATURE_SOURCE: StandardSourceReference = ICAO_STANDARD_ATMOSPHERE_SOURCE;
 
+/**
+ * Der Bereich, in dem sich die Abweichung von der Standardatmosphäre bewegen
+ * darf. Keine Tabellengrenze, sondern eine Festlegung der Spezifikation.
+ *
+ * Steht hier und nicht mehr bei den Eingabegrenzen der Kraftstoffrechnung, wo
+ * er ursprünglich lag. Zwei Gründe, die in dieselbe Richtung zeigen: Er ist
+ * eine Aussage über die Atmosphäre und nicht über einen Kraftstoffbedarf, und
+ * `getOutsideAirTemperatureRange` weiter unten braucht ihn. Andersherum ginge
+ * es nicht — `fuel/input.ts` importiert bereits aus diesem Verzeichnis, ein
+ * Import zurück ergäbe einen Ringschluss.
+ */
+export const ISA_DEVIATION_RANGE: NumericRange = { min: -30, max: 40, unit: '°C', step: 1 };
+
+/**
+ * Die Normtemperatur einer Druckhöhe in °C. Die eine Stelle, an der diese
+ * Formel steht — beide Umrechnungsrichtungen und der Bereichsrechner greifen
+ * hierauf zu, damit es keine zweite Normtemperatur geben kann (Prinzip IV).
+ */
+function standardTemperatureAt(pressureAltitudeFt: number): number {
+  return T0_C - LAPSE_RATE_K_PER_FT * pressureAltitudeFt;
+}
+
+/**
+ * Die Anschläge eines Temperaturreglers in einer gegebenen Druckhöhe.
+ *
+ * Anders als die ISA-Abweichung hat eine Außentemperatur keinen festen
+ * Bereich: Sie ist Normtemperatur plus Abweichung und wandert deshalb mit der
+ * Höhe. In Meereshöhe sind −15…55 °C rechenbar, in 10 000 ft dagegen
+ * −34…35 °C. Ein fester Bereich wäre in beide Richtungen falsch — unten böte
+ * er zu wenig an, oben zu viel, und im zweiten Fall liefe der Pilot in einen
+ * Fehler, den ihm der Regler hätte ersparen können.
+ *
+ * Abgeleitet aus `ISA_DEVIATION_RANGE` und nicht daneben gestellt: Es gibt
+ * weiterhin genau eine Stelle, an der die Grenzen stehen.
+ *
+ * Gerundet wird **nach innen**, damit die tragende Zusicherung an beiden Enden
+ * hält: Jeder ganzzahlige Wert innerhalb des zurückgegebenen Bereichs ergibt
+ * eine Abweichung innerhalb von `ISA_DEVIATION_RANGE`.
+ *
+ * Prüft die Druckhöhe selbst **nicht** — wie `toOutsideAirTemperature` auch.
+ */
+export function getOutsideAirTemperatureRange(pressureAltitudeFt: number): NumericRange {
+  const standardTemperatureC = standardTemperatureAt(pressureAltitudeFt);
+  return {
+    min: ceilInward(standardTemperatureC + ISA_DEVIATION_RANGE.min),
+    max: floorInward(standardTemperatureC + ISA_DEVIATION_RANGE.max),
+    unit: '°C',
+    step: 1
+  };
+}
+
 /** Ergebnis der Herleitung, mit den Eingangsgrößen zum Nachvollziehen. */
 export interface OutsideAirTemperatureResult {
   /**
@@ -59,7 +110,7 @@ export function toOutsideAirTemperature(
   pressureAltitudeFt: number,
   isaDeviationC: number
 ): OutsideAirTemperatureResult {
-  const standardTemperatureC = T0_C - LAPSE_RATE_K_PER_FT * pressureAltitudeFt;
+  const standardTemperatureC = standardTemperatureAt(pressureAltitudeFt);
   return {
     pressureAltitudeFt,
     isaDeviationC,
@@ -112,7 +163,7 @@ export function toIsaDeviation(
   requireFiniteNumber(pressureAltitudeFt, 'pressureAltitudeFt');
   requireFiniteNumber(outsideAirTemperatureC, 'outsideAirTemperatureC');
 
-  const standardTemperatureC = T0_C - LAPSE_RATE_K_PER_FT * pressureAltitudeFt;
+  const standardTemperatureC = standardTemperatureAt(pressureAltitudeFt);
   const isaDeviationC = outsideAirTemperatureC - standardTemperatureC;
 
   return {

@@ -100,8 +100,7 @@ export function roundKnots(value: number): number {
 }
 
 /**
- * Temperatur auf ganze °C — der Wert, den der Regler für die ISA-Abweichung
- * annehmen kann.
+ * Temperatur auf ganze °C — der Wert, den ein Temperaturregler annehmen kann.
  *
  * Kaufmännisch, und das ist hier die bewusste Entscheidung: Beim Luftdruck gibt
  * es eine sichere Rundungsrichtung (siehe `floorHectopascal`), bei der
@@ -111,6 +110,28 @@ export function roundKnots(value: number): number {
  */
 export function roundCelsius(value: number): number {
   return roundTo(value, 0);
+}
+
+/**
+ * Die beiden Enden eines Wertebereichs auf ganze Einheiten, **nach innen**.
+ *
+ * Gebraucht, wo ein Bereich aus einer Rechnung hervorgeht statt als glatte
+ * Zahl festzustehen — etwa der Temperaturbereich, der sich aus dem
+ * Abweichungsbereich und der Normtemperatur einer Druckhöhe ergibt
+ * (`getOutsideAirTemperatureRange`).
+ *
+ * Nach innen und nicht kaufmännisch: Ein aufgerundetes Maximum böte einen
+ * Reglerwert an, der bereits außerhalb dessen liegt, wofür der Bereich steht.
+ * Bei einem Bereich ist die Richtung eindeutig — anders als bei einem
+ * Einzelwert gibt es hier eine sichere Seite, und das ist die engere.
+ */
+export function ceilInward(value: number): number {
+  return Number.isFinite(value) ? Math.ceil(value) : value;
+}
+
+/** Gegenstück zu `ceilInward` für das obere Ende eines Bereichs. */
+export function floorInward(value: number): number {
+  return Number.isFinite(value) ? Math.floor(value) : value;
 }
 
 /**
@@ -243,9 +264,25 @@ export function formatHectopascal(value: number): string {
   return formatQuantity(value, 0, 'hPa');
 }
 
-/** Temperaturangabe, etwa die ISA-Abweichung. */
+/** Temperaturangabe auf ganze Grad, wie sie ein Regler annimmt. */
 export function formatCelsius(value: number): string {
   return formatQuantity(value, 0, '°C');
+}
+
+/**
+ * Temperaturangabe mit einer Nachkommastelle — für **abgeleitete** Werte.
+ *
+ * Der Unterschied zu `formatCelsius` ist Absicht und kein Versehen. Ein
+ * Reglerwert ist ganzzahlig; ihn mit Nachkommastelle zu zeigen suggerierte eine
+ * Genauigkeit, die die Eingabe nicht hat. Eine abgeleitete Größe wie die
+ * ISA-Abweichung ist dagegen fast immer ein Bruch, und sie ist genau jene Zahl,
+ * mit der der Pilot die Zeile in der Handbuchtabelle sucht. Sie um bis zu ein
+ * halbes Grad gerundet zu zeigen, während mit dem vollen Wert gerechnet wird,
+ * widerspräche der Forderung, die verwendeten Eckwerte zu nennen
+ * (Constitution, Prinzip I).
+ */
+export function formatCelsiusPrecise(value: number): string {
+  return formatQuantity(value, 1, '°C');
 }
 
 /** Anteilsangabe, etwa die Lasteinstellung. */

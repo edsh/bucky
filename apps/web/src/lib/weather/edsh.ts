@@ -13,6 +13,13 @@ import { roundTo } from '@edsh-bucky/deelk-poh-core';
  * Koordinaten stehen.
  */
 export interface EdshPlatz {
+  /**
+   * Die ICAO-Kennung, wie sie in einem Herkunftsvermerk erscheint. Hier und
+   * nicht als Zeichenkette in der Oberfläche: Der Vermerk sagt aus, für
+   * welchen Ort ein Wert gilt — dieser Ort ist derselbe, dessen Koordinaten
+   * unten stehen, und darf nicht getrennt davon gepflegt werden.
+   */
+  readonly kennung: string;
   /** Platzhöhe über dem Meeresspiegel in ft. */
   readonly elevationFt: number;
   /** Geografische Breite in Grad. */
@@ -28,6 +35,7 @@ export interface EdshPlatz {
  * als der Regler.
  */
 export const EDSH: EdshPlatz = {
+  kennung: 'EDSH',
   elevationFt: 971,
   latitude: 48.9197,
   longitude: 9.4553

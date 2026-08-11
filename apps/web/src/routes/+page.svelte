@@ -52,7 +52,7 @@
    * Vermerke und nicht einer für den ganzen Abruf — wer den Pistenwind
    * nachjustiert, hat den Luftdruck deswegen nicht selbst gesetzt.
    */
-  type Herkunft = { dienst: string; gueltigkeit: string } | undefined;
+  type Herkunft = { dienst: string; ort: string; gueltigkeit: string } | undefined;
 
   let qnhHerkunft = $state<Herkunft>(undefined);
   let temperaturHerkunft = $state<Herkunft>(undefined);
@@ -71,7 +71,7 @@
    */
   function wetterUebernehmen(
     werte: Uebernahmewerte,
-    herkunft: { dienst: string; gueltigkeit: string }
+    herkunft: { dienst: string; ort: string; gueltigkeit: string }
   ): void {
     if (werte.qnhHpa !== undefined) {
       qnhHpa = werte.qnhHpa;
@@ -440,7 +440,8 @@
           {#snippet folge()}
             {#if qnhHerkunft}
               <span data-testid="qnh-herkunft">
-                aus {qnhHerkunft.dienst}, gültig für {herkunftZeit(qnhHerkunft.gueltigkeit)} Uhr —
+                aus {qnhHerkunft.dienst}, gültig für {qnhHerkunft.ort} {herkunftZeit(qnhHerkunft.gueltigkeit)}
+                Uhr —
                 unverbindlich
               </span>
             {/if}
@@ -493,7 +494,8 @@
             </span>
             {#if temperaturHerkunft}
               <span data-testid="temperatur-herkunft">
-                aus {temperaturHerkunft.dienst}, gültig für {herkunftZeit(temperaturHerkunft.gueltigkeit)} Uhr —
+                aus {temperaturHerkunft.dienst}, gültig für {temperaturHerkunft.ort}
+                {herkunftZeit(temperaturHerkunft.gueltigkeit)} Uhr —
                 unverbindlich
               </span>
             {/if}
@@ -590,7 +592,7 @@
         bind:wetOrSnow={wetOrSnowRunway}
         bind:windComponentKt={runwayWindComponentKt}
         windHerkunft={pistenwindHerkunft
-          ? `aus ${pistenwindHerkunft.dienst}, gültig für ${herkunftZeit(pistenwindHerkunft.gueltigkeit)} Uhr — unverbindlich`
+          ? `aus ${pistenwindHerkunft.dienst}, gültig für ${pistenwindHerkunft.ort} ${herkunftZeit(pistenwindHerkunft.gueltigkeit)} Uhr — unverbindlich`
           : undefined}
         windBedient={pistenwindVonHand}
         wetterAbrufen={() => wetterDialog?.oeffnen()}

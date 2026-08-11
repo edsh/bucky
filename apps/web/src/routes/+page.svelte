@@ -85,6 +85,13 @@
       runwayWindComponentKt = werte.runwayWindComponentKt;
       pistenwindHerkunft = herkunft;
     }
+    // Ohne Herkunftsvermerk, anders als die drei darüber: Ein Vermerk sagt
+    // aus, dass ein Wert von einem Onlinedienst stammt und deshalb unverbindlich
+    // ist. Die Graspiste stammt nicht von dort — sie ist eine feste Eigenschaft
+    // des Platzes und genauso verbindlich wie die Platzhöhe.
+    if (werte.dryGrassRunway === true) {
+      dryGrassRunway = true;
+    }
   }
 
   /**
@@ -556,7 +563,7 @@
             <button
               type="button"
               class="schnellwahl"
-              aria-label="Platzhöhe von EDSH übernehmen"
+              aria-label="Platzhöhe und Bahnzustand von EDSH übernehmen"
               onclick={edshWaehlen}>EDSH</button
             >
           {/snippet}

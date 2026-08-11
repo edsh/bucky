@@ -12,6 +12,14 @@
     qnhHpa?: number;
     outsideAirTemperatureC?: number;
     runwayWindComponentKt?: number;
+    /**
+     * Der Bahnzustand. Anders als die drei Wetterwerte ist er nicht abwählbar
+     * und deshalb bei jeder Übernahme gesetzt: EDSH hat eine Graspiste, und
+     * das ist keine Frage des Wetters, sondern eine feste Eigenschaft des
+     * Platzes. Er steht trotzdem im selben Typ, damit die Seite an einer
+     * Stelle erfährt, was der Dialog gesetzt hat.
+     */
+    dryGrassRunway?: boolean;
   }
 </script>
 
@@ -374,6 +382,11 @@
     if (angehakt.wind && windVorschlag.wert !== undefined) {
       werte.runwayWindComponentKt = windVorschlag.wert;
     }
+    // Immer mit, ohne Kästchen: Der Dialog sagt es vorher an, und wer den
+    // Bahnzustand nicht mitgesetzt haben will, bricht ab. Ein viertes
+    // Kästchen hätte die Graspiste zu einer Ansichtssache gemacht, die sie
+    // nicht ist — und ein vergessener Haken ginge zulasten der Startstrecke.
+    werte.dryGrassRunway = true;
     uebernehmen(werte, {
       dienst: zustand.abruf.dienst.name,
       gueltigkeit: zustand.abruf.gueltigkeit
@@ -500,6 +513,24 @@
             {/if}
           </li>
         {/each}
+        <!--
+          Ohne Kästchen, und das ist der Unterschied zu den drei Zeilen darüber:
+          Der Bahnzustand ist kein abgerufener Messwert, sondern eine feste
+          Eigenschaft des Platzes. Er steht hier, damit die Übernahme nichts
+          tut, was nicht vorher dasteht — wer ihn nicht mitgesetzt haben
+          will, bricht ab und stellt ihn im Bereich „Roll- und Startstrecke"
+          von Hand ein.
+        -->
+        <li class="feststehend" data-testid="wetter-zeile-bahnzustand">
+          <div class="kopf">
+            <span class="titel">Bahnzustand</span>
+            <span class="wert">trockenes Gras</span>
+          </div>
+          <p class="genauer">
+            EDSH hat eine Graspiste. Wird bei „Übernehmen" immer mitgesetzt —
+            keine Wetterangabe.
+          </p>
+        </li>
       </ul>
     {:else}
       <p class="fehler" data-testid="wetter-fehler">{zustand.meldung}</p>
@@ -631,6 +662,19 @@
   */
   .warnzeichen {
     cursor: help;
+  }
+
+  /*
+    Abgesetzt von den drei waehlbaren Zeilen darueber: eine duenne Linie und
+    etwas Luft. Der Einzug entspricht dem der anderen Titel, die durch ihr
+    Kaestchen eingerueckt sind -- sonst stuende diese Zeile weiter links und
+    saehe wie eine Ueberschrift aus.
+  */
+  .feststehend {
+    margin-top: 0.8rem;
+    padding-top: 0.6rem;
+    padding-left: 1.4rem;
+    border-top: 1px solid #ddd;
   }
 
   .zeilen {

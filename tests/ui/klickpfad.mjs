@@ -66,7 +66,7 @@ async function regler(page, beschriftung, wert) {
  */
 async function setzeIsa(page, gewuenschteAbweichung) {
   const probe = 20;
-  await regler(page, 'Außentemperatur am Platz (°C)', probe);
+  await regler(page, 'Außentemperatur (°C)', probe);
   const angezeigt = (await page.getByTestId('isa-ableitung').innerText()).trim();
   const treffer = angezeigt.match(/(-?\d+(?:,\d+)?)/);
   if (!treffer) {
@@ -74,7 +74,7 @@ async function setzeIsa(page, gewuenschteAbweichung) {
   }
   const istAbweichung = Number(treffer[1].replace(',', '.'));
   const ziel = Math.round(probe + (gewuenschteAbweichung - istAbweichung));
-  await regler(page, 'Außentemperatur am Platz (°C)', ziel);
+  await regler(page, 'Außentemperatur (°C)', ziel);
 }
 
 async function fuellen(page, werte) {
@@ -1259,7 +1259,7 @@ pruefe(
 
 // 65: die Abweichung folgt der Temperatur mit der Steigung 1 -- ein Grad mehr
 // am Regler ist ein Grad mehr Abweichung, solange die Hoehe steht.
-await regler(page, 'Au\u00dfentemperatur am Platz (\u00b0C)', 25);
+await regler(page, 'Außentemperatur (°C)', 25);
 const ableitungWaermer = (await page.getByTestId('isa-ableitung').innerText()).trim();
 pruefe(
   65,
@@ -1275,14 +1275,14 @@ const bereichUnten = await page.evaluate(() => {
   const element = document.getElementById('temperatur');
   return { min: element.min, max: element.max };
 });
-await regler(page, 'Platzh\u00f6he ASL (ft)', 6000);
+await regler(page, 'Platzhöhe ASL (ft)', 6000);
 const bereichOben = await page.evaluate(() => {
   const element = document.getElementById('temperatur');
   return { min: element.min, max: element.max };
 });
 pruefe(
   66,
-  'der Temperaturbereich wandert mit der Platzh\u00f6he',
+  'der Temperaturbereich wandert mit der Platzhöhe',
   bereichUnten.min === '-16' &&
     bereichUnten.max === '53' &&
     bereichOben.min === '-26' &&
@@ -1300,7 +1300,7 @@ const nachHoehenwechsel = {
 };
 pruefe(
   67,
-  'ein H\u00f6henwechsel l\u00e4sst die Temperatur stehen und verschiebt nur die Abweichung',
+  'ein Höhenwechsel lässt die Temperatur stehen und verschiebt nur die Abweichung',
   nachHoehenwechsel.temperatur === '25' &&
     new RegExp(`ISA-Abweichung 21,9${NBSP}\u00b0C`).test(nachHoehenwechsel.ableitung),
   JSON.stringify(nachHoehenwechsel)
@@ -1322,7 +1322,7 @@ const anordnung = await page.evaluate(() => {
 });
 pruefe(
   68,
-  'beide Windregler stehen zuoberst in ihrem Bereich und liegen auf einer H\u00f6he',
+  'beide Windregler stehen zuoberst in ihrem Bereich und liegen auf einer Höhe',
   anordnung.pistenwind < anordnung.bahn &&
     anordnung.streckenwind < anordnung.strecke &&
     Math.abs(anordnung.pistenwind - anordnung.streckenwind) < 24,
@@ -1334,7 +1334,7 @@ pruefe(
 // gleichlautender Beschriftung liest man nebeneinander leicht am falschen.
 pruefe(
   69,
-  'Streckenwind und Streckenl\u00e4nge stehen auch auf breiten Schirmen untereinander',
+  'Streckenwind und Streckenlänge stehen auch auf breiten Schirmen untereinander',
   anordnung.strecke - anordnung.streckenwind > 24,
   `${anordnung.streckenwind} -> ${anordnung.strecke}`
 );
@@ -1365,7 +1365,7 @@ pruefe(
 const windzeileText = (await page.getByTestId('wetter-zeile-wind').innerText()).trim();
 pruefe(
   71,
-  'der Knopf am Pistenwind \u00f6ffnet denselben Dialog; die Windzeile nennt die Vorzeichenrichtung',
+  'der Knopf am Pistenwind öffnet denselben Dialog; die Windzeile nennt die Vorzeichenrichtung',
   (await page.getByTestId('wetter-zeile-qnh').count()) === 1 &&
     (await page.getByTestId('wetter-zeile-temperatur').count()) === 1 &&
     /positiv = Gegenwind/.test(windzeileText),
@@ -1390,7 +1390,7 @@ await page.waitForTimeout(150);
 const zurueck = await page.getByTestId('wetter-haken-wind').isDisabled();
 pruefe(
   72,
-  'ein unm\u00f6glicher Wind sperrt die Zeile, l\u00e4sst aber den Weg zur anderen Bahn offen',
+  'ein unmöglicher Wind sperrt die Zeile, lässt aber den Weg zur anderen Bahn offen',
   rueckweg.wahlNochDa === 1 && rueckweg.windGesperrt && !zurueck,
   JSON.stringify({ ...rueckweg, zurueck })
 );
@@ -1417,13 +1417,13 @@ const nachUmschalten = {
 };
 pruefe(
   73,
-  'R\u00fcckenwind ist an der betroffenen Bahn und am Wert mit einem Warnzeichen versehen',
+  'Rückenwind ist an der betroffenen Bahn und am Wert mit einem Warnzeichen versehen',
   vorUmschalten.bahn10 === 1 &&
     vorUmschalten.bahn28 === 0 &&
     vorUmschalten.amWert === 0 &&
     nachUmschalten.amWert === 1 &&
     nachUmschalten.wert === `-10${NBSP}kt` &&
-    nachUmschalten.beschriftung === 'R\u00fcckenwind',
+    nachUmschalten.beschriftung === 'Rückenwind',
   JSON.stringify({ vorUmschalten, nachUmschalten })
 );
 await page.getByRole('button', { name: 'Abbrechen' }).click();

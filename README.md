@@ -119,7 +119,7 @@ eine Straße stehen; die erste sagt nur, wo das Fahrwerk den Boden verlässt.
 Die Tabelle ist zweifach gestützt: Druckhöhe (0 bis 10 000 ft) und
 Außentemperatur (−20 bis 50 °C). Zwischen den Stützstellen wird bilinear
 interpoliert, außerhalb wird abgelehnt statt fortgeschrieben. Eingegeben wird
-die Außentemperatur am Platz — dieselbe Grundbedingung, die auch die
+die Außentemperatur — dieselbe Grundbedingung, die auch die
 Reiseleistung trägt (Prinzip IV).
 
 Darauf wirken die Anmerkungen des Handbuchs, in dieser Reihenfolge:
@@ -150,7 +150,7 @@ danach frei wählbar und wird beim Verstellen der Platzhöhe nicht zurückgesetz
 
 ### Temperatur statt Abweichung
 
-Eingestellt wird die **Außentemperatur am Platz** — die Zahl, die ATIS, Thermometer
+Eingestellt wird die **Außentemperatur** — die Zahl, die ATIS, Thermometer
 und Wetterdienst nennen. Die ISA-Abweichung, mit der das Handbuch rechnet, steht
 als Folgezeile darunter und wird laufend mitgeführt. Sie ist damit der Beleg, mit
 dem sich die verwendete Handbuchzeile nachschlagen lässt, und wird deshalb mit

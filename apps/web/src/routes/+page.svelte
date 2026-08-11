@@ -121,7 +121,7 @@
   let powerSettingPct = $state(70);
 
   /**
-   * Die Außentemperatur am Platz, in ganzen °C — die Größe, die der Pilot
+   * Die Außentemperatur, in ganzen °C — die Größe, die der Pilot
    * ablesen kann. Bis Feature 031 stand hier die ISA-Abweichung; sie ist
    * seither die *Folgerung* (siehe `isaAbleitung`) und nicht mehr die Eingabe.
    *
@@ -454,7 +454,7 @@
 
         <RangeField
           id="temperatur"
-          label="Außentemperatur am Platz (°C)"
+          label="Außentemperatur (°C)"
           range={temperaturBereich}
           bind:value={outsideAirTemperatureC}
           format={formatCelsius}

@@ -446,17 +446,17 @@
                   (angehakt[zeile.schluessel] = ereignis.currentTarget.checked)}
               />
               <span class="titel">{zeile.titel}</span>
-              {#if zeile.vorschlag.angezeigt}
-                <span class="wert" data-testid={`wetter-wert-${zeile.schluessel}`}>
-                  {zeile.vorschlag.angezeigt}
-                </span>
-              {/if}
               <!--
                 Ein Rückenwind ist der Fall, den man beim Überfliegen einer
                 Zahlenreihe am ehesten übersieht — er unterscheidet sich vom
                 Gegenwind nur durch ein Vorzeichen, und gerade bei den kleinen
                 Beträgen fällt das kaum auf. Das Zeichen trägt eine
                 Textalternative, weil ein Warnbild ohne Worte keine Warnung ist.
+
+                Es steht **vor** dem Wert: Stellte es hinter ihm, rückte die
+                Zahl beim Umschalten der Bahn nicht — wohl aber alles rechts
+                davon, und die Zeile würde beim Vergleichen der beiden Bahnen
+                unruhig. Vor dem Wert wächst die Zeile nach rechts weg.
               -->
               {#if zeile.bahnwahl && rueckenwindJeBahn[gewaehlteBahn.ident]}
                 <span
@@ -466,6 +466,11 @@
                   title="Der Wind kommt auf dieser Bahn von hinten."
                   data-testid="wetter-rueckenwind-wert">⚠️</span
                 >
+              {/if}
+              {#if zeile.vorschlag.angezeigt}
+                <span class="wert" data-testid={`wetter-wert-${zeile.schluessel}`}>
+                  {zeile.vorschlag.angezeigt}
+                </span>
               {/if}
             </label>
             {#if zeile.vorschlag.erlaeuterung}
@@ -524,16 +529,14 @@
           tut, was nicht vorher dasteht — wer ihn nicht mitgesetzt haben
           will, bricht ab und stellt ihn im Bereich „Roll- und Startstrecke"
           von Hand ein.
+
+          Als schlichter Satz und nicht im Bau der Zeilen darüber (Titel, Wert,
+          Erläuterung): Diese Gliederung trägt die drei wählbaren Zeilen, weil
+          sie zu vergleichen sind. Hier gibt es nichts zu vergleichen und nichts
+          zu wählen — nachgebaut sah die Zeile nur nach mehr aus, als sie ist.
         -->
         <li class="feststehend" data-testid="wetter-zeile-bahnzustand">
-          <div class="kopf">
-            <span class="titel">Bahnzustand</span>
-            <span class="wert">trockenes Gras</span>
-          </div>
-          <p class="genauer">
-            EDSH hat eine Graspiste. Wird bei „Übernehmen" immer mitgesetzt —
-            keine Wetterangabe.
-          </p>
+          EDSH hat eine Graspiste. Bahnzustand trockenes Gras wird gesetzt.
         </li>
       </ul>
     {:else}
@@ -673,12 +676,16 @@
     etwas Luft. Der Einzug entspricht dem der anderen Titel, die durch ihr
     Kaestchen eingerueckt sind -- sonst stuende diese Zeile weiter links und
     saehe wie eine Ueberschrift aus.
+
+    Klein und grau wie die Erlaeuterungen: ein Hinweis, keine vierte Wahl.
   */
   .feststehend {
     margin-top: 0.8rem;
     padding-top: 0.6rem;
     padding-left: 1.4rem;
     border-top: 1px solid #ddd;
+    font-size: 0.85em;
+    color: #555;
   }
 
   .zeilen {

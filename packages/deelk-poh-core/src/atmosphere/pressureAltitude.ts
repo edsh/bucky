@@ -16,14 +16,14 @@ export const T0_K = 288.15;
 const LAPSE_RATE_K_PER_M = 0.0065;
 
 /** Standarddruck auf Meereshöhe in hPa. */
-const P0_HPA = 1013.25;
+export const P0_HPA = 1013.25;
 
 /**
  * Exponent der barometrischen Höhenformel, g·M/(R·L). Der Rückweg verwendet
  * seinen Kehrwert — als Literal 0,190263 geschrieben wäre die Probe bei
  * 18 000 ft nur auf 0,01 ft genau statt exakt.
  */
-const BAROMETRIC_EXPONENT = 5.25588;
+export const BAROMETRIC_EXPONENT = 5.25588;
 
 const M_PER_FT = 0.3048;
 

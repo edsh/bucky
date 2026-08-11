@@ -100,6 +100,23 @@ export function roundKnots(value: number): number {
 }
 
 /**
+ * Luftdruck auf den Wert, den ein Höhenmesser oder der Regler der Oberfläche
+ * annehmen kann: ganze hPa, **abgerundet**.
+ *
+ * Als einzige Rundung dieser Datei nicht kaufmännisch, und das aus zwei
+ * Gründen, die in dieselbe Richtung zeigen: So verfährt die METAR-Praxis
+ * (1023,7 wird zu Q1023), und es ist die sichere Richtung — ein niedrigerer
+ * QNH ergibt eine größere Druckhöhe und damit eine längere ausgewiesene
+ * Startstrecke. Aufrunden hieße, sich die Bahn länger zu rechnen, als sie ist.
+ */
+export function floorHectopascal(value: number): number {
+  if (!Number.isFinite(value)) {
+    return value;
+  }
+  return Math.floor(value);
+}
+
+/**
  * Kaufmännisches Runden auf eine feste Stellenzahl. Der Umweg über die
  * Exponentialschreibweise vermeidet, dass Werte wie 2,675 wegen ihrer
  * Binärdarstellung abgerundet werden.

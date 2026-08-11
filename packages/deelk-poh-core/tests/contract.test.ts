@@ -6,6 +6,13 @@ import {
   computeCruiseCapability,
   type CruiseCapability
 } from '../src/fuel/cruiseCapability.js';
+import {
+  BAROMETRIC_EXPONENT,
+  ICAO_STANDARD_ATMOSPHERE_SOURCE,
+  LAPSE_RATE_K_PER_FT,
+  T0_K
+} from '../src/atmosphere/pressureAltitude.js';
+import { QNH_SOURCE, toQnh } from '../src/atmosphere/qnh.js';
 
 /**
  * Prüft die Zusicherungen C-01 und C-03 am Quelltext selbst. Beides sind
@@ -305,6 +312,46 @@ describe('C-07: kein Adapter kennt die Spalten und Zuschläge der Startstrecke',
 
     expect(mitZuschlag.map((path) => relative(repoRoot, path))).toStrictEqual([
       'packages/deelk-poh-core/src/takeoff/takeoffDistance.ts'
+    ]);
+  });
+});
+
+describe('C-08: Druckhöhe und QNH laufen nicht auseinander', () => {
+  /**
+   * Die schärfste verfügbare Probe dafür, dass die beiden Richtungen dieselbe
+   * Formel benutzen: Sie kommt ohne selbst gerechnete Erwartungswerte aus.
+   * Wer aus Höhe und QNH den dort herrschenden Druck bildet und ihn mit
+   * `toQnh` zurückrechnet, muss den Ausgangswert wiederfinden. Eine zweite,
+   * abweichende Implementierung fiele hier sofort auf (Prinzip IV).
+   */
+  const hoehen = [0, 296, 971, 2000, 5000, 8000, 12000, 18000];
+  const luftdruecke = [950, 980, 1000, 1013.25, 1023, 1050];
+
+  it.each(hoehen)('bei %s ft ergibt der Rundlauf den Ausgangs-QNH', (elevationFt) => {
+    for (const qnhHpa of luftdruecke) {
+      // Der Hinweg, wörtlich aus der in ICAO_STANDARD_ATMOSPHERE_SOURCE
+      // dokumentierten Beziehung: p = QNH · (1 − L·h/T₀)^5,25588.
+      const stationPressureHpa =
+        qnhHpa * (1 - (LAPSE_RATE_K_PER_FT * elevationFt) / T0_K) ** BAROMETRIC_EXPONENT;
+
+      expect(toQnh(stationPressureHpa, elevationFt).qnhHpa).toBeCloseTo(qnhHpa, 9);
+    }
+  });
+
+  it('trägt dieselbe Quellenreferenz wie die Druckhöhe', () => {
+    // Beide stammen aus derselben Norm. Zwei getrennt gepflegte Referenzen
+    // wären zwei Wahrheiten über dieselbe Herkunft.
+    expect(QNH_SOURCE).toBe(ICAO_STANDARD_ATMOSPHERE_SOURCE);
+    expect(QNH_SOURCE.kind).toBe('standard');
+  });
+
+  it('die Umrechnung steht genau einmal im Kern', () => {
+    const mitExponent = sourceFiles(coreSrc, ['.ts']).filter((path) =>
+      /const BAROMETRIC_EXPONENT\b/.test(read(path))
+    );
+
+    expect(mitExponent.map((path) => relative(repoRoot, path))).toStrictEqual([
+      'packages/deelk-poh-core/src/atmosphere/pressureAltitude.ts'
     ]);
   });
 });

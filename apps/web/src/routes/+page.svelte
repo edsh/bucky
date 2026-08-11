@@ -18,9 +18,11 @@
     type FuelPlanResult,
     type TakeoffDistanceResult
   } from '@edsh-bucky/deelk-poh-core';
+  import { EDSH } from '$lib/weather/edsh.js';
   import CruiseCapabilityView from '$lib/components/CruiseCapability.svelte';
   import FuelResult from '$lib/components/FuelResult.svelte';
   import PowerLever from '$lib/components/PowerLever.svelte';
+  import QnhAbrufDialog from '$lib/components/QnhAbrufDialog.svelte';
   import RangeField from '$lib/components/RangeField.svelte';
   import TakeoffDistance from '$lib/components/TakeoffDistance.svelte';
 
@@ -31,18 +33,53 @@
    */
   const domain = getFuelPlanInputDomain();
 
-  /**
-   * Platzhöhe von EDSH (Backnang-Heiningen) als Schnellwahl — der Heimatplatz
-   * der D-EELK. Sonderlandeplatz mit Graspiste 10/28, 500 m.
-   */
-  const EDSH_ELEVATION_FT = 971;
-
   // Vorgaben eines typischen Fluges ab dem Heimatplatz: EDSH, eine Höhe unter
   // der Transponderpflicht, eine Strecke in der Größenordnung eines
   // Nachmittagsausflugs. Wer etwas anderes vorhat, verstellt einen Regler.
-  let departureElevationFt = $state(EDSH_ELEVATION_FT);
+  let departureElevationFt = $state(EDSH.elevationFt);
   let cruiseAltitudeAmslFt = $state(4500);
   let qnhHpa = $state(1013);
+
+  /**
+   * Woher der Luftdruck stammt, sofern er aus dem Onlinedienst kam. Der
+   * Vermerk gehört zum Wert, nicht zum Dialog: Ein von Hand verstellter Wert
+   * hat keine Herkunft mehr (FR-009).
+   */
+  let qnhHerkunft = $state<{ dienst: string; gueltigkeit: string } | undefined>(undefined);
+
+  let qnhDialog: ReturnType<typeof QnhAbrufDialog> | undefined = $state();
+
+  /**
+   * Übernimmt den abgerufenen Wert. Der einzige Weg, auf dem der Dialog eine
+   * Eingabe verändert (FR-016) — Abbrechen, Fehlschlag und Schließen bleiben
+   * folgenlos.
+   */
+  function qnhUebernehmen(
+    wert: number,
+    herkunft: { dienst: string; gueltigkeit: string }
+  ): void {
+    qnhHpa = wert;
+    qnhHerkunft = herkunft;
+  }
+
+  /**
+   * Jede andere Änderung am Regler löscht den Vermerk. Bewusst als Wächter am
+   * Ereignis und nicht als $effect auf `qnhHpa`: Ein Effekt liefe auch beim
+   * Übernehmen und löschte den Vermerk im selben Atemzug, in dem er entsteht.
+   */
+  function qnhVonHand(): void {
+    qnhHerkunft = undefined;
+  }
+
+  /** Gültigkeitszeitpunkt in Ortszeit — dieselbe Schreibweise wie im Dialog. */
+  function qnhZeit(iso: string): string {
+    return new Date(iso.endsWith('Z') ? iso : `${iso}Z`).toLocaleString('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
   let distanceNm = $state(75);
   let powerSettingPct = $state(70);
   let isaDeviationC = $state(10);
@@ -63,7 +100,7 @@
    * zurückgesetzt (FR-023).
    */
   function edshWaehlen(): void {
-    departureElevationFt = EDSH_ELEVATION_FT;
+    departureElevationFt = EDSH.elevationFt;
     dryGrassRunway = true;
   }
 
@@ -263,7 +300,32 @@
           range={domain.qnhHpa}
           bind:value={qnhHpa}
           format={formatHectopascal}
-        />
+          bedient={qnhVonHand}
+        >
+          {#snippet neben()}
+            <!--
+              Anders als die Schnellwahl der Platzhöhe setzt dieser Knopf den
+              Wert nicht sofort: Der Luftdruck ist ein fremder, veränderlicher
+              Modellwert und braucht eine Bestätigung (FR-002).
+            -->
+            <button
+              type="button"
+              class="schnellwahl"
+              aria-label="Luftdruck für EDSH abrufen"
+              onclick={() => qnhDialog?.oeffnen()}
+            >
+              EDSH
+            </button>
+          {/snippet}
+          {#snippet folge()}
+            {#if qnhHerkunft}
+              <span data-testid="qnh-herkunft">
+                aus {qnhHerkunft.dienst}, gültig für {qnhZeit(qnhHerkunft.gueltigkeit)} Uhr —
+                unverbindlich
+              </span>
+            {/if}
+          {/snippet}
+        </RangeField>
 
         <RangeField
           id="reiseflughoehe"
@@ -291,6 +353,17 @@
         Hoehe, Druck und Temperatur, was die Maschine leistet. Er steht im
         selben Rahmen, nur seitlich -- wie im Cockpit neben den Anzeigen.
       -->
+      <!--
+        Der Dialog steht im selben Formular wie sein Knopf, aber außerhalb des
+        Feldblocks: Als <dialog> wird er ohnehin über der Seite dargestellt,
+        seine Stelle im Baum wirkt sich nicht auf die Anordnung aus.
+      -->
+      <QnhAbrufDialog
+        bind:this={qnhDialog}
+        bereich={domain.qnhHpa}
+        uebernehmen={qnhUebernehmen}
+      />
+
       <PowerLever
         id="last"
         label="Lasteinstellung"
@@ -323,7 +396,17 @@
           format={formatFeet}
         >
           {#snippet neben()}
-            <button type="button" class="schnellwahl" onclick={edshWaehlen}>EDSH</button>
+            <!--
+              Zwei Knöpfe tragen jetzt die Aufschrift „EDSH"; ohne eigene
+              Beschriftung wären sie für Vorlesewerkzeuge nicht zu
+              unterscheiden.
+            -->
+            <button
+              type="button"
+              class="schnellwahl"
+              aria-label="Platzhöhe von EDSH übernehmen"
+              onclick={edshWaehlen}>EDSH</button
+            >
           {/snippet}
           {#snippet folge()}
             ≙ Druckhöhe {formatFeet(platzDruckhoehe.pressureAltitudeFt)} @ {formatHectopascal(qnhHpa)}

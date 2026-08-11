@@ -128,6 +128,21 @@ Die Schnellwahl **EDSH** setzt neben der Platzhöhe von 971 ft auch den Schalter
 für trockenes Gras: Der Heimatplatz hat eine Graspiste. Der Schalter bleibt
 danach frei wählbar und wird beim Verstellen der Platzhöhe nicht zurückgesetzt.
 
+### Luftdruck aus dem Netz
+
+Neben dem QNH-Regler steht ein zweiter Knopf **EDSH**. Er setzt den Wert
+allerdings nicht sofort, sondern öffnet einen Dialog: Der Luftdruck wird bei
+Open-Meteo abgerufen, zur Ansicht gezeigt und erst auf „Übernehmen" gesetzt.
+
+Der Unterschied zur Platzhöhe ist beabsichtigt. Die Platzhöhe ist eine feste
+Eigenschaft des Platzes; der Luftdruck ist ein **Rechenwert aus dem
+Wettermodell ICON-D2**, keine Messung am Platz. Er ist eine Bequemlichkeit und
+ersetzt das ATIS nicht — der Dialog sagt das, und nach der Übernahme bleibt die
+Herkunft unter dem Regler stehen, bis der Wert von Hand verstellt wird.
+
+Der Abruf geschieht ausschließlich auf Knopfdruck. Ohne Netz bleibt die Seite
+vollständig bedienbar; beim Laden geht keine Anfrage nach außen.
+
 ## Veröffentlichte Oberfläche
 
 <https://edsh.github.io/bucky/>

@@ -2,10 +2,10 @@
   import type { CruiseCapability } from '@edsh-bucky/deelk-poh-core';
   import {
     formatFuelFlow,
-    formatFuelPerNauticalMile,
     formatHours,
     formatKnots,
     formatNauticalMiles,
+    formatQuantity,
     unitText
   } from '@edsh-bucky/deelk-poh-core';
 
@@ -25,6 +25,30 @@
     capability?: CruiseCapability;
     fehler?: string;
   } = $props();
+
+  /*
+    Der Spassrechenweg unten. Er steht bewusst hier und nicht im Kern: Es ist
+    keine Groesse der Flugvorbereitung, sondern ein Vergleich mit dem Auto —
+    niemand plant damit einen Flug, und der Kern soll nur tragen, was fuer die
+    Sicherheit zaehlt.
+
+    Gerundet wird trotzdem nicht hier, sondern ueber `formatQuantity` des
+    Kerns (Zusicherung C-03).
+  */
+  const KM_JE_NM = 1.852;
+  const MEILEN_JE_KM = 0.621371;
+  const LITER_JE_US_GALLONE = 3.785411784;
+
+  const literJe100Km = $derived(
+    capability === undefined ? 0 : (capability.fuelPerNmL / KM_JE_NM) * 100
+  );
+
+  /* Meilen je US-Gallone, wie es auf einem amerikanischen Bordcomputer stuende. */
+  const meilenJeGallone = $derived(
+    capability === undefined
+      ? 0
+      : (KM_JE_NM * MEILEN_JE_KM) / (capability.fuelPerNmL / LITER_JE_US_GALLONE)
+  );
 </script>
 
 <section class="uebersicht" aria-labelledby="uebersicht-titel">
@@ -44,17 +68,6 @@
       </div>
       <div>
         <!--
-          Kein Tabellenwert, sondern Stundenverbrauch geteilt durch
-          Eigengeschwindigkeit (Issue #12). Die Kennzahl macht zwei
-          Lasteinstellungen unmittelbar vergleichbar: Ob mehr Leistung eine
-          Strecke teurer macht, sieht man an Verbrauch und Geschwindigkeit
-          einzeln nicht.
-        -->
-        <dt>Verbrauch je Seemeile</dt>
-        <dd>{formatFuelPerNauticalMile(capability.fuelPerNmL, capability.fuelPerNmUsGal)}</dd>
-      </div>
-      <div>
-        <!--
           "Maximale Reichweite" statt schlicht "Strecke": Weiter unten steht
           die eingegebene Streckenlänge des Vorhabens. Beide Zahlen sind NM und
           dürfen sich nicht verwechseln lassen (FR-010).
@@ -67,6 +80,19 @@
         <dd>{formatHours(capability.enduranceH)}</dd>
       </div>
     </dl>
+
+    <!--
+      Zum Schmunzeln und ans Ende: Der Vergleich mit dem Auto sagt ueber die
+      Flugvorbereitung nichts aus — die Luftlinie ist keine Strasse, und
+      Rollen, Steigflug und Reserve stecken nicht darin. Er steht trotzdem
+      hier, weil die Zahl fast jeden ueberrascht.
+    -->
+    <p class="spass">
+      Nebenbei: Auf die Strecke gerechnet sind das
+      <strong>{formatQuantity(literJe100Km, 1, 'l')}/100 km</strong>
+      — oder <strong>{formatQuantity(meilenJeGallone, 1, 'mpg')}</strong>, wie es
+      drüben heißen würde. Allerdings schnurgerade und ohne Ampeln.
+    </p>
 
     <p class="hinweis">
       Reichweite und Flugdauer gelten für volle Standardtanks bei {capability.windlessNote}.
@@ -90,7 +116,6 @@
 
   h2 {
     margin: 0 0 0.5rem;
-    font-size: 1.05rem;
   }
 
   .werte {
@@ -109,6 +134,12 @@
     margin: 0;
     font-variant-numeric: tabular-nums;
     font-weight: 700;
+  }
+
+  .spass {
+    margin: 0.75rem 0 0;
+    font-size: 0.85em;
+    color: #555;
   }
 
   .hinweis {

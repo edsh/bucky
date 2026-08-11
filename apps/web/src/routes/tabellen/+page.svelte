@@ -131,12 +131,7 @@
     border-bottom: 1px solid #ddd;
   }
 
-  h2 {
-    font-size: 1.15rem;
-  }
-
   h3 {
-    font-size: 1rem;
     margin-bottom: 0.25rem;
   }
 

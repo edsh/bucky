@@ -57,6 +57,28 @@
     return metres > 0 ? `+${formatMetres(metres)}` : `−${formatMetres(Math.abs(metres))}`;
   }
 
+  /**
+   * Anmerkung 4 nennt ihren Zuschlag ausdrücklich als *Mindest*wert. Sobald
+   * sie greift, ist jede daraus gebildete Strecke eine Untergrenze und keine
+   * feste Zahl — das Zeichen sagt das an genau den Stellen, an denen der Pilot
+   * die Strecke abliest. Den Prozentsatz selbst kennt allein der Kern (C-07);
+   * hier steht nur die Feststellung `isMinimumValue`.
+   */
+  const mindestens = $derived(result?.isMinimumValue === true);
+
+  function untergrenze(text: string): string {
+    return mindestens ? `≥\u00a0${text}` : text;
+  }
+
+  /**
+   * Der Haken an einer Anmerkung zeigt, dass sie in dieser Rechnung
+   * tatsaechlich angewandt wurde. Ohne ihn stehen alle vier Anmerkungen
+   * gleichwertig da, und es bleibt offen, welche gerade wirkt.
+   */
+  function angewandt(noteId: string): boolean {
+    return (noteId === 'takeoff.note3' && dryGrass) || (noteId === 'takeoff.note4' && wetOrSnow);
+  }
+
   /** Der Anteil aus Anmerkung 2, mit Vorzeichen und ohne eigene Rundung. */
   const windAnteil = $derived(
     result === undefined || result.windAdjustmentPct === 0
@@ -137,13 +159,13 @@
                 : `+${unitText(formatNumber(result.surfaceAllowancePct, 0), '%')} des Startlaufs`}
             </span>
           </th>
-          <td>{beitrag(result.surfaceAllowanceM)}</td>
-          <td>{beitrag(result.surfaceAllowanceM)}</td>
+          <td class:mindestwert={mindestens}>{untergrenze(beitrag(result.surfaceAllowanceM))}</td>
+          <td class:mindestwert={mindestens}>{untergrenze(beitrag(result.surfaceAllowanceM))}</td>
         </tr>
         <tr class="summe">
           <th scope="row">Gesamtstrecke</th>
-          <td>{formatMetres(result.groundRollM)}</td>
-          <td>{formatMetres(result.overObstacleM)}</td>
+          <td class:mindestwert={mindestens}>{untergrenze(formatMetres(result.groundRollM))}</td>
+          <td class:mindestwert={mindestens}>{untergrenze(formatMetres(result.overObstacleM))}</td>
         </tr>
       </tbody>
     </table>
@@ -164,13 +186,24 @@
       <p class="erlaeuterung">{windErlaeuterung}</p>
     {/if}
 
-    <h3>Hinweise</h3>
+    <!--
+      Erst die Anmerkungen, dann die Bedingungen — in dieser Reihenfolge stehen
+      sie auch im Flughandbuch. Andersherum las sich "Windstille" unter "Es
+      gilt" wie eine Einschraenkung des Ergebnisses, obwohl der Wind zwei
+      Zeilen darueber gerade eingerechnet wurde: Die Bedingung gilt fuer die
+      *Tabelle*, nicht fuer die Rechnung.
+    -->
+    <h4>Hinweise</h4>
     <ul class="hinweise">
       {#each result.advisories as advisory (advisory.id)}
         <li>{advisory.text}</li>
       {/each}
       {#each result.notes as note (note.id)}
-        <li>{note.text}</li>
+        <li class:angewandt={angewandt(note.id)}>
+          {note.text}{#if angewandt(note.id)}<span class="haken" title="in dieser Rechnung berücksichtigt"
+            >&nbsp;✓</span
+          >{/if}
+        </li>
       {/each}
     </ul>
 
@@ -179,7 +212,7 @@
       Ohne sie liesse sich nicht erkennen, dass die Werte etwa fuer volle
       Landeklappen und Hoechstabflugmasse gelten (FR-016).
     -->
-    <h3>Es gilt</h3>
+    <h4>Es gilt</h4>
     <ul class="hinweise bedingungen">
       {#each result.conditions as condition (condition)}
         <li>{condition}</li>
@@ -290,9 +323,28 @@
     color: #333;
   }
 
-  h3 {
+  h4 {
     margin: 1rem 0 0.5rem;
-    font-size: 0.95rem;
+  }
+
+  /*
+    Gelb und nicht rot: Ein Mindestwert ist keine Fehlermeldung, sondern eine
+    Zahl, die nach oben offen ist. Das Zeichen davor traegt die Aussage; die
+    Farbe fuehrt nur das Auge dorthin.
+  */
+  .mindestwert {
+    background: #fff3b0;
+    border-radius: 0.2rem;
+    padding: 0 0.2rem;
+  }
+
+  .haken {
+    color: #1a7f37;
+    font-weight: 700;
+  }
+
+  .angewandt {
+    color: #1a1a1a;
   }
 
   .hinweise li {

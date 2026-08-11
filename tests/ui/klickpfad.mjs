@@ -269,6 +269,7 @@ pruefe(
 );
 
 // 21: die Uebersicht steht zwischen den beiden Eingabegruppen und zeigt vier Werte
+//     -- der Strassenvergleich steht als eigener Absatz darunter, nicht darin
 await fuellen(page, { dep: 1000, cruise: 6000, qnh: 1013, dist: 400, power: 70, isa: 10, wind: 10 });
 const reihenfolge = await page.evaluate(() => {
   const marken = [
@@ -279,12 +280,12 @@ const reihenfolge = await page.evaluate(() => {
 const uebersichtWerte = await page.locator('.uebersicht .werte > div').count();
 pruefe(
   21,
-  'die Übersicht steht zwischen Grundbedingungen und Start/Streckenflug und zeigt fünf Werte',
+  'die Übersicht steht zwischen Grundbedingungen und Start/Streckenflug und zeigt vier Werte',
   reihenfolge[0].startsWith('Grundbedingungen') &&
     /Reichweite und Flugdauer/.test(reihenfolge[1]) &&
     reihenfolge[2] === 'Start und Streckenflug' &&
     reihenfolge[3].startsWith('Platzhöhe und Windkomponente') &&
-    uebersichtWerte === 5,
+    uebersichtWerte === 4,
   `${reihenfolge.join(' > ')} — ${uebersichtWerte} Werte`
 );
 
@@ -389,18 +390,25 @@ const ueberbreite = await page.evaluate(() => document.documentElement.scrollWid
 pruefe(11, 'Höhenfelder sind als Höhe ASL gekennzeichnet, nicht als Druckhöhe', alleAsl, hoehenfelder.join(' | '));
 pruefe(12, 'kein waagerechtes Scrollen auf 390 px Breite', !ueberbreite);
 
-// 26: Verbrauch je Seemeile in der Übersicht (Issue #12)
+// 26: der Strassenvergleich als Fun Fact am Ende der Übersicht
 await page.setViewportSize({ width: 1024, height: 800 });
 await page.goto(BASE, { waitUntil: 'networkidle' });
 await fuellen(page, { dep: 1000, cruise: 6000, qnh: 1013, dist: 250, power: 70, isa: 0, wind: 0 });
-const uebersichtWerteText = await page.locator('.uebersicht .werte').innerText();
+// Geschuetzte Leerzeichen werden hier zu gewoehnlichen normalisiert; dass sie
+// vorhanden sind, stellt Pruefung 27 fest.
+const spassText = (await page.locator('.uebersicht .spass').innerText()).replace(/\s+/g, ' ');
+const spassNachWerten = await page.evaluate(() => {
+  const werte = document.querySelector('.uebersicht .werte');
+  const spass = document.querySelector('.uebersicht .spass');
+  // 4 ist DOCUMENT_POSITION_FOLLOWING; die Konstante steht am globalen `Node`,
+  // den der Linter hier nicht kennt.
+  return werte.compareDocumentPosition(spass) === 4;
+});
 pruefe(
   26,
-  'die Übersicht nennt den Verbrauch je Seemeile in beiden Einheiten',
-  /Verbrauch je Seemeile/.test(uebersichtWerteText) &&
-    /0,\d{2}\u00a0l\/NM/.test(uebersichtWerteText) &&
-    /US\u00a0gal\/NM/.test(uebersichtWerteText),
-  uebersichtWerteText.replace(/\s+/g, ' ')
+  'der Strassenvergleich steht als letzter Absatz der Übersicht, in l/100 km und mpg',
+  /\d+,\d l\/100 km/.test(spassText) && /\d+,\d mpg/.test(spassText) && spassNachWerten,
+  spassText
 );
 
 // 27: Zahl und Einheit haengen zusammen (Issue #13)
@@ -547,6 +555,67 @@ pruefe(
 await page.locator('#wind').fill('0');
 await page.dispatchEvent('#wind', 'input');
 await page.waitForTimeout(200);
+
+// 37: Anmerkung 4 macht aus dem Ergebnis einen Mindestwert -- sichtbar am
+// Zeichen und an der Hervorhebung, und die angewandten Anmerkungen tragen
+// einen Haken
+await page.locator('#nass').check();
+await page.locator('#gras').check();
+await page.waitForTimeout(250);
+const mindest = await page.evaluate(() => {
+  const hervorgehoben = [...document.querySelectorAll('#startstrecke .mindestwert')];
+  const punkte = [...document.querySelectorAll('#startstrecke .hinweise li')].map((e) =>
+    e.textContent.trim()
+  );
+  return {
+    hervorgehoben: hervorgehoben.length,
+    alleMitZeichen: hervorgehoben.every((e) => e.textContent.trim().startsWith('≥')),
+    mitHaken: punkte.filter((t) => t.endsWith('✓')).length
+  };
+});
+pruefe(
+  37,
+  'Nass oder Schnee macht Bahnzuschlag und Gesamtstrecke zum hervorgehobenen Mindestwert, angewandte Anmerkungen tragen einen Haken',
+  mindest.hervorgehoben === 4 && mindest.alleMitZeichen && mindest.mitHaken === 2,
+  JSON.stringify(mindest)
+);
+await page.locator('#nass').uncheck();
+await page.locator('#gras').uncheck();
+await page.waitForTimeout(200);
+
+// 38: Anmerkungen vor Bedingungen, wie im Flughandbuch
+const reihenfolgeUeberschriften = await page.evaluate(() =>
+  [...document.querySelectorAll('#startstrecke h4')].map((e) => e.textContent.trim())
+);
+pruefe(
+  38,
+  'die Hinweise stehen vor „Es gilt"',
+  reihenfolgeUeberschriften.indexOf('Hinweise') < reihenfolgeUeberschriften.indexOf('Es gilt') &&
+    reihenfolgeUeberschriften.includes('Es gilt'),
+  reihenfolgeUeberschriften.join(' > ')
+);
+
+// 39: die Ueberschriften bilden eine lueckenlose Rangfolge und tragen keine
+// eigene Groesse mehr
+const ueberschriften = await page.evaluate(() => {
+  const stufen = [...document.querySelectorAll('main h1, main h2, main h3, main h4, main h5')];
+  return {
+    folge: stufen.map((e) => Number(e.tagName.slice(1))),
+    absteigend: stufen.map((e) => parseFloat(window.getComputedStyle(e).fontSize))
+  };
+});
+const lueckenlos = ueberschriften.folge.every(
+  (stufe, i) => i === 0 || stufe <= ueberschriften.folge[i - 1] + 1
+);
+const kleinerWerdend = ueberschriften.absteigend.every(
+  (groesse, i) => i === 0 || groesse <= ueberschriften.absteigend[0]
+);
+pruefe(
+  39,
+  'die Überschriften bilden eine lückenlose Rangfolge in Standardgrößen',
+  lueckenlos && kleinerWerdend && ueberschriften.folge.includes(5),
+  `${ueberschriften.folge.join('')} — ${[...new Set(ueberschriften.absteigend)].join('/')} px`
+);
 
 // 34: zwei Spalten im Querformat, eine im Hochformat -- der Fall, an dem eine
 // reine Breitenabfrage scheitern wuerde (quickstart.md Abschnitt 9)

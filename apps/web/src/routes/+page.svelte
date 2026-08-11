@@ -348,7 +348,7 @@
   -->
   <div class="bereiche">
     <section id="startstrecke" class="bereich" aria-labelledby="startstrecke-titel">
-      <h2 id="startstrecke-titel">Roll- und Startstrecke</h2>
+      <h3 id="startstrecke-titel">Roll- und Startstrecke</h3>
       <TakeoffDistance
         result={startstrecke.wert}
         fehler={startstrecke.fehler}
@@ -358,7 +358,7 @@
     </section>
 
     <section id="bedarf" class="bereich" aria-labelledby="bedarf-titel">
-      <h2 id="bedarf-titel">Kraftstoffbedarf und Geschwindigkeiten</h2>
+      <h3 id="bedarf-titel">Kraftstoffbedarf und Geschwindigkeiten</h3>
 
       <!--
         Die Streckenlänge steht erst hier: Vor diesem Bereich wird sie nicht
@@ -400,9 +400,8 @@
   }
 
   .bereich-titel,
-  .bereich h2 {
+  .bereich h3 {
     margin: 1.5rem 0 0.5rem;
-    font-size: 1.05rem;
   }
 
   /*
@@ -412,14 +411,19 @@
   */
   .bereiche {
     display: grid;
-    gap: 0 2rem;
+    /*
+      Untereinander braucht es mehr Luft als nebeneinander: Ohne Spalte, die
+      sie trennt, gehen die beiden Bereiche sonst ineinander ueber. Waagerecht
+      genuegt der Spaltenabstand, weil die Spalten selbst schon trennen.
+    */
+    gap: 2.5rem 2rem;
   }
 
   .bereich {
     min-width: 0;
   }
 
-  .bereich h2 {
+  .bereich h3 {
     margin-top: 0;
   }
 
@@ -441,6 +445,7 @@
     .bereiche {
       grid-template-columns: 1fr 1fr;
       align-items: start;
+      row-gap: 0;
     }
 
     /* Das Avatar folgt der breiteren Textspalte, sonst ueberdeckt es sie. */
@@ -601,12 +606,16 @@
   }
 
   /*
-    Haelt im Kopfbereich den Platz frei, den das Avatar ungescrollt einnimmt.
+    Haelt im Kopfbereich die Breite frei, die das Avatar ungescrollt einnimmt.
     Ohne ihn liefe die Ueberschrift unter das Bild.
+
+    Nur Breite, keine Hoehe: Das Avatar liegt `fixed` darueber und traegt zur
+    Hoehe des Kopfbereichs ohnehin nichts bei. Ein 6 rem hoher Platzhalter
+    machte die Kopfzeile hoeher als ihre Ueberschrift und schob den Text
+    darunter grundlos nach unten.
   */
   .flugzeug-platzhalter {
     width: 6rem;
-    height: 6rem;
     flex: none;
   }
 

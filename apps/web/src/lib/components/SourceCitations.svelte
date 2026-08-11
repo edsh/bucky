@@ -22,7 +22,7 @@
 </script>
 
 <section class="quellen">
-  <h3>Verwendete Tabellen</h3>
+  <h4>Verwendete Tabellen</h4>
 
   <ul>
     {#each pohQuellen as source (source.tableId)}
@@ -39,7 +39,7 @@
   <p class="pruefhinweis" role="note">{preflightCheckNotice}</p>
 
   {#if normQuellen.length > 0}
-    <h3>Nicht aus dem Flughandbuch</h3>
+    <h4>Nicht aus dem Flughandbuch</h4>
 
     <ul>
       {#each normQuellen as source (source.standard)}

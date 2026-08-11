@@ -199,10 +199,21 @@
         <li>{advisory.text}</li>
       {/each}
       {#each result.notes as note (note.id)}
+        <!--
+          Anmerkung 4 traegt dieselbe gelbe Hervorhebung wie die Werte in der
+          Tabelle, sobald sie greift. Ohne sie steht die Farbe oben ohne
+          Erklaerung da: Der Grund fuer das Groesser-Gleich-Zeichen ist genau
+          dieser Satz, und die gemeinsame Farbe stellt die Verbindung her.
+        -->
         <li class:angewandt={angewandt(note.id)}>
-          {note.text}{#if angewandt(note.id)}<span class="haken" title="in dieser Rechnung berücksichtigt"
-            >&nbsp;✓</span
-          >{/if}
+          {#if note.id === 'takeoff.note4' && mindestens}
+            <mark class="mindestwert">{note.text}</mark>
+          {:else}
+            {note.text}
+          {/if}{#if angewandt(note.id)}<span
+              class="haken"
+              title="in dieser Rechnung berücksichtigt">&nbsp;✓</span
+            >{/if}
         </li>
       {/each}
     </ul>
@@ -334,6 +345,8 @@
   */
   .mindestwert {
     background: #fff3b0;
+    /* `mark` faerbt den Text sonst nach Browservorgabe um. */
+    color: inherit;
     border-radius: 0.2rem;
     padding: 0 0.2rem;
   }

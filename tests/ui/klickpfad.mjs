@@ -569,14 +569,25 @@ const mindest = await page.evaluate(() => {
   );
   return {
     hervorgehoben: hervorgehoben.length,
-    alleMitZeichen: hervorgehoben.every((e) => e.textContent.trim().startsWith('≥')),
+    // Anmerkung 4 traegt dieselbe Hervorhebung wie die Werte -- daran ist die
+    // Farbe in der Tabelle ueberhaupt erst erklaert.
+    anmerkungHervorgehoben: hervorgehoben.some(
+      (e) => e.tagName === 'MARK' && /Anmerkung|mindestens|20/.test(e.textContent)
+    ),
+    // Das Zeichen tragen die Werte; die hervorgehobene Anmerkung ist Fliesstext.
+    alleMitZeichen: hervorgehoben
+      .filter((e) => e.tagName === 'TD')
+      .every((e) => e.textContent.trim().startsWith('≥')),
     mitHaken: punkte.filter((t) => t.endsWith('✓')).length
   };
 });
 pruefe(
   37,
-  'Nass oder Schnee macht Bahnzuschlag und Gesamtstrecke zum hervorgehobenen Mindestwert, angewandte Anmerkungen tragen einen Haken',
-  mindest.hervorgehoben === 4 && mindest.alleMitZeichen && mindest.mitHaken === 2,
+  'Nass oder Schnee hebt Werte und Anmerkung 4 gelb hervor, angewandte Anmerkungen tragen einen Haken',
+  mindest.hervorgehoben === 5 &&
+    mindest.anmerkungHervorgehoben &&
+    mindest.alleMitZeichen &&
+    mindest.mitHaken === 2,
   JSON.stringify(mindest)
 );
 await page.locator('#nass').uncheck();

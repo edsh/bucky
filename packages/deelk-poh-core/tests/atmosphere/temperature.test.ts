@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { toIsaDeviation, toOutsideAirTemperature } from '../../src/atmosphere/temperature.js';
+import {
+  getOutsideAirTemperatureRange,
+  ISA_DEVIATION_RANGE,
+  toIsaDeviation,
+  toOutsideAirTemperature
+} from '../../src/atmosphere/temperature.js';
 import { PohCalculationError } from '../../src/errors.js';
 import { ICAO_STANDARD_ATMOSPHERE_SOURCE } from '../../src/atmosphere/pressureAltitude.js';
 
@@ -135,5 +140,75 @@ describe('Rundlauf zwischen ISA-Abweichung und Umgebungstemperatur', () => {
     }
 
     expect(geprueft).toBe(42);
+  });
+});
+
+describe('getOutsideAirTemperatureRange', () => {
+  it('gibt in Meereshöhe den um die Normtemperatur verschobenen Abweichungsbereich', () => {
+    const range = getOutsideAirTemperatureRange(0);
+
+    // 15 °C Normtemperatur ± dem Abweichungsbereich −30…40.
+    expect(range.min).toBe(-15);
+    expect(range.max).toBe(55);
+    expect(range.unit).toBe('°C');
+    expect(range.step).toBe(1);
+  });
+
+  it('wandert mit der Druckhöhe nach unten', () => {
+    // Die Werte stammen aus derselben Norm wie die Druckhöhe: In 10 000 ft
+    // liegt die Normtemperatur bei −4,81 °C, also rund 20 °C unter der in
+    // Meereshöhe. Genau um diesen Betrag muss der Bereich wandern.
+    expect(getOutsideAirTemperatureRange(5000)).toMatchObject({ min: -24, max: 45 });
+    expect(getOutsideAirTemperatureRange(10000)).toMatchObject({ min: -34, max: 35 });
+  });
+
+  it('rundet nach innen und nicht kaufmännisch', () => {
+    // Bei 700 ft ist die Normtemperatur 13,6132 °C; die ungerundeten Grenzen
+    // lägen bei −16,3868 und 53,6132. Kaufmännisch gerundet ergäbe das
+    // −16 und 54 — das obere Ende läge dann außerhalb des Abweichungsbereichs.
+    const range = getOutsideAirTemperatureRange(700);
+
+    expect(range.min).toBe(-16);
+    expect(range.max).toBe(53);
+  });
+
+  it('hält an beiden Enden die Zusicherung, für die es die Funktion gibt', () => {
+    // Der Daseinsgrund der Funktion: Jeder Wert, den ein ganzzahliger Regler
+    // innerhalb dieses Bereichs annehmen kann, muss eine Abweichung ergeben,
+    // die der Kern anschließend auch rechnen kann. Als Eigenschaft geprüft und
+    // nicht als Einzelfall — ein Einzelfall würde genau die Höhe verfehlen, bei
+    // der die Rundung kippt.
+    let geprueft = 0;
+
+    for (const pressureAltitudeFt of [-1000, 0, 700, 977.7826981696855, 2500, 5000, 8000, 12000]) {
+      const range = getOutsideAirTemperatureRange(pressureAltitudeFt);
+
+      for (const temperatureC of [range.min, range.min + 1, 0, range.max - 1, range.max]) {
+        const abweichung = toIsaDeviation(pressureAltitudeFt, temperatureC).isaDeviationC;
+
+        expect(
+          abweichung,
+          `${temperatureC} °C in ${pressureAltitudeFt} ft ergibt ${abweichung} °C und fällt aus dem Abweichungsbereich`
+        ).toBeGreaterThanOrEqual(ISA_DEVIATION_RANGE.min);
+        expect(abweichung).toBeLessThanOrEqual(ISA_DEVIATION_RANGE.max);
+        geprueft += 1;
+      }
+    }
+
+    expect(geprueft).toBe(40);
+  });
+
+  it('fällt einen Schritt außerhalb des Bereichs heraus', () => {
+    // Die Gegenprobe: Wäre der Bereich zu eng gewählt, bliebe die Prüfung oben
+    // trotzdem grün. Erst diese hier zeigt, dass er nicht enger ist als nötig.
+    const pressureAltitudeFt = 700;
+    const range = getOutsideAirTemperatureRange(pressureAltitudeFt);
+
+    expect(toIsaDeviation(pressureAltitudeFt, range.min - 1).isaDeviationC).toBeLessThan(
+      ISA_DEVIATION_RANGE.min
+    );
+    expect(toIsaDeviation(pressureAltitudeFt, range.max + 1).isaDeviationC).toBeGreaterThan(
+      ISA_DEVIATION_RANGE.max
+    );
   });
 });

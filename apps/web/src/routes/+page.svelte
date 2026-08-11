@@ -6,13 +6,16 @@
     computeFuelPlan,
     computeTakeoffDistance,
     formatCelsius,
+    formatCelsiusPrecise,
     formatFeet,
     formatHectopascal,
     formatKnots,
     formatNauticalMiles,
     formatPercent,
     getFuelPlanInputDomain,
+    getOutsideAirTemperatureRange,
     getTakeoffInputDomain,
+    toIsaDeviation,
     toOutsideAirTemperature,
     toPressureAltitude,
     type CruiseCapability,
@@ -52,7 +55,7 @@
   type Herkunft = { dienst: string; gueltigkeit: string } | undefined;
 
   let qnhHerkunft = $state<Herkunft>(undefined);
-  let isaHerkunft = $state<Herkunft>(undefined);
+  let temperaturHerkunft = $state<Herkunft>(undefined);
   let pistenwindHerkunft = $state<Herkunft>(undefined);
 
   let wetterDialog: ReturnType<typeof WetterAbrufDialog> | undefined = $state();
@@ -74,9 +77,9 @@
       qnhHpa = werte.qnhHpa;
       qnhHerkunft = herkunft;
     }
-    if (werte.isaDeviationC !== undefined) {
-      isaDeviationC = werte.isaDeviationC;
-      isaHerkunft = herkunft;
+    if (werte.outsideAirTemperatureC !== undefined) {
+      outsideAirTemperatureC = werte.outsideAirTemperatureC;
+      temperaturHerkunft = herkunft;
     }
     if (werte.runwayWindComponentKt !== undefined) {
       runwayWindComponentKt = werte.runwayWindComponentKt;
@@ -97,8 +100,8 @@
     qnhHerkunft = undefined;
   }
 
-  function isaVonHand(): void {
-    isaHerkunft = undefined;
+  function temperaturVonHand(): void {
+    temperaturHerkunft = undefined;
   }
 
   function pistenwindVonHand(): void {
@@ -116,7 +119,25 @@
   }
   let distanceNm = $state(75);
   let powerSettingPct = $state(70);
-  let isaDeviationC = $state(10);
+
+  /**
+   * Die Außentemperatur am Platz, in ganzen °C — die Größe, die der Pilot
+   * ablesen kann. Bis Feature 031 stand hier die ISA-Abweichung; sie ist
+   * seither die *Folgerung* (siehe `isaAbleitung`) und nicht mehr die Eingabe.
+   *
+   * Der Anfangswert entspricht der bisherigen Einstellung ISA +10 in der
+   * Anfangsdruckhöhe von 977,78 ft: 13,06 °C Normtemperatur plus 10 ergeben
+   * 23,06 °C, gerundet 23. Die daraus folgende Abweichung liegt damit bei
+   * 9,94 statt glatt 10 — die unvermeidliche Folge davon, dass jetzt die
+   * Temperatur die ganzzahlige Größe ist. An den angezeigten Ergebnissen
+   * ändert das nichts.
+   *
+   * Er wird **einmalig** gesetzt und nicht laufend an die Höhe angepasst. Ein
+   * `$effect`, der die Temperatur der Platzhöhe nachführte, machte aus der
+   * Messung eine abgeleitete Größe — genau die Vermischung, die Feature 026
+   * bei den beiden Windgrößen aufgelöst hat.
+   */
+  let outsideAirTemperatureC = $state(23);
 
   /**
    * Zwei Windgrößen, die nichts miteinander zu tun haben: der Wind auf der Bahn
@@ -165,6 +186,31 @@
   const reiseDruckhoehe = $derived(toPressureAltitude(cruiseAltitudeAmslFt, qnhHpa));
 
   /**
+   * Die Anschläge des Temperaturreglers. Anders als alle übrigen Bereiche ist
+   * dieser nicht konstant: Eine Außentemperatur ist Normtemperatur plus
+   * Abweichung und wandert deshalb mit der Platzdruckhöhe. Der Kern rechnet
+   * ihn aus; die Oberfläche legt hier nichts fest (Zusicherung C-05).
+   */
+  const temperaturBereich = $derived(
+    getOutsideAirTemperatureRange(platzDruckhoehe.pressureAltitudeFt)
+  );
+
+  /**
+   * Die ISA-Abweichung als **Folgerung** aus der abgelesenen Temperatur und
+   * der Platzdruckhöhe. Sie ist die Größe, mit der die Handbuchtabellen
+   * arbeiten, und bleibt deshalb sichtbar — sie ist nur von der Eingabe in die
+   * Folgezeile gewandert.
+   *
+   * Bewusst am **Platz** und nicht in Reiseflughöhe: Der Pilot misst am Boden.
+   * Dass dieselbe Abweichung auch oben gilt, ist die übliche Annahme des
+   * Standardgradienten und war schon vor Feature 031 die Grundlage der
+   * Reiseleistungsrechnung.
+   */
+  const isaAbleitung = $derived(
+    toIsaDeviation(platzDruckhoehe.pressureAltitudeFt, outsideAirTemperatureC)
+  );
+
+  /**
    * Die Startstrecke steht für sich: Sie hängt an Platzhöhe, Luftdruck,
    * Temperatur, Wind und Bahnzustand — nicht an Strecke oder Lasteinstellung.
    * Sie wird deshalb eigens ermittelt und in `{ wert, fehler }` gekapselt,
@@ -177,10 +223,16 @@
         wert: computeTakeoffDistance({
           // Druckhöhe und Temperatur kommen als fertige Ergebnisse des Kerns
           // herein; der Adapter rechnet sie nicht selbst (Zusicherung C-04).
+          //
+          // Seit Feature 031 ist die Temperatur die Eingabe, und der Weg über
+          // die Abweichung führt hier wieder zu ihr zurück. Der Rundlauf bleibt
+          // trotzdem stehen: `computeTakeoffDistance` erwartet ein
+          // `OutsideAirTemperatureResult` samt Quellenreferenz, und diese
+          // Struktur nebenher zusammenzusetzen hieße, den Kern zu umgehen.
           pressureAltitude: platzDruckhoehe,
           outsideAirTemperature: toOutsideAirTemperature(
             platzDruckhoehe.pressureAltitudeFt,
-            isaDeviationC
+            isaAbleitung.isaDeviationC
           ),
           windComponentKt: runwayWindComponentKt,
           dryGrassRunway,
@@ -210,7 +262,7 @@
           cruiseAltitudeAmslFt,
           qnhHpa,
           powerSettingPct,
-          isaDeviationC
+          isaDeviationC: isaAbleitung.isaDeviationC
         })
       };
     } catch (error) {
@@ -269,7 +321,7 @@
         qnhHpa,
         distanceNm,
         powerSettingPct,
-        isaDeviationC,
+        isaDeviationC: isaAbleitung.isaDeviationC,
         windComponentKt: routeWindComponentKt
       });
       fehler = undefined;
@@ -293,7 +345,7 @@
       qnhHpa,
       distanceNm,
       powerSettingPct,
-      isaDeviationC,
+      outsideAirTemperatureC,
       routeWindComponentKt
     ];
     berechnen();
@@ -362,10 +414,12 @@
               Wert nicht sofort: Die Wetterwerte sind fremde, veränderliche
               Modellwerte und brauchen eine Bestätigung.
 
-              Er bleibt der einzige Einstieg, obwohl der Dialog seit Feature 027
-              drei Regler bedient. Ein zweiter Knopf am ISA- oder Pistenwind-
-              regler wäre ein zweiter Weg zu demselben Abruf und versprächen eine
-              Auswahl, die es erst im Dialog gibt.
+              Bis Feature 031 war er der einzige Einstieg, obwohl der Dialog
+              seit Feature 027 drei Regler bedient — mit der Begründung, ein
+              zweiter Knopf verspräche eine Auswahl, die es erst im Dialog
+              gibt. Sie hat nicht getragen: Wer den Pistenwind sucht, sucht ihn
+              beim Pistenwind und nicht im Rahmen darüber. Alle drei Knöpfe
+              öffnen denselben Dialog mit denselben drei Zeilen.
             -->
             <button
               type="button"
@@ -399,17 +453,40 @@
         </RangeField>
 
         <RangeField
-          id="isa"
-          label="ISA-Abweichung (°C)"
-          range={domain.isaDeviationC}
-          bind:value={isaDeviationC}
+          id="temperatur"
+          label="Außentemperatur am Platz (°C)"
+          range={temperaturBereich}
+          bind:value={outsideAirTemperatureC}
           format={formatCelsius}
-          bedient={isaVonHand}
+          bedient={temperaturVonHand}
         >
+          {#snippet neben()}
+            <button
+              type="button"
+              class="schnellwahl"
+              aria-label="Wetterwerte für EDSH abrufen"
+              onclick={() => wetterDialog?.oeffnen()}
+            >
+              EDSH
+            </button>
+          {/snippet}
           {#snippet folge()}
-            {#if isaHerkunft}
-              <span data-testid="isa-herkunft">
-                aus {isaHerkunft.dienst}, gültig für {herkunftZeit(isaHerkunft.gueltigkeit)} Uhr —
+            <!--
+              Die ISA-Abweichung ist seit Feature 031 die Folgerung und nicht
+              mehr die Eingabe. Sie bleibt sichtbar, weil sie die Größe ist, mit
+              der der Pilot die Zeile in der Handbuchtabelle findet
+              (Constitution, Prinzip I).
+
+              Mit einer Nachkommastelle und nicht wie der Regler auf ganze Grad:
+              Sie dient als Beleg, und die angezeigte Zahl soll die sein, mit der
+              gerechnet wurde.
+            -->
+            <span data-testid="isa-ableitung">
+              ≙ ISA-Abweichung {formatCelsiusPrecise(isaAbleitung.isaDeviationC)}
+            </span>
+            {#if temperaturHerkunft}
+              <span data-testid="temperatur-herkunft">
+                aus {temperaturHerkunft.dienst}, gültig für {herkunftZeit(temperaturHerkunft.gueltigkeit)} Uhr —
                 unverbindlich
               </span>
             {/if}
@@ -430,7 +507,7 @@
       <WetterAbrufDialog
         bind:this={wetterDialog}
         qnhBereich={domain.qnhHpa}
-        isaBereich={domain.isaDeviationC}
+        temperaturBereich={temperaturBereich}
         pistenwindBereich={getTakeoffInputDomain().windComponentKt}
         uebernehmen={wetterUebernehmen}
       />
@@ -509,6 +586,7 @@
           ? `aus ${pistenwindHerkunft.dienst}, gültig für ${herkunftZeit(pistenwindHerkunft.gueltigkeit)} Uhr — unverbindlich`
           : undefined}
         windBedient={pistenwindVonHand}
+        wetterAbrufen={() => wetterDialog?.oeffnen()}
       />
     </section>
 
@@ -516,26 +594,18 @@
       <h3 id="bedarf-titel">Kraftstoffbedarf und Geschwindigkeiten</h3>
 
       <!--
-        Die Streckenlänge steht erst hier: Vor diesem Bereich wird sie nicht
-        gebraucht — weder die Reiseleistung noch die Startstrecke hängen an
-        ihr (FR-014).
+        Beide Regler stehen erst hier und nicht oben bei den Grundbedingungen:
+        Vor diesem Bereich werden sie nicht gebraucht — weder die Reiseleistung
+        noch die Startstrecke hängen an ihnen (FR-014).
       -->
       <form onsubmit={(event) => event.preventDefault()}>
-        <div class="felder">
-          <RangeField
-            id="strecke"
-            label="Streckenlänge (NM)"
-            range={domain.distanceNm}
-            bind:value={distanceNm}
-            format={formatNauticalMiles}
-          />
-
+        <div class="felder einspaltig">
           <!--
-            Der Streckenwind steht hier und nicht mehr oben bei der Platzhöhe:
-            Er wirkt allein auf Kraftstoffbedarf und Reisezeit. Sein Bereich
-            reicht weiter als der des Pistenwinds (−50 statt −10 kt), weil die
-            Reiseleistung über die Geschwindigkeit über Grund rechnet und dabei
-            keine Tabellengrenze für Rückenwind kennt.
+            Der Streckenwind steht seit Feature 031 an erster Stelle, damit er
+            auf einer Höhe mit dem Pistenwind des Nachbarbereichs liegt. Sein
+            Bereich reicht weiter als der des Pistenwinds (−50 statt −10 kt),
+            weil die Reiseleistung über die Geschwindigkeit über Grund rechnet
+            und dabei keine Tabellengrenze für Rückenwind kennt.
           -->
           <RangeField
             id="streckenwind"
@@ -543,6 +613,14 @@
             range={domain.windComponentKt}
             bind:value={routeWindComponentKt}
             format={formatKnots}
+          />
+
+          <RangeField
+            id="strecke"
+            label="Streckenlänge (NM)"
+            range={domain.distanceNm}
+            bind:value={distanceNm}
+            format={formatNauticalMiles}
           />
         </div>
       </form>
@@ -658,6 +736,18 @@
     gap: 0.75rem 1.5rem;
     align-items: start;
     min-width: 0;
+  }
+
+  /*
+    Zwei Regler untereinander, auch wenn Platz für zwei Spalten wäre.
+    Streckenlänge und Streckenwindkomponente tragen verschiedene Einheiten (NM
+    und kt) bei fast gleichlautender Beschriftung — nebeneinander liest man
+    leicht am falschen. Als Zusatzklasse und nicht als Änderung an `.felder`:
+    Derselbe Raster trägt bei den Grundbedingungen fünf Regler, die
+    nebeneinander richtig aufgehoben sind.
+  */
+  .felder.einspaltig {
+    grid-template-columns: 1fr;
   }
 
   legend {

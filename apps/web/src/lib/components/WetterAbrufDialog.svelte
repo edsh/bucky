@@ -10,7 +10,7 @@
    */
   export interface Uebernahmewerte {
     qnhHpa?: number;
-    isaDeviationC?: number;
+    outsideAirTemperatureC?: number;
     runwayWindComponentKt?: number;
   }
 </script>
@@ -18,9 +18,11 @@
 <script lang="ts">
   import {
     formatCelsius,
+    formatCelsiusPrecise,
     formatHectopascal,
     formatKnots,
     formatNumber,
+    roundCelsius,
     toIsaDeviation,
     toPressureAltitude,
     toQnh,
@@ -32,7 +34,7 @@
 
   /**
    * Bestätigungsdialog für die Werte aus dem Onlinedienst: Luftdruck,
-   * ISA-Abweichung und Pistenwind.
+   * Außentemperatur und Pistenwind.
    *
    * Warum überhaupt ein Dialog — die Schnellwahl der Platzhöhe setzt ihren Wert
    * ja ohne Rückfrage: Die Platzhöhe ist eine feste, nachprüfbare Eigenschaft
@@ -40,10 +42,10 @@
    * Nur die zweiten brauchen eine Bestätigung — und die Aufklärung darüber,
    * woher sie kommen.
    *
-   * Warum ein Knopf für drei Größen: Der Abruf holt sie ohnehin in einer
-   * Antwort, und damit gelten sie alle für denselben Zeitpunkt. Drei Knöpfe
-   * versprächen eine Auswahl, die es beim Abruf nicht gibt — die trifft man
-   * hier, mit den drei Kästchen.
+   * Warum ein Dialog für drei Größen, obwohl es seit Feature 031 drei Knöpfe
+   * gibt, die ihn öffnen: Der Abruf holt die drei Werte ohnehin in einer
+   * Antwort, und damit gelten sie alle für denselben Zeitpunkt. Die Auswahl
+   * trifft man hier, mit den drei Kästchen — nicht schon beim Knopf.
    *
    * Gerechnet und gerundet wird hier **nicht**: Die übernehmbaren Werte kommen
    * fertig aus dem Kern (Zusicherungen W-01, W-02, W-08).
@@ -51,13 +53,18 @@
 
   let {
     qnhBereich,
-    isaBereich,
+    temperaturBereich,
     pistenwindBereich,
     uebernehmen
   }: {
     /** Bereiche der drei Regler — aus dem Kern, keiner steht hier (C-05). */
     qnhBereich: NumericRange;
-    isaBereich: NumericRange;
+    /**
+     * Anders als die beiden anderen **nicht konstant**: Der Temperaturbereich
+     * wandert mit der Platzdruckhöhe. Er kommt deshalb bei jeder Änderung neu
+     * herein und darf hier nicht zwischengespeichert werden.
+     */
+    temperaturBereich: NumericRange;
     pistenwindBereich: NumericRange;
     /** Wird mit den angehakten Größen und ihrer gemeinsamen Herkunft gerufen. */
     uebernehmen: (
@@ -102,7 +109,7 @@
    * gehört und nicht dem Abruf: Ein Bahnwechsel rechnet den Pistenwind neu,
    * setzt aber kein Kästchen zurück, das der Pilot abgewählt hat (FR-011).
    */
-  let angehakt = $state({ qnh: true, isa: true, wind: true });
+  let angehakt = $state({ qnh: true, temperatur: true, wind: true });
 
   /**
    * Bricht einen laufenden Abruf ab. Deckt beides ab: die Zeitüberschreitung
@@ -177,7 +184,7 @@
     );
   });
 
-  const isaVorschlag = $derived.by((): Vorschlag => {
+  const temperaturVorschlag = $derived.by((): Vorschlag => {
     if (zustand.art !== 'vorschau' || qnhErgebnis === undefined) {
       return {};
     }
@@ -185,25 +192,37 @@
     if (temperatur === undefined) {
       return { hindernis: 'Der Wetterdienst hat keine Temperatur geliefert.' };
     }
-    // Die Druckhöhe entsteht aus dem **abgerufenen** Druck, nicht aus dem
-    // eingestellten QNH-Regler (W-07): Sonst hinge der Temperaturvorschlag an
-    // einem Wert, den der Pilot vielleicht gar nicht übernimmt. Und zwar mit
-    // dem ungerundeten `qnhHpa` — die Rundung des einen Vorschlags darf keinen
+    // Seit Feature 031 nimmt der Regler die Temperatur, die der Dienst ohnehin
+    // liefert — der Umweg über die ISA-Abweichung entfällt hier. Die Abweichung
+    // steht nur noch in der Erläuterung, und zwar aus demselben Grund, aus dem
+    // vorher die Temperatur dort stand: Die eine Zahl macht die andere
+    // nachprüfbar.
+    //
+    // Die Druckhöhe dafür entsteht aus dem **abgerufenen** Druck, nicht aus dem
+    // eingestellten QNH-Regler (W-07): Sonst hinge die Erläuterung an einem
+    // Wert, den der Pilot vielleicht gar nicht übernimmt. Und zwar mit dem
+    // ungerundeten `qnhHpa` — die Rundung des einen Vorschlags darf keinen
     // Sprung in den anderen tragen.
     const druckhoehe = toPressureAltitude(EDSH.elevationFt, qnhErgebnis.qnhHpa);
-    const ergebnis = toIsaDeviation(druckhoehe.pressureAltitudeFt, temperatur);
+    const abweichung = toIsaDeviation(druckhoehe.pressureAltitudeFt, temperatur);
     return vorschlagen(
-      ergebnis.settableIsaDeviationC,
-      isaBereich,
+      roundCelsius(temperatur),
+      temperaturBereich,
       formatCelsius,
-      // Die absolute Temperatur steht dabei, weil die ISA-Abweichung allein
-      // nicht nachprüfbar ist: 16 °C Abweichung sagt nichts darüber, ob der
-      // Dienst überhaupt eine plausible Temperatur geliefert hat. Ungerundet
-      // wie der Luftdruck darüber — sonst ergäben 29 °C und 16 °C Abweichung
-      // beim Nachrechnen einen Rest, den der Pilot sich nicht erklären kann.
-      `bei ${formatNumber(temperatur, 1)} °C am Platz`
+      `ungerundet ${formatNumber(temperatur, 1)} °C · entspricht ISA ${formatCelsiusPrecise(abweichung.isaDeviationC)}`
     );
   });
+
+  /**
+   * Ob der Dienst überhaupt einen Wind geliefert hat.
+   *
+   * Steuert die Bahnwahl — und zwar bewusst nicht über `windVorschlag.wert`:
+   * Auf Bahn 10 kann derselbe Wind jenseits der Reglergrenze liegen und damit
+   * ohne Wert dastehen. Hätte die Bahnwahl daran gehängen, wäre sie in
+   * ebendiesem Moment verschwunden und der Pilot käme nicht mehr auf Bahn 28
+   * zurück. Eine Sackgasse, die im Klickpfad von Feature 031 auffiel.
+   */
+  const windGeliefert = $derived(zustand.art === 'vorschau' && zustand.abruf.wind !== undefined);
 
   const windVorschlag = $derived.by((): Vorschlag => {
     if (zustand.art !== 'vorschau') {
@@ -233,7 +252,7 @@
    */
   const etwasAngehakt = $derived(
     (angehakt.qnh && qnhVorschlag.wert !== undefined) ||
-      (angehakt.isa && isaVorschlag.wert !== undefined) ||
+      (angehakt.temperatur && temperaturVorschlag.wert !== undefined) ||
       (angehakt.wind && windVorschlag.wert !== undefined)
   );
 
@@ -283,7 +302,7 @@
         return;
       }
       gewaehlteBahn = bahnMitGegenwind(abruf);
-      angehakt = { qnh: true, isa: true, wind: true };
+      angehakt = { qnh: true, temperatur: true, wind: true };
       zustand = { art: 'vorschau', abruf };
     } catch (fehler) {
       if (eigener.signal.aborted) {
@@ -322,8 +341,8 @@
     if (angehakt.qnh && qnhVorschlag.wert !== undefined) {
       werte.qnhHpa = qnhVorschlag.wert;
     }
-    if (angehakt.isa && isaVorschlag.wert !== undefined) {
-      werte.isaDeviationC = isaVorschlag.wert;
+    if (angehakt.temperatur && temperaturVorschlag.wert !== undefined) {
+      werte.outsideAirTemperatureC = temperaturVorschlag.wert;
     }
     if (angehakt.wind && windVorschlag.wert !== undefined) {
       werte.runwayWindComponentKt = windVorschlag.wert;
@@ -364,29 +383,8 @@
         Wetterwerte werden abgerufen …
       </p>
     {:else if zustand.art === 'vorschau'}
-      <!--
-        Die Bahnwahl steht über den Zeilen, weil sie eine davon verändert: Wer
-        umschaltet, soll den Wert darunter springen sehen. Ein Wechsel löst
-        keinen neuen Abruf aus (FR-011).
-      -->
-      <fieldset class="bahnwahl" data-testid="wetter-bahnwahl">
-        <legend>Bahn</legend>
-        {#each RUNWAYS as bahn (bahn.ident)}
-          <label>
-            <input
-              type="radio"
-              name="bahn"
-              value={bahn.ident}
-              checked={gewaehlteBahn.ident === bahn.ident}
-              onchange={() => (gewaehlteBahn = bahn)}
-            />
-            {bahn.ident}
-          </label>
-        {/each}
-      </fieldset>
-
       <ul class="zeilen">
-        {#each [{ schluessel: 'qnh' as const, titel: 'Luftdruck QNH', vorschlag: qnhVorschlag }, { schluessel: 'isa' as const, titel: 'ISA-Abweichung', vorschlag: isaVorschlag }, { schluessel: 'wind' as const, titel: 'Pistenwind', vorschlag: windVorschlag }] as zeile (zeile.schluessel)}
+        {#each [{ schluessel: 'qnh' as const, titel: 'Luftdruck QNH', bahnwahl: false, vorschlag: qnhVorschlag }, { schluessel: 'temperatur' as const, titel: 'Außentemperatur', bahnwahl: false, vorschlag: temperaturVorschlag }, { schluessel: 'wind' as const, titel: 'Pistenwind (positiv = Gegenwind)', bahnwahl: true, vorschlag: windVorschlag }] as zeile (zeile.schluessel)}
           <li data-testid={`wetter-zeile-${zeile.schluessel}`}>
             <label class="kopf">
               <!--
@@ -419,6 +417,34 @@
               <p class="warnung" data-testid={`wetter-hindernis-${zeile.schluessel}`}>
                 {zeile.vorschlag.hindernis}
               </p>
+            {/if}
+            <!--
+              Die Bahnwahl steht in der Windzeile und nicht mehr über allen
+              dreien. Bis Feature 031 stand sie oben, damit man den Wert darunter
+              springen sieht — sie sah dadurch aber aus, als beträfe sie alle
+              drei Zeilen. Beim Luftdruck und bei der Temperatur ist die Bahn
+              bedeutungslos.
+
+              Sie erscheint nur, wenn der Dienst einen Wind geliefert hat — ohne
+              Wind gäbe es nichts zu zerlegen. Ein Wechsel löst keinen neuen
+              Abruf aus und setzt kein Kästchen zurück (FR-011).
+            -->
+            {#if zeile.bahnwahl && windGeliefert}
+              <fieldset class="bahnwahl" data-testid="wetter-bahnwahl">
+                <legend>Bahn</legend>
+                {#each RUNWAYS as bahn (bahn.ident)}
+                  <label>
+                    <input
+                      type="radio"
+                      name="bahn"
+                      value={bahn.ident}
+                      checked={gewaehlteBahn.ident === bahn.ident}
+                      onchange={() => (gewaehlteBahn = bahn)}
+                    />
+                    {bahn.ident}
+                  </label>
+                {/each}
+              </fieldset>
             {/if}
           </li>
         {/each}
@@ -519,12 +545,17 @@
   /*
     Die Bahnwahl steht als Fieldset, damit die beiden Optionen eine gemeinsame
     Beschriftung tragen: „10" und „28" allein sagen nicht, wovon die Rede ist.
+
+    Seit Feature 031 sitzt sie **innerhalb** der Windzeile. Sie ist deshalb
+    eingerückt statt ganz links: Der Einzug zeigt, dass sie zu der Zeile gehört
+    und nicht zu allen. Der Abstand liegt jetzt oben statt unten, weil sie dem
+    Wert folgt, den sie verändert, statt ihm voranzugehen.
   */
   .bahnwahl {
     display: flex;
     gap: 0.75rem;
     align-items: center;
-    margin: 0 0 0.75rem;
+    margin: 0.4rem 0 0 1.6rem;
     padding: 0.35rem 0.6rem;
     border: 1px solid #ccc;
     border-radius: 0.25rem;

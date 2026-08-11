@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ceilInward,
+  floorInward,
+  formatCelsius,
+  formatCelsiusPrecise,
   formatFuel,
   formatFuelFlow,
   formatFuelPerNauticalMile,
@@ -62,5 +66,36 @@ describe('Rundung (FR-021)', () => {
     expect(formatFuelPerNauticalMile(0.1937, 0.0512)).toBe(
       `0,19${NBSP}l/NM (0,05${NBSP}US${NBSP}gal/NM)`
     );
+  });
+});
+
+describe('formatCelsiusPrecise', () => {
+  it('zeigt eine Nachkommastelle in deutscher Schreibweise', () => {
+    expect(formatCelsiusPrecise(9.937183081613782)).toBe(`9,9${NBSP}°C`);
+    expect(formatCelsiusPrecise(-16.386)).toBe(`-16,4${NBSP}°C`);
+  });
+
+  it('unterscheidet sich von formatCelsius genau dort, wo es darauf ankommt', () => {
+    // 15,5858 wird als Reglerwert zu 16 gerundet — als Beleg fuer die
+    // Handbuchzeile waere das ein halbes Grad daneben.
+    expect(formatCelsius(15.585729171684214)).toBe(`16${NBSP}°C`);
+    expect(formatCelsiusPrecise(15.585729171684214)).toBe(`15,6${NBSP}°C`);
+  });
+});
+
+describe('ceilInward und floorInward', () => {
+  it('runden ein Bereichsende nach innen', () => {
+    expect(ceilInward(-16.3868)).toBe(-16);
+    expect(floorInward(53.6132)).toBe(53);
+  });
+
+  it('lassen ganze Zahlen unberuehrt, damit ein glatter Bereich nicht schrumpft', () => {
+    expect(ceilInward(-15)).toBe(-15);
+    expect(floorInward(55)).toBe(55);
+  });
+
+  it('reichen NaN durch, statt es in eine Zahl zu verwandeln', () => {
+    expect(ceilInward(Number.NaN)).toBeNaN();
+    expect(floorInward(Number.POSITIVE_INFINITY)).toBe(Number.POSITIVE_INFINITY);
   });
 });

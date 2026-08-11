@@ -24,6 +24,8 @@ export {
 export {
   toOutsideAirTemperature,
   toIsaDeviation,
+  getOutsideAirTemperatureRange,
+  ISA_DEVIATION_RANGE,
   type OutsideAirTemperatureResult,
   type IsaDeviationResult
 } from './atmosphere/temperature.js';
@@ -87,6 +89,7 @@ export {
   formatFuelFlow,
   formatFuelPerNauticalMile,
   formatCelsius,
+  formatCelsiusPrecise,
   floorHectopascal,
   formatHectopascal,
   formatHours,

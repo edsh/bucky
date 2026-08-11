@@ -299,6 +299,12 @@ Modellwert am Stationsort, QFF gegen QFF verglichen):
 Rund 1 K bei der Temperatur, unter 1 hPa beim Druck. Für einen Vorschlagswert
 taugt das; als ATIS-Ersatz nicht.
 
+**Abgleich am fertigen Stand** (11.08.2026, 0900Z, gegen die gebaute
+Oberfläche): Der Dienst lieferte 988,0 hPa auf 296 m; daraus errechnet die
+Anwendung 1023,40 hPa und bietet **1023** zur Übernahme an. Das METAR von EDDS
+derselben Stunde meldet `Q1023` — der ausgewiesene Wert stimmt also exakt mit
+dem amtlich gemeldeten des nächstgelegenen Verkehrsflughafens überein.
+
 ---
 
 ## R8 — Welche Formel, und wo?

@@ -26,6 +26,8 @@ export {
   type OutsideAirTemperatureResult
 } from './atmosphere/temperature.js';
 
+export { toQnh, type QnhResult } from './atmosphere/qnh.js';
+
 export {
   PohCalculationError,
   outsideAirTemperatureOutOfRange,
@@ -78,6 +80,7 @@ export {
   formatFuelFlow,
   formatFuelPerNauticalMile,
   formatCelsius,
+  floorHectopascal,
   formatHectopascal,
   formatHours,
   formatKnots,

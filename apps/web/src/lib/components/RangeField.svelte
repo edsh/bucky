@@ -19,7 +19,8 @@
     value = $bindable(),
     format,
     neben,
-    folge
+    folge,
+    bedient
   }: {
     id: string;
     label: string;
@@ -30,6 +31,12 @@
     neben?: Snippet;
     /** Zeile unter dem Regler, etwa eine daraus errechnete Größe. */
     folge?: Snippet;
+    /**
+     * Wird gerufen, wenn der Wert **von Hand** verstellt wurde. Feuert
+     * bewusst nicht, wenn der Wert von außen gesetzt wird — nur so lässt sich
+     * eine eigene Eingabe von einer übernommenen unterscheiden.
+     */
+    bedient?: () => void;
   } = $props();
 </script>
 
@@ -43,6 +50,7 @@
     {id}
     type="range"
     bind:value
+    oninput={bedient}
     min={range.min}
     max={range.max}
     step={range.step}
@@ -85,6 +93,11 @@
     erst im Ergebnisblock. Wer am Regler zieht, sieht die Wirkung dort, wo er
     hinschaut.
   */
+  /* Ohne Inhalt kein Abstand: sonst klaffte unter dem Regler eine Lücke. */
+  .folge:empty {
+    display: none;
+  }
+
   .folge {
     grid-column: 1 / -1;
     margin: 0.1rem 0 0;

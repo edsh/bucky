@@ -26,6 +26,9 @@ Eingangsgrößen, `qnhHpa` ungerundet, `settableQnhHpa` abgerundet.
   Konstanten aus `pressureAltitude.ts`. Ein Rundlauftest hält beide gegeneinander
   (siehe C-08).
 - `settableQnhHpa` ist `qnhHpa` **abgerundet** auf ganze hPa, nie aufgerundet.
+  Das Abrunden selbst geschieht in `format.ts` (`floorHectopascal`) und nicht in
+  `qnh.ts` — Zusicherung C-03 duldet keine zweite Rundungsstelle im Kern, und
+  sie hat recht: Genau dort ließe sich die Richtung später unbemerkt umdrehen.
 - `qnhHpa` ist **ungerundet**; nur `settableQnhHpa` ist eine gerundete Zahl, und
   sie ist ein Rechen- und kein Anzeigewert.
 - Die Quellenreferenz ist `ICAO_STANDARD_ATMOSPHERE_SOURCE` mit

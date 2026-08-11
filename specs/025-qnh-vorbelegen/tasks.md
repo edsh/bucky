@@ -33,9 +33,9 @@ Keine neuen Laufzeitabhängigkeiten. `fetch`, `AbortController` und
 `AbortSignal.timeout` sind im Browser vorhanden; Zod wird nicht in die
 Weboberfläche gezogen (plan.md, Entwurfsentscheidungen).
 
-- [ ] T001 Ausgangszustand festhalten: `npm run lint`, `npx vitest run` und `npm exec --workspace @edsh-bucky/web -- svelte-kit sync && npm run check --workspace @edsh-bucky/web` einmal grün laufen lassen, damit spätere Fehlschläge diesem Feature zuzuordnen sind
-- [ ] T002 In `vitest.config.ts` ein drittes Projekt `web` ergänzen: `root: './apps/web'`, `include: ['tests/**/*.test.ts']`, `environment: 'node'` — die zu prüfenden Funktionen des Netz-Adapters sind rein und brauchen kein DOM
-- [ ] T003 [P] Ordner `apps/web/tests/weather/` und `packages/deelk-poh-core/tests/atmosphere/` bereitstellen, damit die neuen Testdateien der bestehenden Struktur folgen
+- [X] T001 Ausgangszustand festhalten: `npm run lint`, `npx vitest run` und `npm exec --workspace @edsh-bucky/web -- svelte-kit sync && npm run check --workspace @edsh-bucky/web` einmal grün laufen lassen, damit spätere Fehlschläge diesem Feature zuzuordnen sind
+- [X] T002 In `vitest.config.ts` ein drittes Projekt `web` ergänzen: `root: './apps/web'`, `include: ['tests/**/*.test.ts']`, `environment: 'node'` — die zu prüfenden Funktionen des Netz-Adapters sind rein und brauchen kein DOM
+- [X] T003 [P] Ordner `apps/web/tests/weather/` und `packages/deelk-poh-core/tests/atmosphere/` bereitstellen, damit die neuen Testdateien der bestehenden Struktur folgen
 
 ---
 
@@ -44,12 +44,12 @@ Weboberfläche gezogen (plan.md, Entwurfsentscheidungen).
 Ohne die Kernfunktion gibt es nichts zu übernehmen. Sie entsteht zuerst und
 vollständig geprüft, weil jede Oberflächenarbeit auf ihr aufsetzt.
 
-- [ ] T004 In `packages/deelk-poh-core/src/atmosphere/pressureAltitude.ts` die bisher modulinternen Konstanten `BAROMETRIC_EXPONENT` und `P0_HPA` exportieren, damit die Umkehrfunktion sie **nutzen** und nicht kopieren muss (Prinzip IV: keine zweite Wahrheit); `T0_K` und `LAPSE_RATE_K_PER_FT` sind bereits exportiert
-- [ ] T005 Neue Datei `packages/deelk-poh-core/src/atmosphere/qnh.ts` mit `toQnh(stationPressureHpa, elevationFt): QnhResult` laut [contracts/deelk-poh-core.md](./contracts/deelk-poh-core.md): `QNH = p_stat / (1 − L·h/T₀)^BAROMETRIC_EXPONENT`, gerechnet über die Fuß-Konstante `LAPSE_RATE_K_PER_FT`, damit gar nicht erst in Meter gewechselt wird. Ergebnisfelder `stationPressureHpa`, `elevationFt`, `qnhHpa` (ungerundet) und `settableQnhHpa` (auf ganze hPa **abgerundet**, `Math.floor`). Im Kommentar festhalten, warum abgerundet und nicht kaufmännisch gerundet wird (research.md R9: METAR-Praxis und die sichere Richtung)
-- [ ] T006 In derselben Datei die Eingangsprüfungen ergänzen, in der Reihenfolge aus dem Vertrag: Druck keine endliche Zahl oder ≤ 0 → `INVALID_INPUT`; Höhe keine endliche Zahl → `INVALID_INPUT`; Höhe außerhalb −2 000 bis 30 000 ft → `OUT_OF_RANGE` mit dem Gültigkeitsbereich der Troposphärenformel als `allowedRange`. Den Reglerbereich 950–1050 hPa **nicht** prüfen — das entscheidet die Oberfläche (FR-007)
-- [ ] T007 In `packages/deelk-poh-core/src/index.ts` `toQnh` und den Typ `QnhResult` ausführen; `ICAO_STANDARD_ATMOSPHERE_SOURCE` bleibt unverändert und wird wiederverwendet, nicht verdoppelt
-- [ ] T008 [P] Neue Datei `packages/deelk-poh-core/tests/atmosphere/qnh.test.ts` mit den Sollwerten aus [quickstart.md](./quickstart.md): 1013,25 hPa auf 0 ft ergibt genau 1013,25; 978,1973 hPa auf 971 ft ergibt 1013,25; 987,9 hPa auf 971 ft ergibt 1023,30 mit `settableQnhHpa` 1023; `settableQnhHpa ≤ qnhHpa` für eine Reihe von Werten; 0 hPa, `NaN` und 40 000 ft werden abgelehnt
-- [ ] T009 [P] In `packages/deelk-poh-core/tests/contract.test.ts` die Zusicherung **C-08** ergänzen: Für Höhen von 0 bis 18 000 ft und QNH von 950 bis 1050 hPa den Druck mit der Formel aus `toPressureAltitude` bilden, mit `toQnh` zurückrechnen und den Ausgangswert auf mindestens neun Nachkommastellen wiederfinden. Dazu prüfen, dass `toQnh` dieselbe Quellenreferenz `kind: 'standard'` trägt wie die Druckhöhe
+- [X] T004 In `packages/deelk-poh-core/src/atmosphere/pressureAltitude.ts` die bisher modulinternen Konstanten `BAROMETRIC_EXPONENT` und `P0_HPA` exportieren, damit die Umkehrfunktion sie **nutzen** und nicht kopieren muss (Prinzip IV: keine zweite Wahrheit); `T0_K` und `LAPSE_RATE_K_PER_FT` sind bereits exportiert
+- [X] T005 Neue Datei `packages/deelk-poh-core/src/atmosphere/qnh.ts` mit `toQnh(stationPressureHpa, elevationFt): QnhResult` laut [contracts/deelk-poh-core.md](./contracts/deelk-poh-core.md): `QNH = p_stat / (1 − L·h/T₀)^BAROMETRIC_EXPONENT`, gerechnet über die Fuß-Konstante `LAPSE_RATE_K_PER_FT`, damit gar nicht erst in Meter gewechselt wird. Ergebnisfelder `stationPressureHpa`, `elevationFt`, `qnhHpa` (ungerundet) und `settableQnhHpa` (auf ganze hPa **abgerundet**, `Math.floor`). Im Kommentar festhalten, warum abgerundet und nicht kaufmännisch gerundet wird (research.md R9: METAR-Praxis und die sichere Richtung)
+- [X] T006 In derselben Datei die Eingangsprüfungen ergänzen, in der Reihenfolge aus dem Vertrag: Druck keine endliche Zahl oder ≤ 0 → `INVALID_INPUT`; Höhe keine endliche Zahl → `INVALID_INPUT`; Höhe außerhalb −2 000 bis 30 000 ft → `OUT_OF_RANGE` mit dem Gültigkeitsbereich der Troposphärenformel als `allowedRange`. Den Reglerbereich 950–1050 hPa **nicht** prüfen — das entscheidet die Oberfläche (FR-007)
+- [X] T007 In `packages/deelk-poh-core/src/index.ts` `toQnh` und den Typ `QnhResult` ausführen; `ICAO_STANDARD_ATMOSPHERE_SOURCE` bleibt unverändert und wird wiederverwendet, nicht verdoppelt
+- [X] T008 [P] Neue Datei `packages/deelk-poh-core/tests/atmosphere/qnh.test.ts` mit den Sollwerten aus [quickstart.md](./quickstart.md): 1013,25 hPa auf 0 ft ergibt genau 1013,25; 978,1973 hPa auf 971 ft ergibt 1013,25; 987,9 hPa auf 971 ft ergibt 1023,30 mit `settableQnhHpa` 1023; `settableQnhHpa ≤ qnhHpa` für eine Reihe von Werten; 0 hPa, `NaN` und 40 000 ft werden abgelehnt
+- [X] T009 [P] In `packages/deelk-poh-core/tests/contract.test.ts` die Zusicherung **C-08** ergänzen: Für Höhen von 0 bis 18 000 ft und QNH von 950 bis 1050 hPa den Druck mit der Formel aus `toPressureAltitude` bilden, mit `toQnh` zurückrechnen und den Ausgangswert auf mindestens neun Nachkommastellen wiederfinden. Dazu prüfen, dass `toQnh` dieselbe Quellenreferenz `kind: 'standard'` trägt wie die Druckhöhe
 
 **Prüfpunkt**: `npx vitest run --project deelk-poh-core` ist grün. Ab hier steht
 die Rechnung; alles Weitere ist Oberfläche.
@@ -64,15 +64,15 @@ zeigt ihn zur Ansicht und setzt ihn nach Bestätigung in den Regler.
 **Unabhängig prüfbar**: Button drücken, Dialog bestätigen, Reglerwert gegen den
 im Dialog gezeigten Wert halten.
 
-- [ ] T010 [P] [US1] Neue Datei `apps/web/src/lib/weather/edsh.ts` mit dem Platzbezug laut [data-model.md](./data-model.md): `elevationFt: 971`, `latitude: 48.9197`, `longitude: 9.4553`, dazu ein Kommentar, dass EDSH Backnang-Heiningen ist (Graspiste 10/28, 500 m) — der Verwechslungsgefahr wegen, die research.md R0 festhält. Die Höhe in Metern wird **gerechnet** und nicht als vierte Zahl geführt
-- [ ] T011 [US1] In `apps/web/src/routes/+page.svelte` die dortige Konstante `EDSH_ELEVATION_FT` entfernen und die Platzhöhe stattdessen aus `edsh.ts` beziehen; `edshWaehlen()` bleibt unverändert in seiner Wirkung (FR-025: genau eine Stelle für die Platzhöhe)
-- [ ] T012 [P] [US1] Neue Datei `apps/web/src/lib/weather/openMeteo.ts` mit der reinen Funktion `baueAnfrage(platz): URL` laut [contracts/web.md](./contracts/web.md): `latitude`, `longitude`, `current=surface_pressure`, `timezone=UTC` und ausdrücklich `elevation` in Metern aus der Platzhöhe gerechnet. Im Kommentar festhalten, warum die Höhe mitgegeben wird (research.md R6: sonst hinge das Ergebnis an einem fremden Geländemodell)
-- [ ] T013 [US1] In derselben Datei die reine Funktion `deuteAntwort(rohdaten): WetterAbruf` ergänzen: liest `current.surface_pressure`, `current.time` und `elevation`, wirft bei fehlendem Feld, nicht endlicher Zahl oder Druck außerhalb 500–1100 hPa. `pressure_msl` wird **nicht** gelesen und nicht durchgereicht — mit Kommentar, dass es QFF ist und nicht QNH (research.md R4)
-- [ ] T014 [US1] In derselben Datei die dünne Hülle `holeWetter(platz, signal): Promise<WetterAbruf>` ergänzen: `fetch` mit dem übergebenen `AbortSignal`, danach `deuteAntwort`. Rechnet nichts (W-01, W-02). Jeder Fehlschlag — Netzfehler, Abbruch, unbrauchbare Antwort — verlässt die Funktion als Ausnahme derselben Art, damit der Aufrufer sie nicht unterscheiden muss
-- [ ] T015 [P] [US1] Neue Datei `apps/web/tests/weather/openMeteo.test.ts`: `baueAnfrage` setzt `elevation=296` und enthält kein `pressure_msl`; `deuteAntwort` liefert bei vollständiger Antwort die drei Größen und wirft bei `{}`, `surface_pressure: null`, `0`, `"1013"`, fehlender `current.time` und fehlender `elevation` (Tabelle in quickstart.md, Abschnitt 2)
-- [ ] T016 [US1] Neue Komponente `apps/web/src/lib/components/QnhAbrufDialog.svelte` als natives `<dialog>` mit `showModal()`: hält den Zustand `laedt | vorschau | fehler` laut data-model.md, startet den Abruf beim Öffnen (FR-012), ruft für die Umrechnung `toQnh` aus dem Kern auf und zeigt `settableQnhHpa` als übernehmbaren Wert. Die Komponente rechnet und rundet **nicht** selbst (W-01, W-02)
-- [ ] T017 [US1] In derselben Komponente die beiden Knöpfe ergänzen: „Übernehmen" meldet den ganzzahligen Wert nach oben und schließt, „Abbrechen" schließt ohne Wirkung (FR-006). „Übernehmen" ist gesperrt, solange kein Wert vorliegt **oder** der Wert außerhalb 950–1050 hPa liegt — der Bereich kommt aus `domain.qnhHpa` des Kerns, nicht als Literal (FR-007)
-- [ ] T018 [US1] In `apps/web/src/routes/+page.svelte` im `neben`-Steckplatz des QNH-Reglers den Button „EDSH" mit der bestehenden Klasse `.schnellwahl` ergänzen und den Dialog einbinden; die Übernahme setzt `qnhHpa` (FR-001, FR-002)
+- [X] T010 [P] [US1] Neue Datei `apps/web/src/lib/weather/edsh.ts` mit dem Platzbezug laut [data-model.md](./data-model.md): `elevationFt: 971`, `latitude: 48.9197`, `longitude: 9.4553`, dazu ein Kommentar, dass EDSH Backnang-Heiningen ist (Graspiste 10/28, 500 m) — der Verwechslungsgefahr wegen, die research.md R0 festhält. Die Höhe in Metern wird **gerechnet** und nicht als vierte Zahl geführt
+- [X] T011 [US1] In `apps/web/src/routes/+page.svelte` die dortige Konstante `EDSH_ELEVATION_FT` entfernen und die Platzhöhe stattdessen aus `edsh.ts` beziehen; `edshWaehlen()` bleibt unverändert in seiner Wirkung (FR-025: genau eine Stelle für die Platzhöhe)
+- [X] T012 [P] [US1] Neue Datei `apps/web/src/lib/weather/openMeteo.ts` mit der reinen Funktion `baueAnfrage(platz): URL` laut [contracts/web.md](./contracts/web.md): `latitude`, `longitude`, `current=surface_pressure`, `timezone=UTC` und ausdrücklich `elevation` in Metern aus der Platzhöhe gerechnet. Im Kommentar festhalten, warum die Höhe mitgegeben wird (research.md R6: sonst hinge das Ergebnis an einem fremden Geländemodell)
+- [X] T013 [US1] In derselben Datei die reine Funktion `deuteAntwort(rohdaten): WetterAbruf` ergänzen: liest `current.surface_pressure`, `current.time` und `elevation`, wirft bei fehlendem Feld, nicht endlicher Zahl oder Druck außerhalb 500–1100 hPa. `pressure_msl` wird **nicht** gelesen und nicht durchgereicht — mit Kommentar, dass es QFF ist und nicht QNH (research.md R4)
+- [X] T014 [US1] In derselben Datei die dünne Hülle `holeWetter(platz, signal): Promise<WetterAbruf>` ergänzen: `fetch` mit dem übergebenen `AbortSignal`, danach `deuteAntwort`. Rechnet nichts (W-01, W-02). Jeder Fehlschlag — Netzfehler, Abbruch, unbrauchbare Antwort — verlässt die Funktion als Ausnahme derselben Art, damit der Aufrufer sie nicht unterscheiden muss
+- [X] T015 [P] [US1] Neue Datei `apps/web/tests/weather/openMeteo.test.ts`: `baueAnfrage` setzt `elevation=296` und enthält kein `pressure_msl`; `deuteAntwort` liefert bei vollständiger Antwort die drei Größen und wirft bei `{}`, `surface_pressure: null`, `0`, `"1013"`, fehlender `current.time` und fehlender `elevation` (Tabelle in quickstart.md, Abschnitt 2)
+- [X] T016 [US1] Neue Komponente `apps/web/src/lib/components/QnhAbrufDialog.svelte` als natives `<dialog>` mit `showModal()`: hält den Zustand `laedt | vorschau | fehler` laut data-model.md, startet den Abruf beim Öffnen (FR-012), ruft für die Umrechnung `toQnh` aus dem Kern auf und zeigt `settableQnhHpa` als übernehmbaren Wert. Die Komponente rechnet und rundet **nicht** selbst (W-01, W-02)
+- [X] T017 [US1] In derselben Komponente die beiden Knöpfe ergänzen: „Übernehmen" meldet den ganzzahligen Wert nach oben und schließt, „Abbrechen" schließt ohne Wirkung (FR-006). „Übernehmen" ist gesperrt, solange kein Wert vorliegt **oder** der Wert außerhalb 950–1050 hPa liegt — der Bereich kommt aus `domain.qnhHpa` des Kerns, nicht als Literal (FR-007)
+- [X] T018 [US1] In `apps/web/src/routes/+page.svelte` im `neben`-Steckplatz des QNH-Reglers den Button „EDSH" mit der bestehenden Klasse `.schnellwahl` ergänzen und den Dialog einbinden; die Übernahme setzt `qnhHpa` (FR-001, FR-002)
 
 **Prüfpunkt**: Button, Dialog, Vorschau und Übernahme arbeiten. Die Druckhöhen
 unter Platzhöhe und Reiseflughöhe ändern sich mit.
@@ -87,11 +87,11 @@ unter Platzhöhe und Reiseflughöhe ändern sich mit.
 **Unabhängig prüfbar**: Dialogtext lesen und den Vermerk am Regler vor und nach
 einer Handbedienung vergleichen.
 
-- [ ] T019 [US2] In `apps/web/src/lib/components/QnhAbrufDialog.svelte` den in **jedem** Zustand sichtbaren Aufklärungstext ergänzen: Daten kommen von einem Onlinedienst (FR-003), der Wert stammt aus einem **Wettermodell** und ist keine Messung am Platz (FR-011), er ist ein unverbindlicher Vorschlag und vor dem Flug gilt das **ATIS** (FR-003)
-- [ ] T020 [US2] In derselben Komponente die Namensnennung ergänzen: „Wetterdaten von Open-Meteo.com" mit Verweis, wie es CC-BY 4.0 verlangt (FR-010)
-- [ ] T021 [US2] In derselben Komponente die Vorschau vervollständigen: ganzzahliger Wert, **ungerundeter** Wert und die **Gültigkeitszeit** — mit einer Formulierung, die Gültigkeit und nicht Beobachtung sagt (FR-005, research.md R5)
-- [ ] T022 [US2] In `apps/web/src/routes/+page.svelte` ein Zustandsfeld `qnhHerkunft` neben `qnhHpa` führen, bei der Übernahme setzen und bei jeder anderen Änderung des Reglers leeren (FR-009)
-- [ ] T023 [US2] In derselben Datei den `folge`-Steckplatz des QNH-Reglers nutzen: Solange eine Herkunft gesetzt ist, steht dort Dienst und Gültigkeitszeit — dieselbe Stelle, an der bei der Platzhöhe die Druckhöhe steht
+- [X] T019 [US2] In `apps/web/src/lib/components/QnhAbrufDialog.svelte` den in **jedem** Zustand sichtbaren Aufklärungstext ergänzen: Daten kommen von einem Onlinedienst (FR-003), der Wert stammt aus einem **Wettermodell** und ist keine Messung am Platz (FR-011), er ist ein unverbindlicher Vorschlag und vor dem Flug gilt das **ATIS** (FR-003)
+- [X] T020 [US2] In derselben Komponente die Namensnennung ergänzen: „Wetterdaten von Open-Meteo.com" mit Verweis, wie es CC-BY 4.0 verlangt (FR-010)
+- [X] T021 [US2] In derselben Komponente die Vorschau vervollständigen: ganzzahliger Wert, **ungerundeter** Wert und die **Gültigkeitszeit** — mit einer Formulierung, die Gültigkeit und nicht Beobachtung sagt (FR-005, research.md R5)
+- [X] T022 [US2] In `apps/web/src/routes/+page.svelte` ein Zustandsfeld `qnhHerkunft` neben `qnhHpa` führen, bei der Übernahme setzen und bei jeder anderen Änderung des Reglers leeren (FR-009)
+- [X] T023 [US2] In derselben Datei den `folge`-Steckplatz des QNH-Reglers nutzen: Solange eine Herkunft gesetzt ist, steht dort Dienst und Gültigkeitszeit — dieselbe Stelle, an der bei der Platzhöhe die Druckhöhe steht
 
 ---
 
@@ -103,20 +103,20 @@ vollem Umfang bedienbar.
 **Unabhängig prüfbar**: Netz abschalten oder die Anfrage abfangen, Dialog
 öffnen, danach die Seite bedienen.
 
-- [ ] T024 [US3] In `apps/web/src/lib/components/QnhAbrufDialog.svelte` die Zeitüberschreitung ergänzen: `AbortSignal.timeout(10_000)`, zusammengeführt mit dem eigenen `AbortController`, damit derselbe Abbruch auch beim Schließen des Dialogs greift (FR-013)
-- [ ] T025 [US3] In derselben Komponente den Zustand `fehler` vollständig ausgestalten: verständliche Meldung, gesperrtes „Übernehmen", Knopf „Erneut versuchen", der den Abruf ohne Schließen des Dialogs neu startet (FR-014). Netzfehler, Zeitüberschreitung und unbrauchbare Antwort führen zum **gleichen** Bild (FR-015)
-- [ ] T026 [US3] In derselben Komponente sicherstellen, dass eine nach dem Schließen eintreffende Antwort nichts mehr verändert: beim Schließen abbrechen und das Ergebnis verwerfen (FR-018, W-05)
-- [ ] T027 [US3] Prüfen und im Kommentar festhalten, dass in `apps/web/src/routes/+page.svelte` und den Komponenten **kein** Abruf beim Laden der Seite stattfindet — weder in `onMount` noch in einem `$effect`, der ohne Zutun läuft (FR-017, W-04)
+- [X] T024 [US3] In `apps/web/src/lib/components/QnhAbrufDialog.svelte` die Zeitüberschreitung ergänzen: `AbortSignal.timeout(10_000)`, zusammengeführt mit dem eigenen `AbortController`, damit derselbe Abbruch auch beim Schließen des Dialogs greift (FR-013)
+- [X] T025 [US3] In derselben Komponente den Zustand `fehler` vollständig ausgestalten: verständliche Meldung, gesperrtes „Übernehmen", Knopf „Erneut versuchen", der den Abruf ohne Schließen des Dialogs neu startet (FR-014). Netzfehler, Zeitüberschreitung und unbrauchbare Antwort führen zum **gleichen** Bild (FR-015)
+- [X] T026 [US3] In derselben Komponente sicherstellen, dass eine nach dem Schließen eintreffende Antwort nichts mehr verändert: beim Schließen abbrechen und das Ergebnis verwerfen (FR-018, W-05)
+- [X] T027 [US3] Prüfen und im Kommentar festhalten, dass in `apps/web/src/routes/+page.svelte` und den Komponenten **kein** Abruf beim Laden der Seite stattfindet — weder in `onMount` noch in einem `$effect`, der ohne Zutun läuft (FR-017, W-04)
 
 ---
 
 ## Phase 6: Politur und Querschnitt
 
-- [ ] T028 In `tests/ui/klickpfad.mjs` die Prüfungen 1 bis 12 aus [quickstart.md](./quickstart.md) Abschnitt 3 ergänzen, mit `page.route()` auf `api.open-meteo.com`: Button vorhanden, Dialog mit Aufklärung, Ladeanzeige, Vorschau mit 1023, Übernahme, Herkunftsvermerk, Verschwinden des Vermerks nach Handbedienung, Abbruch, `Esc`, Fehlerfall, unbrauchbare Antwort, Wert außerhalb des Reglerbereichs
-- [ ] T029 In derselben Datei die Prüfung 13 ergänzen — die wichtigste: Bei blockierten Fremdanfragen lädt die Seite vollständig, alle Regler und Ergebnisse arbeiten, und **beim Laden geht keine Anfrage** an den Dienst hinaus
-- [ ] T030 [P] Den Abgleich gegen die Wirklichkeit einmal von Hand ausführen (quickstart.md Abschnitt 4) und das Ergebnis mit Datum in research.md unter R7 nachtragen, falls es von den dort festgehaltenen Werten abweicht
-- [ ] T031 [P] In `README.md` den Abschnitt zur Bedienung um die neue Schnellwahl am QNH ergänzen — knapp, mit dem Hinweis auf den unverbindlichen Charakter; die Namensnennung von Open-Meteo gehört in die Oberfläche, nicht nur in die Datei
-- [ ] T032 Abschließend `npx vitest run`, `npm run lint` und `npm run --workspace @edsh-bucky/web check` grün stellen (quickstart.md Abschnitt 5)
+- [X] T028 In `tests/ui/klickpfad.mjs` die Prüfungen 1 bis 12 aus [quickstart.md](./quickstart.md) Abschnitt 3 ergänzen, mit `page.route()` auf `api.open-meteo.com`: Button vorhanden, Dialog mit Aufklärung, Ladeanzeige, Vorschau mit 1023, Übernahme, Herkunftsvermerk, Verschwinden des Vermerks nach Handbedienung, Abbruch, `Esc`, Fehlerfall, unbrauchbare Antwort, Wert außerhalb des Reglerbereichs
+- [X] T029 In derselben Datei die Prüfung 13 ergänzen — die wichtigste: Bei blockierten Fremdanfragen lädt die Seite vollständig, alle Regler und Ergebnisse arbeiten, und **beim Laden geht keine Anfrage** an den Dienst hinaus
+- [X] T030 [P] Den Abgleich gegen die Wirklichkeit einmal von Hand ausführen (quickstart.md Abschnitt 4) und das Ergebnis mit Datum in research.md unter R7 nachtragen, falls es von den dort festgehaltenen Werten abweicht
+- [X] T031 [P] In `README.md` den Abschnitt zur Bedienung um die neue Schnellwahl am QNH ergänzen — knapp, mit dem Hinweis auf den unverbindlichen Charakter; die Namensnennung von Open-Meteo gehört in die Oberfläche, nicht nur in die Datei
+- [X] T032 Abschließend `npx vitest run`, `npm run lint` und `npm run --workspace @edsh-bucky/web check` grün stellen (quickstart.md Abschnitt 5)
 
 ---
 
@@ -161,3 +161,30 @@ veröffentlichte Seite darf, ist Phase 1 bis 4.
 
 Phase 5 folgt unmittelbar danach, weil der Rechner am Platz genutzt wird — dort,
 wo das Netz am schlechtesten ist.
+
+---
+
+## Abweichungen bei der Umsetzung
+
+Zwei Stellen sind anders entstanden als geplant — beide, weil ein
+Vertragstest widersprochen hat. Das ist der Zweck dieser Tests, und die
+Abweichungen stehen hier, damit sie nicht in den Dateien verschwinden.
+
+1. **Die Rundung liegt in `format.ts`, nicht in `qnh.ts`** (T005). Zusicherung
+   C-03 duldet keine zweite Rundungsstelle im Kern und ist dagegen
+   eingeschritten. `qnh.ts` ruft jetzt `floorHectopascal` auf; die Begründung
+   für das Abrunden steht dort. Der Einwand ist berechtigt: Genau in einer
+   zweiten Rundungsstelle ließe sich die Richtung später unbemerkt umdrehen.
+
+2. **`deuteAntwort` prüft keinen Druckbereich mehr** (T013). Geplant war eine
+   Plausibilitätsschranke von 500 bis 1100 hPa; Zusicherung C-05 hat sie als
+   eigenmächtige Grenze der Oberfläche zurückgewiesen. Zu Recht — der
+   Reglerbereich aus dem Kern zieht dieselbe Grenze bereits: Ein unsinniger
+   Druck ergibt einen QNH außerhalb von 950–1050 hPa und damit ein gesperrtes
+   „Übernehmen". Geblieben ist allein die Zurückweisung von Werten ≤ 0, weil
+   das kein unplausibler, sondern ein unmöglicher Wert ist und in aller Regel
+   ein fehlendes Feld anzeigt.
+
+Zusätzlich zum Plan entstanden sind die beiden `aria-label` an den
+EDSH-Knöpfen: Seit es zwei davon gibt, wären sie für Vorlesewerkzeuge sonst
+nicht zu unterscheiden.

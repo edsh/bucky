@@ -14,6 +14,7 @@
  * dem System genommen, statt ihn zu laden — deshalb der uebersprungene
  * Browser-Download.
  */
+import { setTimeout as warte } from 'node:timers/promises';
 import { chromium } from 'playwright';
 
 // Standardmaessig gegen den lokal ausgelieferten Bundle; mit BASE laesst sich
@@ -58,8 +59,16 @@ async function fuellen(page, werte) {
 const browser = await chromium.launch({ channel: 'msedge' });
 const page = await browser.newPage();
 const konsolenfehler = [];
+/**
+ * Wird gesetzt, solange der Wetterdienst absichtlich blockiert wird. Ein
+ * fehlgeschlagener `fetch` schreibt unvermeidlich in die Browserkonsole; das
+ * ist dann kein Mangel, sondern der geprueffte Fall selbst. Ohne diese Flagge
+ * muesste Pruefung 10 entweder Netzfehler generell durchwinken -- und damit
+ * ihren Zweck verlieren -- oder hier fehlschlagen.
+ */
+let netzfehlerErwartet = false;
 page.on('console', (msg) => {
-  if (msg.type() === 'error') konsolenfehler.push(msg.text());
+  if (msg.type() === 'error' && !netzfehlerErwartet) konsolenfehler.push(msg.text());
 });
 page.on('pageerror', (error) => konsolenfehler.push(String(error)));
 
@@ -222,7 +231,7 @@ pruefe(
 );
 
 // 18: Schnellwahl EDSH setzt die Platzhöhe und die Druckhöhe folgt
-await page.getByRole('button', { name: 'EDSH' }).click();
+await page.getByRole('button', { name: 'Platzhöhe von EDSH übernehmen' }).click();
 await page.waitForTimeout(150);
 const platzWert = await page.locator('#platzhoehe-wert').innerText();
 const platzFolge = await page.locator('#platzhoehe').locator('..').locator('.folge').innerText();
@@ -660,10 +669,14 @@ await page.setViewportSize({ width: 390, height: 844 });
 await page.waitForTimeout(250);
 const engeSicht = await page.evaluate(() => {
   const ueberbreit = document.documentElement.scrollWidth > window.innerWidth + 1;
-  const bedienbar = [...document.querySelectorAll('input, button')].every((element) => {
-    const kasten = element.getBoundingClientRect();
-    return kasten.width > 0 && kasten.left >= -1 && kasten.right <= window.innerWidth + 1;
-  });
+  // Nur was gerade zu sehen ist: Die Knöpfe im geschlossenen Dialog haben
+  // keine Ausdehnung und wären sonst ein Fehlalarm.
+  const bedienbar = [...document.querySelectorAll('input, button')]
+    .filter((element) => element.checkVisibility())
+    .every((element) => {
+      const kasten = element.getBoundingClientRect();
+      return kasten.width > 0 && kasten.left >= -1 && kasten.right <= window.innerWidth + 1;
+    });
   return { ueberbreit, bedienbar };
 });
 pruefe(
@@ -673,6 +686,218 @@ pruefe(
   JSON.stringify(engeSicht)
 );
 await page.setViewportSize({ width: 1024, height: 800 });
+
+
+/*
+  40 bis 55: der Luftdruckabruf für EDSH (Feature 025).
+
+  Der Dienst wird durchweg abgefangen. Ein Klickpfad, der wirklich ins Netz
+  griffe, wäre weder wiederholbar noch aussagekräftig: Er prüfte das Wetter
+  statt die Oberfläche, und er schlüge im Zug ohne Empfang fehl.
+*/
+const OPEN_METEO = 'https://api.open-meteo.com/**';
+
+async function antwortMit(rumpf, verzoegerungMs = 0) {
+  await page.unroute(OPEN_METEO).catch(() => {});
+  await page.route(OPEN_METEO, async (route) => {
+    if (verzoegerungMs > 0) await warte(verzoegerungMs);
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(rumpf) });
+  });
+}
+
+// 987,9 hPa in 971 ft ergeben einen QNH von 1023,3 — abgerundet 1023.
+const GUTE_ANTWORT = {
+  elevation: 296,
+  current: { time: '2026-08-11T08:00', surface_pressure: 987.9 }
+};
+
+const qnhKnopf = page.getByRole('button', { name: 'Luftdruck für EDSH abrufen' });
+
+// 40: der Knopf steht neben dem QNH-Regler
+pruefe(40, 'neben dem QNH-Regler steht ein Knopf „EDSH"', (await qnhKnopf.count()) === 1);
+
+// 41: der Klick öffnet einen Dialog, der aufklärt, statt den Wert zu setzen
+await antwortMit(GUTE_ANTWORT, 400);
+const qnhVorher = await page.locator('#qnh-wert').innerText();
+await qnhKnopf.click();
+const dialogText = await page.locator('dialog[open]').innerText();
+pruefe(
+  41,
+  'der Dialog klärt über Onlinedienst, Wettermodell und ATIS auf, ohne den Wert zu setzen',
+  /Onlinedienst/.test(dialogText) &&
+    /Wettermodell/.test(dialogText) &&
+    /keine Messung am Platz/.test(dialogText) &&
+    /ATIS/.test(dialogText) &&
+    (await page.locator('#qnh-wert').innerText()) === qnhVorher,
+  qnhVorher
+);
+
+// 42: die Namensnennung steht im Dialog, wie CC-BY es verlangt
+pruefe(42, 'der Dialog nennt Open-Meteo als Quelle', /Open-Meteo/.test(dialogText));
+
+// 43: während des Abrufs läuft eine Ladeanzeige und „Übernehmen" ist gesperrt
+const uebernehmen = page.getByRole('button', { name: 'Übernehmen', exact: true });
+pruefe(
+  43,
+  'während des Abrufs Ladeanzeige, „Übernehmen" gesperrt',
+  (await page.getByTestId('qnh-laedt').count()) === 1 && (await uebernehmen.isDisabled()),
+  dialogText.split('\n').at(-2) ?? ''
+);
+
+// 44: die Vorschau zeigt den ganzen Wert, den ungerundeten und die Gültigkeit
+await page.getByTestId('qnh-vorschau').waitFor({ timeout: 5000 });
+const vorschau = await page.locator('dialog[open] .ergebnis').innerText();
+pruefe(
+  44,
+  'die Vorschau zeigt 1023 hPa, den ungerundeten Wert und die Gültigkeitszeit',
+  new RegExp(`1023${NBSP}hPa`).test(vorschau) &&
+    /1023,3\d? hPa/.test(vorschau) &&
+    /gültig für/.test(vorschau),
+  vorschau.replaceAll('\n', ' | ')
+);
+
+// 45: „Übernehmen" setzt den Regler auf den ganzzahligen Wert
+await uebernehmen.click();
+await page.waitForTimeout(150);
+const qnhNachher = await page.locator('#qnh-wert').innerText();
+pruefe(
+  45,
+  '„Übernehmen" setzt den Regler auf 1023 hPa und schließt den Dialog',
+  new RegExp(`1023${NBSP}hPa`).test(qnhNachher) && (await page.locator('dialog[open]').count()) === 0,
+  qnhNachher
+);
+
+// 46: der Herkunftsvermerk steht unter dem Regler
+const herkunft = await page.getByTestId('qnh-herkunft').innerText();
+pruefe(
+  46,
+  'unter dem Regler stehen Dienst, Gültigkeitszeit und der unverbindliche Charakter',
+  /Open-Meteo/.test(herkunft) && /gültig für/.test(herkunft) && /unverbindlich/.test(herkunft),
+  herkunft
+);
+
+// 47: die Druckhöhe folgt dem übernommenen Wert
+const platzFolgeNachAbruf = await page
+  .locator('#platzhoehe')
+  .locator('..')
+  .locator('.folge')
+  .innerText();
+pruefe(
+  47,
+  'die Druckhöhe unter der Platzhöhe rechnet mit dem übernommenen QNH',
+  new RegExp(`@\\s*1023${NBSP}hPa`).test(platzFolgeNachAbruf),
+  platzFolgeNachAbruf
+);
+
+// 48: wer den Regler selbst bewegt, verliert den Vermerk
+await regler(page, 'Luftdruck QNH (hPa)', 1010);
+await page.waitForTimeout(150);
+pruefe(
+  48,
+  'eigenes Verstellen des Reglers löscht den Herkunftsvermerk',
+  (await page.getByTestId('qnh-herkunft').count()) === 0
+);
+
+// 49: „Abbrechen" lässt den Wert unberührt
+await qnhKnopf.click();
+await page.getByTestId('qnh-vorschau').waitFor({ timeout: 5000 });
+await page.getByRole('button', { name: 'Abbrechen' }).click();
+await page.waitForTimeout(150);
+pruefe(
+  49,
+  '„Abbrechen" verändert den Luftdruck nicht',
+  /1010/.test(await page.locator('#qnh-wert').innerText()) &&
+    (await page.getByTestId('qnh-herkunft').count()) === 0
+);
+
+// 50: Esc schließt den Dialog ebenso folgenlos
+await qnhKnopf.click();
+await page.getByTestId('qnh-vorschau').waitFor({ timeout: 5000 });
+await page.keyboard.press('Escape');
+await page.waitForTimeout(150);
+pruefe(
+  50,
+  'Esc schließt den Dialog, ohne den Luftdruck zu verändern',
+  (await page.locator('dialog[open]').count()) === 0 &&
+    /1010/.test(await page.locator('#qnh-wert').innerText())
+);
+
+// 51: ein Netzfehler führt zu einer Meldung und gesperrtem „Übernehmen"
+netzfehlerErwartet = true;
+await page.unroute(OPEN_METEO).catch(() => {});
+await page.route(OPEN_METEO, (route) => route.abort('failed'));
+await qnhKnopf.click();
+await page.getByTestId('qnh-fehler').waitFor({ timeout: 5000 });
+const fehlerText = await page.getByTestId('qnh-fehler').innerText();
+pruefe(
+  51,
+  'ein Netzfehler zeigt eine Meldung, sperrt „Übernehmen" und bietet „Erneut versuchen"',
+  fehlerText.length > 10 &&
+    (await uebernehmen.isDisabled()) &&
+    (await page.getByRole('button', { name: 'Erneut versuchen' }).count()) === 1,
+  fehlerText
+);
+
+// 52: „Erneut versuchen" holt den Wert nach, ohne den Dialog zu schließen
+await antwortMit(GUTE_ANTWORT);
+await page.getByRole('button', { name: 'Erneut versuchen' }).click();
+await page.getByTestId('qnh-vorschau').waitFor({ timeout: 5000 });
+pruefe(
+  52,
+  '„Erneut versuchen" holt den Wert nach, ohne den Dialog zu schließen',
+  (await page.locator('dialog[open]').count()) === 1 && !(await uebernehmen.isDisabled())
+);
+await page.getByRole('button', { name: 'Abbrechen' }).click();
+
+// 53: eine unbrauchbare Antwort sieht aus wie gar keine
+await antwortMit({ current: {} });
+await qnhKnopf.click();
+await page.getByTestId('qnh-fehler').waitFor({ timeout: 5000 });
+pruefe(
+  53,
+  'eine unbrauchbare Antwort führt zum selben Bild wie ein Netzfehler',
+  (await uebernehmen.isDisabled()) && (await page.getByTestId('qnh-fehler').count()) === 1
+);
+await page.getByRole('button', { name: 'Abbrechen' }).click();
+
+// 54: ein Wert außerhalb des Reglerbereichs lässt sich nicht übernehmen
+// 700 hPa in 971 ft ergeben einen QNH weit unter 950.
+await antwortMit({ elevation: 296, current: { time: '2026-08-11T08:00', surface_pressure: 700 } });
+await qnhKnopf.click();
+await page.getByTestId('qnh-ausserhalb').waitFor({ timeout: 5000 });
+pruefe(
+  54,
+  'ein Wert außerhalb des Reglerbereichs wird angezeigt, aber nicht übernehmbar',
+  await uebernehmen.isDisabled(),
+  await page.getByTestId('qnh-ausserhalb').innerText()
+);
+await page.getByRole('button', { name: 'Abbrechen' }).click();
+await page.unroute(OPEN_METEO).catch(() => {});
+
+// 55: die wichtigste Prüfung — ohne Netz bleibt die Seite vollständig nutzbar,
+// und beim Laden geht keine einzige Anfrage an den Dienst hinaus (FR-017).
+const fremdanfragen = [];
+page.on('request', (anfrage) => {
+  if (anfrage.url().includes('open-meteo.com')) fremdanfragen.push(anfrage.url());
+});
+await page.route('**://*.open-meteo.com/**', (route) => route.abort('failed'));
+await page.goto(BASE, { waitUntil: 'networkidle' });
+await fuellen(page, { dep: 971, cruise: 6000, dist: 200, power: 70, isa: 10, wind: 5 });
+const ohneNetz = {
+  anfragenBeimLaden: fremdanfragen.length,
+  bedarf: await page.locator('#bedarf').innerText(),
+  startstrecke: await page.locator('#startstrecke').innerText()
+};
+pruefe(
+  55,
+  'ohne erreichbaren Wetterdienst arbeitet die Seite vollständig, und beim Laden geht keine Anfrage hinaus',
+  ohneNetz.anfragenBeimLaden === 0 &&
+    /\d/.test(ohneNetz.bedarf) &&
+    /\d/.test(ohneNetz.startstrecke),
+  `Anfragen beim Laden: ${ohneNetz.anfragenBeimLaden}`
+);
+await page.unroute('**://*.open-meteo.com/**').catch(() => {});
+netzfehlerErwartet = false;
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 

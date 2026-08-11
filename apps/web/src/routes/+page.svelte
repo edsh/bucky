@@ -12,6 +12,7 @@
     formatNauticalMiles,
     formatPercent,
     getFuelPlanInputDomain,
+    getTakeoffInputDomain,
     toOutsideAirTemperature,
     toPressureAltitude,
     type CruiseCapability,
@@ -22,8 +23,9 @@
   import CruiseCapabilityView from '$lib/components/CruiseCapability.svelte';
   import FuelResult from '$lib/components/FuelResult.svelte';
   import PowerLever from '$lib/components/PowerLever.svelte';
-  import QnhAbrufDialog from '$lib/components/QnhAbrufDialog.svelte';
-  import RangeField from '$lib/components/RangeField.svelte';
+  import WetterAbrufDialog, {
+    type Uebernahmewerte
+  } from '$lib/components/WetterAbrufDialog.svelte';  import RangeField from '$lib/components/RangeField.svelte';
   import TakeoffDistance from '$lib/components/TakeoffDistance.svelte';
 
   /**
@@ -41,38 +43,70 @@
   let qnhHpa = $state(1013);
 
   /**
-   * Woher der Luftdruck stammt, sofern er aus dem Onlinedienst kam. Der
-   * Vermerk gehört zum Wert, nicht zum Dialog: Ein von Hand verstellter Wert
-   * hat keine Herkunft mehr (FR-009).
+   * Woher die drei Wetterwerte stammen, sofern sie aus dem Onlinedienst kamen.
+   * Der Vermerk gehört zum **Wert**, nicht zum Dialog: Ein von Hand
+   * verstellter Wert hat keine Herkunft mehr (FR-015). Deshalb drei getrennte
+   * Vermerke und nicht einer für den ganzen Abruf — wer den Pistenwind
+   * nachjustiert, hat den Luftdruck deswegen nicht selbst gesetzt.
    */
-  let qnhHerkunft = $state<{ dienst: string; gueltigkeit: string } | undefined>(undefined);
+  type Herkunft = { dienst: string; gueltigkeit: string } | undefined;
 
-  let qnhDialog: ReturnType<typeof QnhAbrufDialog> | undefined = $state();
+  let qnhHerkunft = $state<Herkunft>(undefined);
+  let isaHerkunft = $state<Herkunft>(undefined);
+  let pistenwindHerkunft = $state<Herkunft>(undefined);
+
+  let wetterDialog: ReturnType<typeof WetterAbrufDialog> | undefined = $state();
 
   /**
-   * Übernimmt den abgerufenen Wert. Der einzige Weg, auf dem der Dialog eine
-   * Eingabe verändert (FR-016) — Abbrechen, Fehlschlag und Schließen bleiben
+   * Übernimmt die abgerufenen Werte. Der einzige Weg, auf dem der Dialog eine
+   * Eingabe verändert (W-03) — Abbrechen, Fehlschlag und Schließen bleiben
    * folgenlos.
+   *
+   * Eine **nicht enthaltene** Größe lässt Regler und bisherigen Vermerk
+   * unangetastet (W-09): Abwählen ist kein Zurücksetzen. Wer den Luftdruck
+   * beim zweiten Abruf abwählt, will den ersten behalten, nicht löschen.
    */
-  function qnhUebernehmen(
-    wert: number,
+  function wetterUebernehmen(
+    werte: Uebernahmewerte,
     herkunft: { dienst: string; gueltigkeit: string }
   ): void {
-    qnhHpa = wert;
-    qnhHerkunft = herkunft;
+    if (werte.qnhHpa !== undefined) {
+      qnhHpa = werte.qnhHpa;
+      qnhHerkunft = herkunft;
+    }
+    if (werte.isaDeviationC !== undefined) {
+      isaDeviationC = werte.isaDeviationC;
+      isaHerkunft = herkunft;
+    }
+    if (werte.runwayWindComponentKt !== undefined) {
+      runwayWindComponentKt = werte.runwayWindComponentKt;
+      pistenwindHerkunft = herkunft;
+    }
   }
 
   /**
-   * Jede andere Änderung am Regler löscht den Vermerk. Bewusst als Wächter am
-   * Ereignis und nicht als $effect auf `qnhHpa`: Ein Effekt liefe auch beim
-   * Übernehmen und löschte den Vermerk im selben Atemzug, in dem er entsteht.
+   * Jede andere Änderung am Regler löscht **dessen** Vermerk. Bewusst als
+   * Wächter am Ereignis und nicht als $effect auf dem Wert: Ein Effekt liefe
+   * auch beim Übernehmen und löschte den Vermerk im selben Atemzug, in dem er
+   * entsteht.
+   *
+   * Drei Wächter statt einem, aus demselben Grund wie drei Vermerke: Der
+   * Pistenwind hat nichts mit dem Luftdruck zu tun.
    */
   function qnhVonHand(): void {
     qnhHerkunft = undefined;
   }
 
+  function isaVonHand(): void {
+    isaHerkunft = undefined;
+  }
+
+  function pistenwindVonHand(): void {
+    pistenwindHerkunft = undefined;
+  }
+
   /** Gültigkeitszeitpunkt in Ortszeit — dieselbe Schreibweise wie im Dialog. */
-  function qnhZeit(iso: string): string {
+  function herkunftZeit(iso: string): string {
     return new Date(iso.endsWith('Z') ? iso : `${iso}Z`).toLocaleString('de-DE', {
       day: '2-digit',
       month: '2-digit',
@@ -325,14 +359,19 @@
           {#snippet neben()}
             <!--
               Anders als die Schnellwahl der Platzhöhe setzt dieser Knopf den
-              Wert nicht sofort: Der Luftdruck ist ein fremder, veränderlicher
-              Modellwert und braucht eine Bestätigung (FR-002).
+              Wert nicht sofort: Die Wetterwerte sind fremde, veränderliche
+              Modellwerte und brauchen eine Bestätigung.
+
+              Er bleibt der einzige Einstieg, obwohl der Dialog seit Feature 027
+              drei Regler bedient. Ein zweiter Knopf am ISA- oder Pistenwind-
+              regler wäre ein zweiter Weg zu demselben Abruf und versprächen eine
+              Auswahl, die es erst im Dialog gibt.
             -->
             <button
               type="button"
               class="schnellwahl"
-              aria-label="Luftdruck für EDSH abrufen"
-              onclick={() => qnhDialog?.oeffnen()}
+              aria-label="Wetterwerte für EDSH abrufen"
+              onclick={() => wetterDialog?.oeffnen()}
             >
               EDSH
             </button>
@@ -340,7 +379,7 @@
           {#snippet folge()}
             {#if qnhHerkunft}
               <span data-testid="qnh-herkunft">
-                aus {qnhHerkunft.dienst}, gültig für {qnhZeit(qnhHerkunft.gueltigkeit)} Uhr —
+                aus {qnhHerkunft.dienst}, gültig für {herkunftZeit(qnhHerkunft.gueltigkeit)} Uhr —
                 unverbindlich
               </span>
             {/if}
@@ -365,7 +404,17 @@
           range={domain.isaDeviationC}
           bind:value={isaDeviationC}
           format={formatCelsius}
-        />
+          bedient={isaVonHand}
+        >
+          {#snippet folge()}
+            {#if isaHerkunft}
+              <span data-testid="isa-herkunft">
+                aus {isaHerkunft.dienst}, gültig für {herkunftZeit(isaHerkunft.gueltigkeit)} Uhr —
+                unverbindlich
+              </span>
+            {/if}
+          {/snippet}
+        </RangeField>
       </div>
 
       <!--
@@ -378,10 +427,12 @@
         Feldblocks: Als <dialog> wird er ohnehin über der Seite dargestellt,
         seine Stelle im Baum wirkt sich nicht auf die Anordnung aus.
       -->
-      <QnhAbrufDialog
-        bind:this={qnhDialog}
-        bereich={domain.qnhHpa}
-        uebernehmen={qnhUebernehmen}
+      <WetterAbrufDialog
+        bind:this={wetterDialog}
+        qnhBereich={domain.qnhHpa}
+        isaBereich={domain.isaDeviationC}
+        pistenwindBereich={getTakeoffInputDomain().windComponentKt}
+        uebernehmen={wetterUebernehmen}
       />
 
       <PowerLever
@@ -454,6 +505,10 @@
         bind:dryGrass={dryGrassRunway}
         bind:wetOrSnow={wetOrSnowRunway}
         bind:windComponentKt={runwayWindComponentKt}
+        windHerkunft={pistenwindHerkunft
+          ? `aus ${pistenwindHerkunft.dienst}, gültig für ${herkunftZeit(pistenwindHerkunft.gueltigkeit)} Uhr — unverbindlich`
+          : undefined}
+        windBedient={pistenwindVonHand}
       />
     </section>
 

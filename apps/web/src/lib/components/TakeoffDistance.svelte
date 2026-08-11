@@ -32,13 +32,23 @@
     fehler,
     dryGrass = $bindable(),
     wetOrSnow = $bindable(),
-    windComponentKt = $bindable()
+    windComponentKt = $bindable(),
+    windHerkunft,
+    windBedient
   }: {
     result?: TakeoffDistanceResult;
     fehler?: string;
     dryGrass: boolean;
     wetOrSnow: boolean;
     windComponentKt: number;
+    /**
+     * Woher der Pistenwind stammt, falls aus dem Wetterabruf. Kommt von außen
+     * und wird hier nicht erfunden: Der Abruf gehört zur Seite, die den Dialog
+     * trägt — diese Komponente kennt weder Dienst noch Gültigkeitszeit.
+     */
+    windHerkunft?: string;
+    /** Meldet, dass der Pilot den Regler selbst bewegt hat (FR-015). */
+    windBedient?: () => void;
   } = $props();
 
   /**
@@ -139,7 +149,14 @@
       range={pistenwindBereich}
       bind:value={windComponentKt}
       format={formatKnots}
-    />
+      bedient={windBedient}
+    >
+      {#snippet folge()}
+        {#if windHerkunft}
+          <span data-testid="pistenwind-herkunft">{windHerkunft}</span>
+        {/if}
+      {/snippet}
+    </RangeField>
   </div>
 
   {#if fehler}

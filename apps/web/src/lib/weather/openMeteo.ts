@@ -34,6 +34,22 @@ export interface WetterAbruf {
    * Messstation am Platz (research.md R3, R5).
    */
   readonly gueltigkeit: string;
+  /**
+   * `temperature_2m` in °C, sofern der Dienst sie geliefert hat. Optional,
+   * weil eine fehlende Temperatur den Abruf nicht wertlos macht: Der QNH
+   * kommt trotzdem an (FR-016).
+   */
+  readonly temperatureC?: number;
+  /**
+   * Wind in 10 m über Grund, sofern **beides** vorliegt. Richtung und
+   * Geschwindigkeit stehen zusammen in einem Feld, weil eine Richtung ohne
+   * Geschwindigkeit — und umgekehrt — keine Pistenwindkomponente ergibt; zwei
+   * getrennte optionale Felder machten einen halb belegten Zustand
+   * darstellbar, den es fachlich nicht gibt.
+   *
+   * `fromDegTrue` ist die Richtung, **aus** der es weht, rechtweisend.
+   */
+  readonly wind?: { readonly fromDegTrue: number; readonly speedKt: number };
   /** Name und Verweis des Dienstes für die Namensnennung. */
   readonly dienst: typeof DIENST;
 }
@@ -53,10 +69,19 @@ export function baueAnfrage(platz: EdshPlatz = EDSH): URL {
   url.searchParams.set('latitude', String(platz.latitude));
   url.searchParams.set('longitude', String(platz.longitude));
   url.searchParams.set('elevation', String(elevationM(platz)));
-  // Nur der Stationsdruck. Temperatur und Wind werden gar nicht erst
-  // angefordert: Was nicht ankommt, kann auch nicht versehentlich verwendet
-  // werden, bevor die fachlichen Fragen dazu entschieden sind.
-  url.searchParams.set('current', 'surface_pressure');
+  // Vier Größen in einer Anfrage: Der Dienst liefert sie in derselben Antwort
+  // und damit zum selben Gültigkeitszeitpunkt — ein zweiter Abruf könnte eine
+  // andere Modellstunde erwischen und Werte mischen, die nicht zusammengehören.
+  url.searchParams.set(
+    'current',
+    'surface_pressure,temperature_2m,wind_speed_10m,wind_direction_10m'
+  );
+  // Die Einheit wird **angefordert**, nicht hinterher umgerechnet. Eine eigene
+  // Umrechnung km/h → kt wäre eine Rechnung im Adapter (Prinzip IV) und
+  // zugleich eine stille Fehlerquelle: Bliebe das Feld einmal auf km/h stehen,
+  // sähe eine Zahl wie 22 weiterhin wie ein plausibler Wind aus. Kommt die
+  // Einheit falsch zurück, fällt der Wind stattdessen weg (research.md R7).
+  url.searchParams.set('wind_speed_unit', 'kn');
   url.searchParams.set('timezone', 'UTC');
   return url;
 }
@@ -94,8 +119,15 @@ export function deuteAntwort(rohdaten: unknown): WetterAbruf {
     throw new WetterAbrufFehler('Die Antwort des Wetterdienstes ist unbrauchbar.');
   }
 
-  const { current, elevation } = rohdaten as {
-    current?: { surface_pressure?: unknown; time?: unknown };
+  const { current, current_units: einheiten, elevation } = rohdaten as {
+    current?: {
+      surface_pressure?: unknown;
+      time?: unknown;
+      temperature_2m?: unknown;
+      wind_speed_10m?: unknown;
+      wind_direction_10m?: unknown;
+    };
+    current_units?: { wind_speed_10m?: unknown };
     elevation?: unknown;
   };
 
@@ -122,10 +154,35 @@ export function deuteAntwort(rohdaten: unknown): WetterAbruf {
     );
   }
 
+  // Ab hier gilt die umgekehrte Regel: Temperatur und Wind sind **Beiwerk**.
+  // Fehlen sie oder sind sie nicht deutbar, fallen sie still weg, statt den
+  // ganzen Abruf zu Fall zu bringen (FR-016). Der Pilot bekommt dann eben nur
+  // den QNH — das ist mehr als nichts und genau das, was die Oberfläche mit
+  // einer weggelassenen Zeile abbildet.
+  const temperatur = current.temperature_2m;
+  const temperatureC = istEndlicheZahl(temperatur) ? temperatur : undefined;
+
+  const windRichtung = current.wind_direction_10m;
+  const windGeschwindigkeit = current.wind_speed_10m;
+  // Die Einheit wird gegengeprüft, obwohl sie angefordert wurde. Ohne diese
+  // Prüfung machte ein stillschweigend auf km/h zurückgefallener Dienst aus
+  // 22 km/h einen Wind von 22 kt — mehr als das Doppelte, und die Zahl sähe
+  // dabei völlig unverdächtig aus.
+  const einheitStimmt = einheiten?.wind_speed_10m === 'kn';
+  const wind =
+    einheitStimmt &&
+    istEndlicheZahl(windRichtung) &&
+    istEndlicheZahl(windGeschwindigkeit) &&
+    windGeschwindigkeit >= 0
+      ? { fromDegTrue: windRichtung, speedKt: windGeschwindigkeit }
+      : undefined;
+
   return {
     stationPressureHpa: druck,
     elevationM: elevation,
     gueltigkeit: zeit,
+    ...(temperatureC === undefined ? {} : { temperatureC }),
+    ...(wind === undefined ? {} : { wind }),
     dienst: DIENST
   };
 }

@@ -1,4 +1,6 @@
 import type { StandardSourceReference } from '../types.js';
+import { PohCalculationError } from '../errors.js';
+import { roundCelsius } from '../format.js';
 import {
   ICAO_STANDARD_ATMOSPHERE_SOURCE,
   LAPSE_RATE_K_PER_FT,
@@ -64,4 +66,69 @@ export function toOutsideAirTemperature(
     standardTemperatureC,
     outsideAirTemperatureC: standardTemperatureC + isaDeviationC
   };
+}
+
+/** Ergebnis der Umkehrung, mit den Eingangsgrößen zum Nachvollziehen. */
+export interface IsaDeviationResult {
+  /** Die Druckhöhe, auf die sich die Temperatur bezieht, in ft. */
+  readonly pressureAltitudeFt: number;
+  /** Die gemessene Umgebungstemperatur in °C. */
+  readonly outsideAirTemperatureC: number;
+  /** Die Normtemperatur in dieser Druckhöhe in °C, ungerundet. */
+  readonly standardTemperatureC: number;
+  /** Temperatur minus Normtemperatur in °C, ungerundet. */
+  readonly isaDeviationC: number;
+  /**
+   * Derselbe Wert auf ganze °C gerundet — der einzige, den der Regler der
+   * Oberfläche annehmen kann. Ein Rechen-, kein Anzeigewert.
+   *
+   * Gerundet wird in `format.ts` und nur dort (C-03); die Begründung für das
+   * kaufmännische statt gerichtete Runden steht bei `roundCelsius`.
+   */
+  readonly settableIsaDeviationC: number;
+}
+
+/**
+ * Die Umkehrung von `toOutsideAirTemperature`: aus einer gemessenen Temperatur
+ * und der Druckhöhe, in der sie gilt, die Abweichung von der Standardatmosphäre.
+ *
+ *     ΔISA = OAT − (T₀ − L·h)
+ *
+ * Steht bewusst in derselben Datei wie die Hinrichtung und verwendet dieselben
+ * Konstanten: Eine zweite Normtemperatur darf es nicht geben (Prinzip IV). Ein
+ * Rundlauftest hält beide Richtungen gegeneinander.
+ *
+ * Gebraucht wird sie, weil die Oberfläche keinen Temperaturregler führt,
+ * sondern einen für die Abweichung — ein Wetterdienst liefert aber eine
+ * absolute Temperatur.
+ *
+ * Prüft den Reglerbereich **nicht**, so wie `toQnh` den QNH-Bereich nicht
+ * prüft. Rundet nicht selbst (C-03).
+ */
+export function toIsaDeviation(
+  pressureAltitudeFt: number,
+  outsideAirTemperatureC: number
+): IsaDeviationResult {
+  requireFiniteNumber(pressureAltitudeFt, 'pressureAltitudeFt');
+  requireFiniteNumber(outsideAirTemperatureC, 'outsideAirTemperatureC');
+
+  const standardTemperatureC = T0_C - LAPSE_RATE_K_PER_FT * pressureAltitudeFt;
+  const isaDeviationC = outsideAirTemperatureC - standardTemperatureC;
+
+  return {
+    pressureAltitudeFt,
+    outsideAirTemperatureC,
+    standardTemperatureC,
+    isaDeviationC,
+    settableIsaDeviationC: roundCelsius(isaDeviationC)
+  };
+}
+
+function requireFiniteNumber(value: number, field: string): void {
+  if (!Number.isFinite(value)) {
+    throw new PohCalculationError('INVALID_INPUT', 'Der Wert ist keine gültige Zahl.', {
+      field,
+      actual: value
+    });
+  }
 }

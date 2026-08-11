@@ -355,3 +355,35 @@ describe('C-08: Druckhöhe und QNH laufen nicht auseinander', () => {
     ]);
   });
 });
+
+describe('C-09: kein Adapter zerlegt den Wind selbst', () => {
+  /**
+   * Die Zerlegung in Längs- und Querkomponente ist drei Zeilen lang und genau
+   * deshalb gefährlich: kurz genug, dass man sie beim nächsten Umbau „schnell"
+   * im Dialog erledigt. Ein Vorzeichenfehler dort machte aus Gegenwind
+   * Rückenwind — der Wert sähe weiterhin plausibel aus, die Startstrecke wäre
+   * zu kurz gerechnet. Diese Prüfung ist die mechanische Antwort darauf.
+   */
+  const adapterDateien = [join(repoRoot, 'apps/web/src'), join(repoRoot, 'apps/mcp/src')].flatMap(
+    (directory) => sourceFiles(directory, ['.ts', '.svelte'])
+  );
+
+  const verdacht = [/Math\.cos\b/, /Math\.sin\b/, /Math\.atan2\b/, /Math\.PI\b/];
+
+  it.each(adapterDateien)('%s enthält keine Trigonometrie', (path) => {
+    const source = read(path);
+    for (const muster of verdacht) {
+      expect(source, `${relative(repoRoot, path)} verstößt gegen C-09`).not.toMatch(muster);
+    }
+  });
+
+  it('die Zerlegung steht genau einmal im Kern', () => {
+    const mitZerlegung = sourceFiles(coreSrc, ['.ts']).filter((path) =>
+      /export function toRunwayWindComponent\b/.test(read(path))
+    );
+
+    expect(mitZerlegung.map((path) => relative(repoRoot, path))).toStrictEqual([
+      'packages/deelk-poh-core/src/wind/runwayComponent.ts'
+    ]);
+  });
+});

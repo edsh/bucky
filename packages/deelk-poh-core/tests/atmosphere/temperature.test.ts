@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { toOutsideAirTemperature } from '../../src/atmosphere/temperature.js';
+import { toIsaDeviation, toOutsideAirTemperature } from '../../src/atmosphere/temperature.js';
+import { PohCalculationError } from '../../src/errors.js';
 import { ICAO_STANDARD_ATMOSPHERE_SOURCE } from '../../src/atmosphere/pressureAltitude.js';
 
 describe('toOutsideAirTemperature', () => {
@@ -49,5 +50,90 @@ describe('toOutsideAirTemperature', () => {
     // anzugeben wäre erfunden (Prinzip I).
     expect(ICAO_STANDARD_ATMOSPHERE_SOURCE.kind).toBe('standard');
     expect(ICAO_STANDARD_ATMOSPHERE_SOURCE).not.toHaveProperty('pohPages');
+  });
+});
+
+describe('toIsaDeviation', () => {
+  it('gibt auf Meereshöhe bei 15 °C keine Abweichung', () => {
+    const result = toIsaDeviation(0, 15);
+
+    expect(result.standardTemperatureC).toBeCloseTo(15, 10);
+    expect(result.isaDeviationC).toBeCloseTo(0, 10);
+    expect(result.settableIsaDeviationC).toBe(0);
+  });
+
+  it('rechnet die Druckhöhe von EDSH mit 29,2 °C auf gut 15,6 °C über ISA', () => {
+    // Der Fall aus den Prüfdaten von Feature 027: 987,9 hPa in 971 ft ergeben
+    // eine Druckhöhe von 699,44 ft, dort sind 13,61 °C die Norm.
+    const result = toIsaDeviation(699.4393154069325, 29.2);
+
+    expect(result.standardTemperatureC).toBeCloseTo(13.614270828, 8);
+    expect(result.isaDeviationC).toBeCloseTo(15.585729172, 8);
+    expect(result.settableIsaDeviationC).toBe(16);
+  });
+
+  it('rundet kaufmännisch und nicht in eine Richtung', () => {
+    // Anders als beim QNH gibt es hier keine sichere Richtung: nach oben
+    // verlängert sich die Startstrecke, nach unten schönt sich die
+    // Reiseleistung.
+    expect(toIsaDeviation(0, 15.5).settableIsaDeviationC).toBe(1);
+    expect(toIsaDeviation(0, 14.4).settableIsaDeviationC).toBe(-1);
+  });
+
+  it('reicht die Eingangsgrößen zum Nachvollziehen durch', () => {
+    const result = toIsaDeviation(5000, 12);
+
+    expect(result.pressureAltitudeFt).toBe(5000);
+    expect(result.outsideAirTemperatureC).toBe(12);
+  });
+
+  it('prüft den Reglerbereich nicht, damit sie auch zur Anzeige taugt', () => {
+    // 90 °C über ISA ist kein Wetter, aber die Herleitung urteilt darüber
+    // nicht — das entscheidet die Oberfläche am Reglerbereich.
+    expect(() => toIsaDeviation(0, 105)).not.toThrow();
+    expect(toIsaDeviation(0, 105).isaDeviationC).toBeCloseTo(90, 10);
+  });
+
+  it.each([
+    ['pressureAltitudeFt', Number.NaN, 15],
+    ['outsideAirTemperatureC', 0, Number.POSITIVE_INFINITY]
+  ] as const)('weist eine nicht endliche Zahl in %s zurück', (feld, hoehe, temperatur) => {
+    expect(() => toIsaDeviation(hoehe, temperatur)).toThrowError(PohCalculationError);
+
+    try {
+      toIsaDeviation(hoehe, temperatur);
+    } catch (fehler) {
+      expect((fehler as PohCalculationError).kind).toBe('INVALID_INPUT');
+      expect((fehler as PohCalculationError).field).toBe(feld);
+    }
+  });
+});
+
+describe('Rundlauf zwischen ISA-Abweichung und Umgebungstemperatur', () => {
+  /**
+   * Dieselbe Bauart wie C-08 für Druckhöhe und QNH, und aus demselben Grund:
+   * Die Probe kommt ohne eine zweite, selbst gerechnete Erwartung aus. Zwei
+   * Richtungen derselben Beziehung, die auseinanderlaufen, fallen hier auf —
+   * bei einem Vergleich gegen von Hand gerechnete Werte nicht unbedingt, weil
+   * dieselbe falsche Konstante in beide einginge.
+   */
+  it('läuft über den ganzen Regler- und Höhenbereich auf neun Stellen zurück', () => {
+    let geprueft = 0;
+
+    for (const pressureAltitudeFt of [-1000, 0, 699.4393154069325, 2500, 5000, 8000, 12000]) {
+      for (const isaDeviationC of [-30, -12, 0, 7, 15.5, 40]) {
+        const hin = toOutsideAirTemperature(pressureAltitudeFt, isaDeviationC);
+        const zurueck = toIsaDeviation(pressureAltitudeFt, hin.outsideAirTemperatureC);
+
+        expect(
+          zurueck.isaDeviationC,
+          `${pressureAltitudeFt} ft / ${isaDeviationC} °C läuft nicht zurück`
+        ).toBeCloseTo(isaDeviationC, 9);
+        expect(zurueck.standardTemperatureC).toBeCloseTo(hin.standardTemperatureC, 12);
+        geprueft += 1;
+      }
+    }
+
+    expect(geprueft).toBe(42);
   });
 });

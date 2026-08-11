@@ -149,20 +149,43 @@ Die Schnellwahl **EDSH** setzt neben der Platzhöhe von 971 ft auch den Schalter
 für trockenes Gras: Der Heimatplatz hat eine Graspiste. Der Schalter bleibt
 danach frei wählbar und wird beim Verstellen der Platzhöhe nicht zurückgesetzt.
 
-### Luftdruck aus dem Netz
+### Wetterwerte aus dem Netz
 
-Neben dem QNH-Regler steht ein zweiter Knopf **EDSH**. Er setzt den Wert
-allerdings nicht sofort, sondern öffnet einen Dialog: Der Luftdruck wird bei
-Open-Meteo abgerufen, zur Ansicht gezeigt und erst auf „Übernehmen" gesetzt.
+Neben dem QNH-Regler steht ein zweiter Knopf **EDSH**. Er setzt keinen Wert
+sofort, sondern öffnet einen Dialog: Bei Open-Meteo werden in **einer** Anfrage
+Luftdruck, Temperatur und Wind für den Platz geholt und daraus drei Vorschläge
+gebildet.
 
-Der Unterschied zur Platzhöhe ist beabsichtigt. Die Platzhöhe ist eine feste
-Eigenschaft des Platzes; der Luftdruck ist ein **Rechenwert aus dem
-Wettermodell ICON-D2**, keine Messung am Platz. Er ist eine Bequemlichkeit und
-ersetzt das ATIS nicht — der Dialog sagt das, und nach der Übernahme bleibt die
-Herkunft unter dem Regler stehen, bis der Wert von Hand verstellt wird.
+| Zeile im Dialog | Woraus sie entsteht |
+|---|---|
+| Luftdruck QNH | Stationsdruck, auf die Platzhöhe von 971 ft bezogen |
+| ISA-Abweichung | Platztemperatur gegen die Normtemperatur in der Druckhöhe |
+| Pistenwind | Wind, zerlegt gegen die gewählte Bahn 10 oder 28 |
+
+Jede Zeile hat ein Kästchen; „Übernehmen" setzt **nur** die angehakten Regler.
+Was fehlt oder außerhalb eines Reglerbereichs liegt, sperrt seine eigene Zeile
+und nicht den ganzen Abruf. Über den Zeilen steht die Bahnwahl: Vorausgewählt
+ist die Bahn mit Gegenwind, ein Wechsel rechnet allein den Pistenwind neu und
+löst keine zweite Anfrage aus.
+
+Der Unterschied zur Schnellwahl der Platzhöhe ist beabsichtigt. Die Platzhöhe
+ist eine feste Eigenschaft des Platzes; die Wetterwerte sind **Rechenwerte aus
+dem Wettermodell ICON-D2**, keine Messung am Platz. Sie sind eine
+Bequemlichkeit und ersetzen das ATIS nicht — der Dialog sagt das, und nach der
+Übernahme bleibt die Herkunft unter jedem Regler stehen, bis genau dieser Wert
+von Hand verstellt wird.
 
 Der Abruf geschieht ausschließlich auf Knopfdruck. Ohne Netz bleibt die Seite
 vollständig bedienbar; beim Laden geht keine Anfrage nach außen.
+
+**Der Fallstrick beim Pistenwind**: Die Bahnkennungen 10 und 28 sind
+*missweisend* und auf zehn Grad gerundet, die Windrichtung des Wetterdienstes
+ist *rechtweisend*. Gerechnet wird deshalb mit **103°** und **283°** — den
+rechtweisenden Richtungen derselben Bahn. Wer stattdessen die Kennung mal zehn
+nähme, verrechnete sich um die Ortsmissweisung von rund 3°: bei 20 kt etwa
+einen Knoten. Unauffällig, aber falsch. Die Zerlegung selbst steht im
+Rechenkern, nicht in der Oberfläche; ein Prüflauf stellt sicher, dass keine
+Adapterdatei eine Winkelfunktion enthält.
 
 ## Veröffentlichte Oberfläche
 

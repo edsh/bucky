@@ -49,3 +49,41 @@ const M_PER_FT = 0.3048;
 export function elevationM(platz: EdshPlatz = EDSH): number {
   return roundTo(platz.elevationFt * M_PER_FT, 0);
 }
+
+/** Eine der beiden Betriebsrichtungen der Graspiste. */
+export interface EdshRunway {
+  /** Die Kennung, wie sie auf der Bahn steht — **missweisend** und gerundet. */
+  readonly ident: '10' | '28';
+  /** Die Richtung derselben Bahn **rechtweisend**, in Grad. */
+  readonly bearingDegTrue: number;
+}
+
+/**
+ * Die beiden Bahnrichtungen von EDSH.
+ *
+ * **Der Fallstrick, den dieser Kommentar verhindern soll**: Die Kennungen 10
+ * und 28 sind *missweisend* und auf zehn Grad gerundet. Die Windrichtung, die
+ * der Wetterdienst liefert, ist *rechtweisend*. Wer die Kennung mal zehn nimmt
+ * und gegen diese Windrichtung rechnet, verrechnet sich um die Ortsmissweisung
+ * — bei 20 kt rund einen Knoten. Unauffällig, aber falsch. Deshalb stehen hier
+ * die rechtweisenden Werte, und `bearingDegTrue` heißt so, wie es heißt.
+ *
+ * **Quelle**: OurAirports `runways.csv`, Datensatz zu EDSH:
+ * `…,"EDSH",1640,98,"Grass",0,0,"10",…,103,,"28",…,283,` — also 103° und 283°
+ * rechtweisend (siehe research.md R2). OurAirports ist keine amtliche Quelle;
+ * die Zahl ist deshalb doppelt gegengeprüft:
+ *
+ * 1. **Bahnmaße**: 1640 × 98 ft sind 500 × 30 m und stimmen mit der AIP VFR
+ *    überein. Der Datensatz beschreibt also denselben Platz.
+ * 2. **Missweisung**: 103° − 3° ≈ 100° und 283° − 3° ≈ 280°; die
+ *    Ortsmissweisung im Raum Stuttgart liegt bei rund 3° Ost. Die
+ *    rechtweisenden Werte passen also genau zu den Kennungen 10 und 28.
+ *
+ * Eine verbindliche Betriebsrichtung gibt es in Heiningen nicht — sie richtet
+ * sich nach dem Wind. Deshalb führt diese Liste beide Richtungen gleichrangig,
+ * statt eine als „die" Bahn auszuzeichnen.
+ */
+export const RUNWAYS: readonly EdshRunway[] = [
+  { ident: '10', bearingDegTrue: 103 },
+  { ident: '28', bearingDegTrue: 283 }
+];

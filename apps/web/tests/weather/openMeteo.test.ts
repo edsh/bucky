@@ -27,8 +27,20 @@ describe('baueAnfrage', () => {
     expect(url.searchParams.get('elevation')).toBe('296');
   });
 
-  it('fordert den Stationsdruck an und sonst nichts', () => {
-    expect(url.searchParams.get('current')).toBe('surface_pressure');
+  it('fordert alle vier Größen in einer Anfrage an', () => {
+    // In einer Anfrage und nicht in zweien: So gelten sie für denselben
+    // Zeitpunkt. Zwei Abrufe könnten verschiedene Modellstunden erwischen und
+    // Werte mischen, die nicht zusammengehören.
+    expect(url.searchParams.get('current')).toBe(
+      'surface_pressure,temperature_2m,wind_speed_10m,wind_direction_10m'
+    );
+  });
+
+  it('fordert den Wind in Knoten an, statt ihn umzurechnen', () => {
+    // Eine eigene Umrechnung km/h → kt wäre eine Rechnung im Adapter und
+    // zugleich eine stille Fehlerquelle: 22 sähe in beiden Einheiten
+    // plausibel aus.
+    expect(url.searchParams.get('wind_speed_unit')).toBe('kn');
   });
 
   it('fordert pressure_msl nirgends an', () => {
@@ -45,7 +57,14 @@ describe('baueAnfrage', () => {
 describe('deuteAntwort', () => {
   const gute = {
     elevation: 296,
-    current: { time: '2026-08-11T08:00', surface_pressure: 987.9 }
+    current: {
+      time: '2026-08-11T08:00',
+      surface_pressure: 987.9,
+      temperature_2m: 29.2,
+      wind_speed_10m: 12,
+      wind_direction_10m: 250
+    },
+    current_units: { wind_speed_10m: 'kn' }
   };
 
   it('übernimmt die drei Größen, die gebraucht werden', () => {
@@ -93,5 +112,78 @@ describe('deuteAntwort', () => {
         deuteAntwort({ ...gute, current: { ...gute.current, surface_pressure: druck } })
       ).not.toThrow();
     }
+  });
+});
+
+describe('deuteAntwort: Temperatur und Wind sind Beiwerk', () => {
+  const gute = {
+    elevation: 296,
+    current: {
+      time: '2026-08-11T08:00',
+      surface_pressure: 987.9,
+      temperature_2m: 29.2,
+      wind_speed_10m: 12,
+      wind_direction_10m: 250
+    },
+    current_units: { wind_speed_10m: 'kn' }
+  };
+
+  it('übernimmt Temperatur und Wind, wenn sie da sind', () => {
+    const abruf = deuteAntwort(gute);
+
+    expect(abruf.temperatureC).toBe(29.2);
+    expect(abruf.wind).toStrictEqual({ fromDegTrue: 250, speedKt: 12 });
+  });
+
+  it.each([
+    ['die Temperatur fehlt', 'temperature_2m'],
+    ['die Windrichtung fehlt', 'wind_direction_10m'],
+    ['die Windgeschwindigkeit fehlt', 'wind_speed_10m']
+  ])('bringt den Abruf nicht zu Fall, wenn %s', (_beschreibung, feld) => {
+    const current: Record<string, unknown> = { ...gute.current };
+    delete current[feld];
+
+    const abruf = deuteAntwort({ ...gute, current });
+
+    // Der Luftdruck kommt trotzdem an — eine fehlende Nebengröße sperrt eine
+    // Zeile im Dialog, nicht den ganzen Abruf.
+    expect(abruf.stationPressureHpa).toBe(987.9);
+  });
+
+  it('lässt den Wind weg, wenn nur die Hälfte da ist', () => {
+    const current: Record<string, unknown> = { ...gute.current };
+    delete current.wind_speed_10m;
+
+    expect(deuteAntwort({ ...gute, current }).wind).toBeUndefined();
+  });
+
+  it('lässt den Wind weg, wenn die Einheit nicht Knoten ist', () => {
+    // Der Fall ist der gefährliche: 12 km/h sähen als 12 kt völlig
+    // unverdächtig aus, wären aber weniger als ein Drittel davon.
+    const abruf = deuteAntwort({ ...gute, current_units: { wind_speed_10m: 'km/h' } });
+
+    expect(abruf.wind).toBeUndefined();
+    expect(abruf.stationPressureHpa).toBe(987.9);
+  });
+
+  it('lässt eine negative Windgeschwindigkeit weg', () => {
+    const abruf = deuteAntwort({
+      ...gute,
+      current: { ...gute.current, wind_speed_10m: -3 }
+    });
+
+    expect(abruf.wind).toBeUndefined();
+  });
+
+  it('beurteilt Temperatur und Wind sonst nicht', () => {
+    // Wie beim Druck: Eine eigene Schranke wäre eine zweite Grenze neben der,
+    // die der Reglerbereich ohnehin zieht (C-05).
+    const abruf = deuteAntwort({
+      ...gute,
+      current: { ...gute.current, temperature_2m: -60, wind_speed_10m: 180 }
+    });
+
+    expect(abruf.temperatureC).toBe(-60);
+    expect(abruf.wind).toStrictEqual({ fromDegTrue: 250, speedKt: 180 });
   });
 });

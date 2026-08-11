@@ -23,8 +23,15 @@ export {
 
 export {
   toOutsideAirTemperature,
-  type OutsideAirTemperatureResult
+  toIsaDeviation,
+  type OutsideAirTemperatureResult,
+  type IsaDeviationResult
 } from './atmosphere/temperature.js';
+
+export {
+  toRunwayWindComponent,
+  type RunwayWindComponent
+} from './wind/runwayComponent.js';
 
 export { toQnh, type QnhResult } from './atmosphere/qnh.js';
 
@@ -93,6 +100,7 @@ export {
   formatQuantity,
   unitText,
   withNonBreakingUnits,
+  roundCelsius,
   roundKnots,
   roundLitres,
   roundMinutes,

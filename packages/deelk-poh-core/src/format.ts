@@ -100,6 +100,20 @@ export function roundKnots(value: number): number {
 }
 
 /**
+ * Temperatur auf ganze °C — der Wert, den der Regler für die ISA-Abweichung
+ * annehmen kann.
+ *
+ * Kaufmännisch, und das ist hier die bewusste Entscheidung: Beim Luftdruck gibt
+ * es eine sichere Rundungsrichtung (siehe `floorHectopascal`), bei der
+ * Temperatur nicht. Eine Abweichung nach oben verlängert die ausgewiesene
+ * Startstrecke, eine nach unten schönt die Reiseleistung — beide Richtungen
+ * tragen ein Risiko. Wo das so ist, ist die unverzerrte Rundung die richtige.
+ */
+export function roundCelsius(value: number): number {
+  return roundTo(value, 0);
+}
+
+/**
  * Luftdruck auf den Wert, den ein Höhenmesser oder der Regler der Oberfläche
  * annehmen kann: ganze hPa, **abgerundet**.
  *
@@ -120,13 +134,27 @@ export function floorHectopascal(value: number): number {
  * Kaufmännisches Runden auf eine feste Stellenzahl. Der Umweg über die
  * Exponentialschreibweise vermeidet, dass Werte wie 2,675 wegen ihrer
  * Binärdarstellung abgerundet werden.
+ *
+ * Zwei Feinheiten, die beide erst bei sehr kleinen Beträgen auffallen:
+ *
+ * Der Exponent wird **getrennt** behandelt. Die naheliegende Schreibweise
+ * `Number(\`${value}e${decimals}\`)` bricht, sobald `value` selbst schon
+ * exponentiell geschrieben wird: Aus 6,1e-17 würde die Zeichenkette
+ * „6.1e-17e0" und daraus `NaN`. Der Fall ist nicht konstruiert — der Kosinus
+ * eines rechten Winkels liefert genau solche Werte, ein Wind exakt quer zur
+ * Bahn also auch.
+ *
+ * Das Ergebnis wird von **negativer Null** befreit. `Math.round(-0.2)` ergibt
+ * −0, und das erscheint in einer Anzeige als „−0 kt" — eine Windkomponente mit
+ * Vorzeichen, die keine hat.
  */
 export function roundTo(value: number, decimals: number): number {
   if (!Number.isFinite(value)) {
     return value;
   }
-  const shifted = Number(`${value}e${decimals}`);
-  return Number(`${Math.round(shifted)}e-${decimals}`);
+  const [mantisse, exponent = '0'] = value.toExponential().split('e');
+  const shifted = Number(`${mantisse}e${Number(exponent) + decimals}`);
+  return Number(`${Math.round(shifted)}e${-decimals}`) + 0;
 }
 
 /** Zahl in deutscher Schreibweise, mit fester Stellenzahl. */

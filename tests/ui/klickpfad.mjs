@@ -730,25 +730,39 @@ async function antwortMit(rumpf, verzoegerungMs = 0) {
   });
 }
 
-// 987,9 hPa in 971 ft ergeben einen QNH von 1023,3 — abgerundet 1023.
+/*
+  Die Prüfdaten. 987,9 hPa in 971 ft ergeben einen QNH von 1023,3 — abgerundet
+  1023. Bei 29,2 °C in der zugehörigen Druckhöhe von 699 ft liegt die
+  ISA-Abweichung bei 15,59 °C, gerundet 16. Der Wind aus 250° mit 12 kt ergibt
+  auf Bahn 28 (283° rechtweisend) 10,06 kt Gegenwind, gerundet 10 — und auf
+  Bahn 10 denselben Betrag als Rückenwind.
+*/
 const GUTE_ANTWORT = {
   elevation: 296,
-  current: { time: '2026-08-11T08:00', surface_pressure: 987.9 }
+  current: {
+    time: '2026-08-11T08:00',
+    surface_pressure: 987.9,
+    temperature_2m: 29.2,
+    wind_speed_10m: 12,
+    wind_direction_10m: 250
+  },
+  current_units: { wind_speed_10m: 'kn' }
 };
 
-const qnhKnopf = page.getByRole('button', { name: 'Luftdruck für EDSH abrufen' });
+const wetterKnopf = page.getByRole('button', { name: 'Wetterwerte für EDSH abrufen' });
+const uebernehmen = page.getByRole('button', { name: 'Übernehmen', exact: true });
 
 // 40: der Knopf steht neben dem QNH-Regler
-pruefe(40, 'neben dem QNH-Regler steht ein Knopf „EDSH"', (await qnhKnopf.count()) === 1);
+pruefe(40, 'neben dem QNH-Regler steht ein Knopf „EDSH"', (await wetterKnopf.count()) === 1);
 
-// 41: der Klick öffnet einen Dialog, der aufklärt, statt den Wert zu setzen
+// 41: der Klick öffnet einen Dialog, der aufklärt, statt die Werte zu setzen
 await antwortMit(GUTE_ANTWORT, 400);
 const qnhVorher = await page.locator('#qnh-wert').innerText();
-await qnhKnopf.click();
+await wetterKnopf.click();
 const dialogText = await page.locator('dialog[open]').innerText();
 pruefe(
   41,
-  'der Dialog klärt über Onlinedienst, Wettermodell und ATIS auf, ohne den Wert zu setzen',
+  'der Dialog klärt über Onlinedienst, Wettermodell und ATIS auf, ohne einen Wert zu setzen',
   /Onlinedienst/.test(dialogText) &&
     /Wettermodell/.test(dialogText) &&
     /keine Messung am Platz/.test(dialogText) &&
@@ -761,44 +775,70 @@ pruefe(
 pruefe(42, 'der Dialog nennt Open-Meteo als Quelle', /Open-Meteo/.test(dialogText));
 
 // 43: während des Abrufs läuft eine Ladeanzeige und „Übernehmen" ist gesperrt
-const uebernehmen = page.getByRole('button', { name: 'Übernehmen', exact: true });
 pruefe(
   43,
   'während des Abrufs Ladeanzeige, „Übernehmen" gesperrt',
-  (await page.getByTestId('qnh-laedt').count()) === 1 && (await uebernehmen.isDisabled()),
+  (await page.getByTestId('wetter-laedt').count()) === 1 && (await uebernehmen.isDisabled()),
   dialogText.split('\n').at(-2) ?? ''
 );
 
-// 44: die Vorschau zeigt den ganzen Wert, den ungerundeten und die Gültigkeit
-await page.getByTestId('qnh-vorschau').waitFor({ timeout: 5000 });
-const vorschau = await page.locator('dialog[open] .ergebnis').innerText();
+// 44: drei Zeilen, drei angehakte Kästchen, drei Vorschauwerte
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
+const vorschau = {
+  qnh: (await page.getByTestId('wetter-wert-qnh').innerText()).trim(),
+  isa: (await page.getByTestId('wetter-wert-isa').innerText()).trim(),
+  wind: (await page.getByTestId('wetter-wert-wind').innerText()).trim(),
+  hakenQnh: await page.getByTestId('wetter-haken-qnh').isChecked(),
+  hakenIsa: await page.getByTestId('wetter-haken-isa').isChecked(),
+  hakenWind: await page.getByTestId('wetter-haken-wind').isChecked()
+};
 pruefe(
   44,
-  'die Vorschau zeigt 1023 hPa, den ungerundeten Wert und die Gültigkeitszeit',
-  new RegExp(`1023${NBSP}hPa`).test(vorschau) &&
-    /1023,3\d? hPa/.test(vorschau) &&
-    /gültig für/.test(vorschau),
-  vorschau.replaceAll('\n', ' | ')
+  'die Vorschau zeigt 1023 hPa, 16 °C und 10 kt, alle drei Kästchen angehakt',
+  vorschau.qnh === `1023${NBSP}hPa` &&
+    vorschau.isa === `16${NBSP}°C` &&
+    vorschau.wind === `10${NBSP}kt` &&
+    vorschau.hakenQnh &&
+    vorschau.hakenIsa &&
+    vorschau.hakenWind,
+  JSON.stringify(vorschau)
 );
 
-// 45: „Übernehmen" setzt den Regler auf den ganzzahligen Wert
+// 45: „Übernehmen" setzt alle drei Regler — und nur diese
+const streckenwindVorher = await page.locator('#streckenwind').inputValue();
 await uebernehmen.click();
 await page.waitForTimeout(150);
-const qnhNachher = await page.locator('#qnh-wert').innerText();
+const nachUebernahme = {
+  qnh: await page.locator('#qnh').inputValue(),
+  isa: await page.locator('#isa').inputValue(),
+  pistenwind: await page.locator('#pistenwind').inputValue(),
+  streckenwind: await page.locator('#streckenwind').inputValue(),
+  offen: await page.locator('dialog[open]').count()
+};
 pruefe(
   45,
-  '„Übernehmen" setzt den Regler auf 1023 hPa und schließt den Dialog',
-  new RegExp(`1023${NBSP}hPa`).test(qnhNachher) && (await page.locator('dialog[open]').count()) === 0,
-  qnhNachher
+  '„Übernehmen" setzt QNH, ISA und Pistenwind; die Streckenwindkomponente bleibt unberührt',
+  nachUebernahme.qnh === '1023' &&
+    nachUebernahme.isa === '16' &&
+    nachUebernahme.pistenwind === '10' &&
+    nachUebernahme.streckenwind === streckenwindVorher &&
+    nachUebernahme.offen === 0,
+  JSON.stringify(nachUebernahme)
 );
 
-// 46: der Herkunftsvermerk steht unter dem Regler
-const herkunft = await page.getByTestId('qnh-herkunft').innerText();
+// 46: unter jedem übernommenen Regler steht ein Herkunftsvermerk
+const vermerke = {
+  qnh: await page.getByTestId('qnh-herkunft').innerText(),
+  isa: await page.getByTestId('isa-herkunft').innerText(),
+  wind: await page.getByTestId('pistenwind-herkunft').innerText()
+};
 pruefe(
   46,
-  'unter dem Regler stehen Dienst, Gültigkeitszeit und der unverbindliche Charakter',
-  /Open-Meteo/.test(herkunft) && /gültig für/.test(herkunft) && /unverbindlich/.test(herkunft),
-  herkunft
+  'unter allen drei Reglern stehen Dienst, Gültigkeitszeit und der unverbindliche Charakter',
+  Object.values(vermerke).every(
+    (text) => /Open-Meteo/.test(text) && /gültig für/.test(text) && /unverbindlich/.test(text)
+  ),
+  JSON.stringify(vermerke)
 );
 
 // 47: die Druckhöhe folgt dem übernommenen Wert
@@ -814,46 +854,212 @@ pruefe(
   platzFolgeNachAbruf
 );
 
-// 48: wer den Regler selbst bewegt, verliert den Vermerk
+// 48: wer einen Regler selbst bewegt, verliert nur dessen Vermerk
 await regler(page, 'Luftdruck QNH (hPa)', 1010);
 await page.waitForTimeout(150);
 pruefe(
   48,
-  'eigenes Verstellen des Reglers löscht den Herkunftsvermerk',
-  (await page.getByTestId('qnh-herkunft').count()) === 0
+  'eigenes Verstellen eines Reglers löscht allein dessen Herkunftsvermerk',
+  (await page.getByTestId('qnh-herkunft').count()) === 0 &&
+    (await page.getByTestId('isa-herkunft').count()) === 1 &&
+    (await page.getByTestId('pistenwind-herkunft').count()) === 1
 );
 
-// 49: „Abbrechen" lässt den Wert unberührt
-await qnhKnopf.click();
-await page.getByTestId('qnh-vorschau').waitFor({ timeout: 5000 });
+// 49: „Abbrechen" lässt die Werte unberührt
+await wetterKnopf.click();
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
 await page.getByRole('button', { name: 'Abbrechen' }).click();
 await page.waitForTimeout(150);
 pruefe(
   49,
-  '„Abbrechen" verändert den Luftdruck nicht',
-  /1010/.test(await page.locator('#qnh-wert').innerText()) &&
+  '„Abbrechen" verändert keinen Regler',
+  (await page.locator('#qnh').inputValue()) === '1010' &&
     (await page.getByTestId('qnh-herkunft').count()) === 0
 );
 
 // 50: Esc schließt den Dialog ebenso folgenlos
-await qnhKnopf.click();
-await page.getByTestId('qnh-vorschau').waitFor({ timeout: 5000 });
+await wetterKnopf.click();
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
 await page.keyboard.press('Escape');
 await page.waitForTimeout(150);
 pruefe(
   50,
-  'Esc schließt den Dialog, ohne den Luftdruck zu verändern',
+  'Esc schließt den Dialog, ohne einen Regler zu verändern',
   (await page.locator('dialog[open]').count()) === 0 &&
-    /1010/.test(await page.locator('#qnh-wert').innerText())
+    (await page.locator('#qnh').inputValue()) === '1010'
 );
+
+// 58: ein abgewähltes Kästchen lässt seinen Regler UND dessen bisherigen
+// Vermerk unverändert — Abwählen ist kein Zurücksetzen (W-09).
+const isaVorAbwahl = await page.locator('#isa').inputValue();
+await wetterKnopf.click();
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
+await page.getByTestId('wetter-haken-isa').uncheck();
+await page.getByTestId('wetter-haken-wind').uncheck();
+await uebernehmen.click();
+await page.waitForTimeout(150);
+const nachAbwahl = {
+  qnh: await page.locator('#qnh').inputValue(),
+  isa: await page.locator('#isa').inputValue(),
+  isaVermerk: await page.getByTestId('isa-herkunft').count(),
+  windVermerk: await page.getByTestId('pistenwind-herkunft').count()
+};
+pruefe(
+  58,
+  'ein abgewähltes Kästchen lässt Regler und bisherigen Vermerk unverändert',
+  nachAbwahl.qnh === '1023' &&
+    nachAbwahl.isa === isaVorAbwahl &&
+    nachAbwahl.isaVermerk === 1 &&
+    nachAbwahl.windVermerk === 1,
+  JSON.stringify({ ...nachAbwahl, isaVorAbwahl })
+);
+
+// 59: alle drei abgewählt → „Übernehmen" gesperrt
+await wetterKnopf.click();
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
+await page.getByTestId('wetter-haken-qnh').uncheck();
+await page.getByTestId('wetter-haken-isa').uncheck();
+await page.getByTestId('wetter-haken-wind').uncheck();
+await page.waitForTimeout(100);
+pruefe(59, 'ohne angehaktes Kästchen ist „Übernehmen" gesperrt', await uebernehmen.isDisabled());
+await page.getByRole('button', { name: 'Abbrechen' }).click();
+
+// 60: ein Bahnwechsel rechnet allein den Pistenwind neu und löst KEINE zweite
+// Anfrage aus (FR-011). Der Zähler ist der eigentliche Gegenstand: Ein neuer
+// Abruf setzte die Kästchen zurück und könnte eine andere Modellstunde
+// liefern, ohne dass irgendetwas darauf hindeutete.
+let anfragen = 0;
+await page.unroute(OPEN_METEO).catch(() => {});
+await page.route(OPEN_METEO, async (route) => {
+  anfragen += 1;
+  await route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify(GUTE_ANTWORT)
+  });
+});
+await wetterKnopf.click();
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
+const anfragenNachOeffnen = anfragen;
+const vorWechsel = {
+  qnh: await page.getByTestId('wetter-wert-qnh').innerText(),
+  wind: (await page.getByTestId('wetter-wert-wind').innerText()).trim()
+};
+await page.getByTestId('wetter-bahnwahl').getByRole('radio', { name: '10' }).check();
+await page.waitForTimeout(150);
+const nachWechsel = {
+  qnh: await page.getByTestId('wetter-wert-qnh').innerText(),
+  wind: (await page.getByTestId('wetter-wert-wind').innerText()).trim()
+};
+pruefe(
+  60,
+  'ein Bahnwechsel ändert allein den Pistenwind und löst keine zweite Anfrage aus',
+  anfragen === anfragenNachOeffnen &&
+    nachWechsel.qnh === vorWechsel.qnh &&
+    vorWechsel.wind === `10${NBSP}kt` &&
+    /[-−]/.test(nachWechsel.wind) &&
+    nachWechsel.wind !== vorWechsel.wind,
+  JSON.stringify({ anfragen, vorWechsel, nachWechsel })
+);
+await page.getByRole('button', { name: 'Abbrechen' }).click();
+
+// 61: vorausgewählt ist die Bahn mit Gegenwind (FR-010). Aus 250° ist das
+// Bahn 28 — der Vorschlag muss also positiv sein.
+await antwortMit(GUTE_ANTWORT);
+await wetterKnopf.click();
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
+const windVorschau = (await page.getByTestId('wetter-wert-wind').innerText()).trim();
+pruefe(
+  61,
+  'vorausgewählt ist die Bahn mit Gegenwind',
+  (await page.getByTestId('wetter-bahnwahl').getByRole('radio', { name: '28' }).isChecked()) &&
+    !/[-−]/.test(windVorschau),
+  windVorschau
+);
+
+// 62: die Erläuterungen nennen Windrichtung, Windgeschwindigkeit, Bahn und die
+// absolute Platztemperatur — ohne sie wäre kein Vorschlag nachprüfbar.
+const erlaeuterungen = {
+  qnh: await page.getByTestId('wetter-genauer-qnh').innerText(),
+  isa: await page.getByTestId('wetter-genauer-isa').innerText(),
+  wind: await page.getByTestId('wetter-genauer-wind').innerText()
+};
+pruefe(
+  62,
+  'die Erläuterungen nennen ungerundeten QNH, Platztemperatur, Windrichtung, Windgeschwindigkeit und Bahn',
+  /1023,3\d? hPa/.test(erlaeuterungen.qnh) &&
+    /gültig für/.test(erlaeuterungen.qnh) &&
+    /bei 29,2 °C am Platz/.test(erlaeuterungen.isa) &&
+    /250°/.test(erlaeuterungen.wind) &&
+    new RegExp(`12${NBSP}kt`).test(erlaeuterungen.wind) &&
+    /Bahn 28/.test(erlaeuterungen.wind),
+  JSON.stringify(erlaeuterungen)
+);
+await page.getByRole('button', { name: 'Abbrechen' }).click();
+
+// 54: eine Größe außerhalb des Reglerbereichs sperrt IHRE Zeile, nicht den
+// ganzen Abruf (FR-007). 20 kt aus 250° ergeben auf Bahn 10 −16,77 kt und
+// damit −17 — jenseits der unteren Reglergrenze von −10 kt aus Feature 026.
+await antwortMit({
+  ...GUTE_ANTWORT,
+  current: { ...GUTE_ANTWORT.current, wind_speed_10m: 20 }
+});
+await wetterKnopf.click();
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
+await page.getByTestId('wetter-bahnwahl').getByRole('radio', { name: '10' }).check();
+await page.getByTestId('wetter-hindernis-wind').waitFor({ timeout: 5000 });
+const teilweise = {
+  hindernis: await page.getByTestId('wetter-hindernis-wind').innerText(),
+  windGesperrt: await page.getByTestId('wetter-haken-wind').isDisabled(),
+  windAngehakt: await page.getByTestId('wetter-haken-wind').isChecked(),
+  qnhAngehakt: await page.getByTestId('wetter-haken-qnh').isChecked(),
+  isaAngehakt: await page.getByTestId('wetter-haken-isa').isChecked(),
+  uebernehmenGesperrt: await uebernehmen.isDisabled()
+};
+pruefe(
+  54,
+  'ein Wert außerhalb des Reglerbereichs sperrt seine Zeile, die übrigen bleiben übernehmbar',
+  teilweise.windGesperrt &&
+    !teilweise.windAngehakt &&
+    teilweise.qnhAngehakt &&
+    teilweise.isaAngehakt &&
+    !teilweise.uebernehmenGesperrt &&
+    teilweise.hindernis.length > 10,
+  JSON.stringify(teilweise)
+);
+await page.getByRole('button', { name: 'Abbrechen' }).click();
+
+// 63: eine Antwort ohne Windfelder lässt QNH und ISA übernehmbar (FR-007)
+await antwortMit({
+  elevation: 296,
+  current: { time: '2026-08-11T08:00', surface_pressure: 987.9, temperature_2m: 29.2 }
+});
+await wetterKnopf.click();
+await page.getByTestId('wetter-hindernis-wind').waitFor({ timeout: 5000 });
+const ohneWind = {
+  qnhAngehakt: await page.getByTestId('wetter-haken-qnh').isChecked(),
+  isaAngehakt: await page.getByTestId('wetter-haken-isa').isChecked(),
+  windGesperrt: await page.getByTestId('wetter-haken-wind').isDisabled(),
+  uebernehmenGesperrt: await uebernehmen.isDisabled()
+};
+pruefe(
+  63,
+  'eine Antwort ohne Wind sperrt allein den Pistenwind',
+  ohneWind.qnhAngehakt &&
+    ohneWind.isaAngehakt &&
+    ohneWind.windGesperrt &&
+    !ohneWind.uebernehmenGesperrt,
+  JSON.stringify(ohneWind)
+);
+await page.getByRole('button', { name: 'Abbrechen' }).click();
 
 // 51: ein Netzfehler führt zu einer Meldung und gesperrtem „Übernehmen"
 netzfehlerErwartet = true;
 await page.unroute(OPEN_METEO).catch(() => {});
 await page.route(OPEN_METEO, (route) => route.abort('failed'));
-await qnhKnopf.click();
-await page.getByTestId('qnh-fehler').waitFor({ timeout: 5000 });
-const fehlerText = await page.getByTestId('qnh-fehler').innerText();
+await wetterKnopf.click();
+await page.getByTestId('wetter-fehler').waitFor({ timeout: 5000 });
+const fehlerText = await page.getByTestId('wetter-fehler').innerText();
 pruefe(
   51,
   'ein Netzfehler zeigt eine Meldung, sperrt „Übernehmen" und bietet „Erneut versuchen"',
@@ -863,38 +1069,25 @@ pruefe(
   fehlerText
 );
 
-// 52: „Erneut versuchen" holt den Wert nach, ohne den Dialog zu schließen
+// 52: „Erneut versuchen" holt die Werte nach, ohne den Dialog zu schließen
 await antwortMit(GUTE_ANTWORT);
 await page.getByRole('button', { name: 'Erneut versuchen' }).click();
-await page.getByTestId('qnh-vorschau').waitFor({ timeout: 5000 });
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
 pruefe(
   52,
-  '„Erneut versuchen" holt den Wert nach, ohne den Dialog zu schließen',
+  '„Erneut versuchen" holt die Werte nach, ohne den Dialog zu schließen',
   (await page.locator('dialog[open]').count()) === 1 && !(await uebernehmen.isDisabled())
 );
 await page.getByRole('button', { name: 'Abbrechen' }).click();
 
 // 53: eine unbrauchbare Antwort sieht aus wie gar keine
 await antwortMit({ current: {} });
-await qnhKnopf.click();
-await page.getByTestId('qnh-fehler').waitFor({ timeout: 5000 });
+await wetterKnopf.click();
+await page.getByTestId('wetter-fehler').waitFor({ timeout: 5000 });
 pruefe(
   53,
   'eine unbrauchbare Antwort führt zum selben Bild wie ein Netzfehler',
-  (await uebernehmen.isDisabled()) && (await page.getByTestId('qnh-fehler').count()) === 1
-);
-await page.getByRole('button', { name: 'Abbrechen' }).click();
-
-// 54: ein Wert außerhalb des Reglerbereichs lässt sich nicht übernehmen
-// 700 hPa in 971 ft ergeben einen QNH weit unter 950.
-await antwortMit({ elevation: 296, current: { time: '2026-08-11T08:00', surface_pressure: 700 } });
-await qnhKnopf.click();
-await page.getByTestId('qnh-ausserhalb').waitFor({ timeout: 5000 });
-pruefe(
-  54,
-  'ein Wert außerhalb des Reglerbereichs wird angezeigt, aber nicht übernehmbar',
-  await uebernehmen.isDisabled(),
-  await page.getByTestId('qnh-ausserhalb').innerText()
+  (await uebernehmen.isDisabled()) && (await page.getByTestId('wetter-fehler').count()) === 1
 );
 await page.getByRole('button', { name: 'Abbrechen' }).click();
 await page.unroute(OPEN_METEO).catch(() => {});

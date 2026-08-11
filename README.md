@@ -177,6 +177,12 @@ gerade sucht, und nicht wissen muss, dass sie zusammen ankommen.
 | Außentemperatur | Platztemperatur des Modells; die Erläuterung nennt die zugehörige ISA-Abweichung |
 | Pistenwind | Wind, zerlegt gegen die gewählte Bahn 10 oder 28 |
 
+Kommt der Wind auf einer Bahn von hinten, steht neben ihrem Auswahlknopf ein
+**⚠️** — an beiden Bahnen gerechnet, damit man es vor dem Umschalten sieht und
+nicht erst danach. Ist genau diese Bahn gewählt, steht das Zeichen zusätzlich
+neben dem Windwert: Rückenwind unterscheidet sich vom Gegenwind nur durch ein
+Vorzeichen, und das übersieht man beim Überfliegen einer Zahlenreihe leicht.
+
 Jede Zeile hat ein Kästchen; „Übernehmen" setzt **nur** die angehakten Regler.
 Was fehlt oder außerhalb eines Reglerbereichs liegt, sperrt seine eigene Zeile
 und nicht den ganzen Abruf. Die Bahnwahl steht **in** der Windzeile, weil sie nur

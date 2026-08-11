@@ -113,7 +113,10 @@ describe('getFuelPlanInputDomain', () => {
     // Meeresspiegel und stammen daher nicht mehr aus dem Tabellenraster; das
     // Raster begrenzt nun die errechnete Druckhöhe (siehe FR-006).
     expect(domain.cruiseAltitudeAmslFt).toEqual({ min: 0, max: 18000, unit: 'ft', step: 100 });
-    expect(domain.departureElevationFt).toEqual({ min: 0, max: 10000, unit: 'ft', step: 10 });
+    // Enger als das Tabellenraster, und zwar bewusst: -20 ft, weil es Plätze
+    // unter dem Meeresspiegel gibt, und 6900 ft, weil darüber in Europa kein
+    // Startplatz mehr liegt.
+    expect(domain.departureElevationFt).toEqual({ min: -20, max: 6900, unit: 'ft', step: 10 });
     expect(domain.qnhHpa).toEqual({ min: 950, max: 1050, unit: 'hPa', step: 1 });
     // Die Schrittweite ist 10, nicht 5: Das Handbuch führt nur 50, 60, 70, 80,
     // 90 und 100 %. Ein Regler mit Schritt 5 böte Werte an, die es dort nicht

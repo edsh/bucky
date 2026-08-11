@@ -26,8 +26,26 @@ export interface FlightPlanInput {
 /**
  * Grenzen, die nicht aus den Tabellen ablesbar sind, sondern in der
  * Spezifikation stehen (`data-model.md`, Abschnitt Flugvorhaben).
+ *
+ * Der Bereich ist enger als die Tabellen es verlangten — die Startstrecke ist
+ * bis 10 000 ft Druckhöhe belegt. Er bildet ab, wo ein Startplatz für eine
+ * C172 tatsächlich liegt:
+ *
+ * - **Nach unten −20 ft**, weil es Plätze unter dem Meeresspiegel gibt
+ *   (Rotterdam −15 ft, Amsterdam-Schiphol −11 ft). Bei 0 ft waren sie nicht
+ *   einstellbar.
+ * - **Nach oben 6900 ft**, weil darüber in Europa kein Platz mehr liegt; der
+ *   höchste ist Courchevel mit 6588 ft. Ein Regler, der bis 10 000 ft läuft,
+ *   verschenkt zwei Drittel seines Wegs an Werte, die nie vorkommen, und macht
+ *   den brauchbaren Bereich unnötig fein zu treffen.
+ *
+ * Der Kern rechnet auch außerhalb weiter, soweit die Tabellen reichen — die
+ * Grenze betrifft, was ein Formular anbietet, nicht was gerechnet werden kann.
+ * Ob die Druckhöhe am Ende in der Tabelle liegt, entscheidet ohnehin erst das
+ * QNH: Bei 1050 hPa liegt sie rund 1000 ft unter der Platzhöhe und kann
+ * dadurch selbst bei 0 ft Platzhöhe unter die Tabelle fallen.
  */
-const DEPARTURE_ELEVATION_RANGE: NumericRange = { min: 0, max: 10000, unit: 'ft', step: 10 };
+const DEPARTURE_ELEVATION_RANGE: NumericRange = { min: -20, max: 6900, unit: 'ft', step: 10 };
 const CRUISE_ALTITUDE_AMSL_RANGE: NumericRange = { min: 0, max: 18000, unit: 'ft', step: 100 };
 const QNH_RANGE: NumericRange = { min: 950, max: 1050, unit: 'hPa', step: 1 };
 /**

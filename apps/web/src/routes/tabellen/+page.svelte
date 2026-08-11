@@ -113,7 +113,7 @@
     </dl>
   </section>
 
-  <p class="zurueck"><a href="{base}/">Zurück zum Kraftstoffrechner</a></p>
+  <p class="zurueck"><a href="{base}/">Zurück zum POH-Rechner</a></p>
 </main>
 
 <style>

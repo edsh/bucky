@@ -77,7 +77,7 @@ const APPLICABLE_TABLES: ReadonlyMap<string, PohTable> = new Map(
   ])
 );
 
-/** Kennungen der beiden für den Kraftstoffrechner benötigten Tabellen. */
+/** Kennungen der beiden für den Kraftstoffbedarf benötigten Tabellen. */
 export const CLIMB_TABLE_ID = '5b-climb-time-dist-fuel-1043kg';
 export const CRUISE_TABLE_ID = '5b-cruise-standard-1043kg';
 

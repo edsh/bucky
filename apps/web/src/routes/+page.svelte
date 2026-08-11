@@ -210,7 +210,7 @@
 </script>
 
 <svelte:head>
-  <title>Kraftstoffrechner D-EELK — Bucky Highfly</title>
+  <title>POH-Rechner D-EELK — Bucky Highfly</title>
 </svelte:head>
 
 <svelte:window bind:scrollY />
@@ -232,7 +232,7 @@
 
 <main>
   <header class="kopf">
-    <h1>Kraftstoffrechner D-EELK</h1>
+    <h1>POH-Rechner D-EELK</h1>
     <div class="flugzeug-platzhalter" aria-hidden="true"></div>
   </header>
   <p class="einleitung">
@@ -523,9 +523,9 @@
     flex: 1;
     min-width: 0;
     /*
-      "Kraftstoffrechner" ist ein langes, unteilbares Wort: In fester Groesse
-      ragt es auf einem Telefon in das Avatar hinein. Die Schriftgroesse folgt
-      deshalb der Fensterbreite (FR-027).
+      "POH-Rechner D-EELK" traegt zwei unteilbare Bestandteile: In fester
+      Groesse ragt die Zeile auf einem Telefon in das Avatar hinein. Die
+      Schriftgroesse folgt deshalb der Fensterbreite (FR-027).
     */
     font-size: clamp(1.4rem, 6.5vw, 2rem);
     /*

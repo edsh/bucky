@@ -150,8 +150,8 @@ pruefe(
   /Widerspruch im Original/.test(tabellenText) && /69/.test(tabellenText) && /70/.test(tabellenText)
 );
 
-await page.getByRole('link', { name: 'Zurück zum Kraftstoffrechner' }).click();
-await page.getByRole('heading', { name: 'Kraftstoffrechner D-EELK' }).waitFor({ timeout: 5000 });
+await page.getByRole('link', { name: 'Zurück zum POH-Rechner' }).click();
+await page.getByRole('heading', { name: 'POH-Rechner D-EELK' }).waitFor({ timeout: 5000 });
 pruefe(9, 'Rückweg zum Rechner funktioniert', true);
 
 // 13: stufenlose Eingaben sind Schieberegler mit Wertanzeige (FR-001, FR-013)

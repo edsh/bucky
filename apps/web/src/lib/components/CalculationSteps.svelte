@@ -19,7 +19,7 @@
   <ol>
     {#each steps as step (step.id)}
       <li>
-        <h5>{step.label}</h5>
+        <h4>{step.label}</h4>
 
         <p class="ergebnis">
           {#each Object.entries(step.results) as [key, quantity], index (key)}{index > 0
@@ -83,7 +83,7 @@
     margin-bottom: 1.25rem;
   }
 
-  h5 {
+  h4 {
     margin: 0;
   }
 

@@ -137,187 +137,251 @@
     verschiedene Werte tragen, sind sichtbar zwei Regler. Das ist die
     Fortsetzung der Trennung aus Feature 026 mit den Mitteln des Auges.
   -->
-  <div class="pistenwind">
-    <RangeField
-      id="pistenwind"
-      label="Pistenwind (kt, positiv = Gegenwind)"
-      range={pistenwindBereich}
-      bind:value={windComponentKt}
-      format={formatKnots}
-      bedient={windBedient}
-    >
-      {#snippet neben()}
-        {#if wetterAbrufen}
-          <button
-            type="button"
-            class="schnellwahl"
-            aria-label="Wetterwerte für EDSH abrufen"
-            onclick={wetterAbrufen}
-          >
-            EDSH
-          </button>
-        {/if}
-      {/snippet}
-      {#snippet folge()}
-        {#if windHerkunft}
-          <span data-testid="pistenwind-herkunft">{windHerkunft}</span>
-        {/if}
-      {/snippet}
-    </RangeField>
-  </div>
+  <!--
+    Regler und Bahnzustand in einem Block, die Auswertung in einem zweiten:
+    So koennen beide im Querformat nebeneinanderstehen. Ohne die Klammern
+    waeren es fuenf Geschwister, deren Zeilen das Raster einzeln verteilen
+    muesste -- die Tabelle begaenne dann auf Hoehe des Bahnzustands.
+  -->
+  <div class="eingaben">
+    <div class="pistenwind">
+      <RangeField
+        id="pistenwind"
+        label="Pistenwind (kt, positiv = Gegenwind)"
+        range={pistenwindBereich}
+        bind:value={windComponentKt}
+        format={formatKnots}
+        bedient={windBedient}
+      >
+        {#snippet neben()}
+          {#if wetterAbrufen}
+            <button
+              type="button"
+              class="schnellwahl"
+              aria-label="Wetterwerte für EDSH abrufen"
+              onclick={wetterAbrufen}
+            >
+              EDSH
+            </button>
+          {/if}
+        {/snippet}
+        {#snippet folge()}
+          {#if windHerkunft}
+            <span data-testid="pistenwind-herkunft">{windHerkunft}</span>
+          {/if}
+        {/snippet}
+      </RangeField>
+    </div>
 
-  <fieldset class="bahn">
-    <legend>Bahnzustand</legend>
-    <SurfaceSwitch
-      id="gras"
-      label="Trockenes Gras"
-      note="Anmerkung 3"
-      bind:checked={dryGrass}
-    />
-    <SurfaceSwitch
-      id="nass"
-      label="Nass oder Schnee"
-      note="Anmerkung 4"
-      bind:checked={wetOrSnow}
-    />
-  </fieldset>
+    <fieldset class="bahn">
+      <legend>Bahnzustand</legend>
+      <SurfaceSwitch
+        id="gras"
+        label="Trockenes Gras"
+        note="Anmerkung 3"
+        bind:checked={dryGrass}
+      />
+      <SurfaceSwitch
+        id="nass"
+        label="Nass oder Schnee"
+        note="Anmerkung 4"
+        bind:checked={wetOrSnow}
+      />
+    </fieldset>
+  </div>
 
   {#if fehler}
     <p class="fehler" role="alert">{fehler}</p>
   {:else if result}
-    <!--
-      Die Eckwerte der Rechnung stehen über der Tabelle: Druckhoehe und
-      Temperatur sind die beiden Groessen, mit denen der Pilot die Zeile in der
-      Handbuchtabelle wiederfindet (Constitution, Prinzip I).
-    -->
-    <p class="eckwerte">
-      Druckhöhe {formatFeet(result.pressureAltitude.pressureAltitudeFt)},
-      Außentemperatur {formatCelsius(result.outsideAirTemperature.outsideAirTemperatureC)}
-    </p>
+    <div class="auswertung">
+      <!--
+        Die Eckwerte der Rechnung stehen über der Tabelle: Druckhoehe und
+        Temperatur sind die beiden Groessen, mit denen der Pilot die Zeile in der
+        Handbuchtabelle wiederfindet (Constitution, Prinzip I).
+      -->
+      <p class="eckwerte">
+        Druckhöhe {formatFeet(result.pressureAltitude.pressureAltitudeFt)},
+        Außentemperatur {formatCelsius(result.outsideAirTemperature.outsideAirTemperatureC)}
+      </p>
+
+      <!--
+        Die beiden Strecken stehen nur einmal, naemlich als Spalten. Die
+        Zwischenzeilen zeigen den Beitrag des jeweiligen Schritts in Metern und
+        nicht den Zwischenstand: So stehen alle Betraege einer Spalte
+        untereinander und addieren sich sichtbar auf die Gesamtstrecke.
+
+        Der Bahnzuschlag ist dabei in beiden Spalten derselbe. Genau das ist die
+        Auslegung der Anmerkungen 3 und 4: Der Zuschlag entsteht aus dem
+        Startlauf und wirkt am Boden, nicht in der Luft — er waechst nicht mit
+        der Strecke ueber das Hindernis mit.
+      -->
+      <table class="aufschluesselung">
+        <thead>
+          <tr>
+            <td></td>
+            <th scope="col">Startrollstrecke</th>
+            <th scope="col">Startstrecke über {withNonBreakingUnits(result.obstacleLabel)}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Laut Tabelle</th>
+            <td>{formatMetres(result.tableGroundRollM)}</td>
+            <td>{formatMetres(result.tableOverObstacleM)}</td>
+          </tr>
+          <tr>
+            <th scope="row">
+              Wind
+              <span class="anteil">{windAnteil}</span>
+            </th>
+            <td>{beitrag(result.windAdjustmentGroundRollM)}</td>
+            <td>{beitrag(result.windAdjustmentOverObstacleM)}</td>
+          </tr>
+          <tr>
+            <th scope="row">
+              Bahnzustand
+              <span class="anteil">
+                {result.surfaceAllowancePct === 0
+                  ? 'befestigt und trocken'
+                  : `+${unitText(formatNumber(result.surfaceAllowancePct, 0), '%')} des Startlaufs`}
+              </span>
+            </th>
+            <td class:mindestwert={mindestens}>{untergrenze(beitrag(result.surfaceAllowanceM))}</td>
+            <td class:mindestwert={mindestens}>{untergrenze(beitrag(result.surfaceAllowanceM))}</td>
+          </tr>
+          <tr class="summe">
+            <th scope="row">Gesamtstrecke</th>
+            <td class:mindestwert={mindestens}>{untergrenze(formatMetres(result.groundRollM))}</td>
+            <td class:mindestwert={mindestens}>{untergrenze(formatMetres(result.overObstacleM))}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!--
+        Der Hinweis steht immer und nicht nur im Zweifelsfall: Ob die gerundeten
+        Zeilen im Einzelfall aufgehen, liesse sich nur durch eigenes Runden
+        feststellen — und gerundet wird ausschliesslich im Kern (C-03). In etwa
+        drei von zehn Faellen weicht eine Spalte um einen Meter ab; ohne diesen
+        Satz sieht das aus wie ein Rechenfehler.
+      -->
+      <p class="rundungshinweis">
+        Auf ganze Meter gerundet. Die Zeilen können sich deshalb um einen Meter
+        von der Gesamtstrecke unterscheiden.
+      </p>
+
+      {#if windErlaeuterung}
+        <p class="erlaeuterung">{windErlaeuterung}</p>
+      {/if}
+
+    </div>
 
     <!--
-      Die beiden Strecken stehen nur einmal, naemlich als Spalten. Die
-      Zwischenzeilen zeigen den Beitrag des jeweiligen Schritts in Metern und
-      nicht den Zwischenstand: So stehen alle Betraege einer Spalte
-      untereinander und addieren sich sichtbar auf die Gesamtstrecke.
-
-      Der Bahnzuschlag ist dabei in beiden Spalten derselbe. Genau das ist die
-      Auslegung der Anmerkungen 3 und 4: Der Zuschlag entsteht aus dem
-      Startlauf und wirkt am Boden, nicht in der Luft — er waechst nicht mit
-      der Strecke ueber das Hindernis mit.
+      Alles Weitere in einem eigenen Block, damit es im Querformat ueber beide
+      Spalten laeuft. Ein Selektor vom Eltern-Element aus reicht dafuer nicht:
+      Svelte kapselt Stile je Komponente, und die Wurzeln von SourceCitations
+      und CalculationSteps tragen deren Kennzeichnung, nicht diese. Ohne die
+      Klammer standen "Verwendete Tabellen" und "Rechenweg" nebeneinander.
     -->
-    <table class="aufschluesselung">
-      <thead>
-        <tr>
-          <td></td>
-          <th scope="col">Startrollstrecke</th>
-          <th scope="col">Startstrecke über {withNonBreakingUnits(result.obstacleLabel)}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th scope="row">Laut Tabelle</th>
-          <td>{formatMetres(result.tableGroundRollM)}</td>
-          <td>{formatMetres(result.tableOverObstacleM)}</td>
-        </tr>
-        <tr>
-          <th scope="row">
-            Wind
-            <span class="anteil">{windAnteil}</span>
-          </th>
-          <td>{beitrag(result.windAdjustmentGroundRollM)}</td>
-          <td>{beitrag(result.windAdjustmentOverObstacleM)}</td>
-        </tr>
-        <tr>
-          <th scope="row">
-            Bahnzustand
-            <span class="anteil">
-              {result.surfaceAllowancePct === 0
-                ? 'befestigt und trocken'
-                : `+${unitText(formatNumber(result.surfaceAllowancePct, 0), '%')} des Startlaufs`}
-            </span>
-          </th>
-          <td class:mindestwert={mindestens}>{untergrenze(beitrag(result.surfaceAllowanceM))}</td>
-          <td class:mindestwert={mindestens}>{untergrenze(beitrag(result.surfaceAllowanceM))}</td>
-        </tr>
-        <tr class="summe">
-          <th scope="row">Gesamtstrecke</th>
-          <td class:mindestwert={mindestens}>{untergrenze(formatMetres(result.groundRollM))}</td>
-          <td class:mindestwert={mindestens}>{untergrenze(formatMetres(result.overObstacleM))}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="weiteres">
+      <!--
+        Bedingungen vor Anmerkungen — dieselbe Reihenfolge wie im Flughandbuch,
+        wo unter der Tabelle zuerst steht, wofuer sie gilt, und danach die
+        nummerierten Anmerkungen folgen.
 
-    <!--
-      Der Hinweis steht immer und nicht nur im Zweifelsfall: Ob die gerundeten
-      Zeilen im Einzelfall aufgehen, liesse sich nur durch eigenes Runden
-      feststellen — und gerundet wird ausschliesslich im Kern (C-03). In etwa
-      drei von zehn Faellen weicht eine Spalte um einen Meter ab; ohne diesen
-      Satz sieht das aus wie ein Rechenfehler.
-    -->
-    <p class="rundungshinweis">
-      Auf ganze Meter gerundet. Die Zeilen können sich deshalb um einen Meter
-      von der Gesamtstrecke unterscheiden.
-    </p>
+        Beides steht *hinter* der Ergebnistabelle, nicht darueber: Unter dem
+        Bahnzustand haetten die Listen auf schmalen Geraeten die Tabelle aus
+        dem Sichtfeld geschoben — man haette scrollen muessen, um die Strecke
+        zu sehen, die man gerade errechnet. Der Weissraum neben der Tabelle im
+        Querformat ist der geringere Preis.
 
-    {#if windErlaeuterung}
-      <p class="erlaeuterung">{windErlaeuterung}</p>
-    {/if}
+        Die Bedingungen stehen im Wortlaut der Digitalisierung. Ohne sie liesse
+        sich nicht erkennen, dass die Werte etwa fuer volle Landeklappen und
+        Hoechstabflugmasse gelten (FR-016).
+      -->
+      <h3>Bedingungen:</h3>
+      <ul class="hinweise bedingungen">
+        {#each result.conditions as condition (condition)}
+          <li>{condition}</li>
+        {/each}
+      </ul>
 
-    <!--
-      Erst die Anmerkungen, dann die Bedingungen — in dieser Reihenfolge stehen
-      sie auch im Flughandbuch. Andersherum las sich "Windstille" unter "Es
-      gilt" wie eine Einschraenkung des Ergebnisses, obwohl der Wind zwei
-      Zeilen darueber gerade eingerechnet wurde: Die Bedingung gilt fuer die
-      *Tabelle*, nicht fuer die Rechnung.
-    -->
-    <h4>Hinweise</h4>
-    <ul class="hinweise">
-      {#each result.advisories as advisory (advisory.id)}
-        <li>{advisory.text}</li>
-      {/each}
-      {#each result.notes as note (note.id)}
-        <!--
-          Anmerkung 4 traegt dieselbe gelbe Hervorhebung wie die Werte in der
-          Tabelle, sobald sie greift. Ohne sie steht die Farbe oben ohne
-          Erklaerung da: Der Grund fuer das Groesser-Gleich-Zeichen ist genau
-          dieser Satz, und die gemeinsame Farbe stellt die Verbindung her.
-        -->
-        <li class:angewandt={angewandt(note.id)}>
-          {#if note.id === 'takeoff.note4' && mindestens}
-            <mark class="mindestwert">{note.text}</mark>
-          {:else}
-            {note.text}
-          {/if}{#if angewandt(note.id)}<span
-              class="haken"
-              title="in dieser Rechnung berücksichtigt">&nbsp;✓</span
-            >{/if}
-        </li>
-      {/each}
-    </ul>
+      <h3>Anmerkungen:</h3>
+      <ul class="hinweise">
+        {#each result.advisories as advisory (advisory.id)}
+          <li>{advisory.text}</li>
+        {/each}
+        {#each result.notes as note (note.id)}
+          <!--
+            Anmerkung 4 traegt dieselbe gelbe Hervorhebung wie die Werte in der
+            Tabelle, sobald sie greift. Ohne sie steht die Farbe oben ohne
+            Erklaerung da: Der Grund fuer das Groesser-Gleich-Zeichen ist genau
+            dieser Satz, und die gemeinsame Farbe stellt die Verbindung her.
+          -->
+          <li class:angewandt={angewandt(note.id)}>
+            {#if note.id === 'takeoff.note4' && mindestens}
+              <mark class="mindestwert">{note.text}</mark>
+            {:else}
+              {note.text}
+            {/if}{#if angewandt(note.id)}<span
+                class="haken"
+                title="in dieser Rechnung berücksichtigt">&nbsp;✓</span
+              >{/if}
+          </li>
+        {/each}
+      </ul>
 
-    <!--
-      Die Bedingungen der Tabelle stehen im Wortlaut der Digitalisierung.
-      Ohne sie liesse sich nicht erkennen, dass die Werte etwa fuer volle
-      Landeklappen und Hoechstabflugmasse gelten (FR-016).
-    -->
-    <h4>Es gilt</h4>
-    <ul class="hinweise bedingungen">
-      {#each result.conditions as condition (condition)}
-        <li>{condition}</li>
-      {/each}
-    </ul>
+      <SourceCitations
+        sources={[result.source]}
+        preflightCheckNotice={result.preflightCheckNotice}
+      />
 
-    <SourceCitations
-      sources={[result.source]}
-      preflightCheckNotice={result.preflightCheckNotice}
-    />
-
-    <CalculationSteps steps={result.steps} />
+      <CalculationSteps steps={result.steps} />
+    </div>
   {/if}
 </div>
 
 <style>
+  /*
+    Im Querformat stehen Eingaben und Auswertung nebeneinander: links der
+    Pistenwind mit dem Bahnzustand, rechts die Tabelle. Beide sind schmal
+    genug dafuer, und die Zahl steht damit neben dem Regler, der sie
+    verstellt -- man sieht die Wirkung, ohne den Blick zu heben.
+
+    Alles Weitere (Bedingungen, Anmerkungen, Quellen, Rechenweg) laeuft unter
+    beiden Spalten hindurch: Es sind Listen und Fliesstexte, die niemanden vom
+    Ergebnis trennen sollen.
+
+    Dieselbe Bedingung wie auf der Seite -- Breite **und** Querformat. Ein
+    Telefon quer ist 667 px breit, ein Tablet hoch 1032 px; nach der Breite
+    allein entschiede es genau falsch herum.
+  */
+  @media (min-width: 40rem) and (orientation: landscape) {
+    .startstrecke {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      column-gap: 2rem;
+      align-items: start;
+    }
+
+    /*
+      Die beiden oberen Bloecke belegen je eine Spalte, alles Uebrige beide.
+      Ausdruecklich und nicht ueber die Reihenfolge: Sonst begaenne der naechste
+      Block in der Spalte, in der gerade Platz ist.
+    */
+    .eingaben {
+      grid-column: 1;
+    }
+
+    .auswertung,
+    .fehler {
+      grid-column: 2;
+    }
+
+    .weiteres {
+      grid-column: 1 / -1;
+    }
+  }
+
   .bahn {
     display: flex;
     flex-wrap: wrap;
@@ -362,10 +426,13 @@
     color: #555;
   }
 
+  /*
+    Bewusst in normaler Fliesstextgroesse: Klein und grau sah der Satz aus wie
+    eine Tabellenueberschrift, ist aber keine -- er nennt die beiden Eckwerte,
+    mit denen der Pilot die Zeile im Handbuch wiederfindet (Prinzip I).
+  */
   .eckwerte {
     margin: 0 0 0.75rem;
-    font-size: 0.85em;
-    color: #555;
   }
 
   /*
@@ -433,7 +500,7 @@
     color: #333;
   }
 
-  h4 {
+  h3 {
     margin: 1rem 0 0.5rem;
   }
 

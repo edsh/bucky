@@ -47,6 +47,19 @@ Beide rufen denselben Kern auf; Rechen- und Rundungslogik wird nicht dupliziert.
 Quellenangabe (Seite + Tabellenname) und Prüfhinweis kommen aus dem Kern und
 werden von beiden Zugangswegen unverändert durchgereicht.
 
+### Aufbau der Seite: von einfach nach komplex
+
+Ganz oben stehen die **Grundbedingungen** — Platzhöhe, QNH und Außentemperatur.
+Mehr braucht keine der Rechnungen als Fundament. Darunter folgt die **Roll- und
+Startstrecke** mit ihrem eigenen Pistenwind und dem Bahnzustand: die Frage, die
+sich vor jedem Start stellt und die mit den drei Grundwerten bereits
+beantwortet ist.
+
+Erst danach beginnt der **Reiseflug**. Reiseflughöhe und Lasteinstellung stehen
+dort einmal und gelten für beides, was folgt: die Auskunft „Reichweite und
+Flugdauer" und die Bedarfsrechnung für eine konkrete Strecke. Wer nur wissen
+will, ob die Bahn reicht, muss den Reiseflug gar nicht erst aufschlagen.
+
 ### Eingaben: Höhe über dem Meeresspiegel, nicht Druckhöhe
 
 Angegeben werden Platzhöhe und Reiseflughöhe über dem Meeresspiegel sowie das

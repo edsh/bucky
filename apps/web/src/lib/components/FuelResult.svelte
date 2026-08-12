@@ -71,7 +71,7 @@
     {/if}
   </p>
 
-  <h4>Hinweise</h4>
+  <h3>Hinweise</h3>
   <ul class="hinweise">
     {#each result.advisories as advisory (advisory.id)}
       <li>

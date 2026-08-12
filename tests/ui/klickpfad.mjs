@@ -330,23 +330,28 @@ pruefe(
   !/Faustformel|\b30 ft\b|ft\s*\/\s*hPa/.test(ganzeSeite)
 );
 
-// 21: die Uebersicht steht zwischen den beiden Eingabegruppen und zeigt vier Werte
-//     -- der Strassenvergleich steht als eigener Absatz darunter, nicht darin
+// 21: die Seite laeuft von einfach nach komplex (Feature 039): erst die drei
+//     Grundbedingungen, dann die Startstrecke, dann die Reisegroessen und die
+//     beiden Ergebnisse, die an ihnen haengen. Die Uebersicht zeigt vier Werte.
 await fuellen(page, { dep: 1000, cruise: 6000, qnh: 1013, dist: 400, power: 70, isa: 10, wind: 10 });
-const reihenfolge = await page.evaluate(() => {
-  const marken = [
-    ...document.querySelectorAll('legend, .uebersicht h2, .bereich-titel')
-  ].map((e) => e.textContent.trim());
-  return marken;
-});
+const reihenfolge = await page.evaluate(() =>
+  [
+    ...document.querySelectorAll(
+      'main > form legend, main > section > h2, main > section > section > h3, .uebersicht h3'
+    )
+  ].map((e) => e.textContent.trim())
+);
 const uebersichtWerte = await page.locator('.uebersicht .werte > div').count();
 pruefe(
   21,
-  'die Übersicht steht zwischen Grundbedingungen und Start/Streckenflug und zeigt vier Werte',
+  'die Seite laeuft von den Grundbedingungen ueber die Startstrecke zu den Reisegroessen',
   reihenfolge[0].startsWith('Grundbedingungen') &&
-    /Reichweite und Flugdauer/.test(reihenfolge[1]) &&
-    reihenfolge[2] === 'Start und Streckenflug' &&
-    reihenfolge[3].startsWith('Platzhöhe') &&
+    reihenfolge[1] === 'Roll- und Startstrecke' &&
+    // Seit die Ueberschrift "Reiseflug" beide Ergebnisbloecke klammert, steht
+    // sie hier statt der Rahmenbeschriftung.
+    reihenfolge[2] === 'Reiseflug' &&
+    /Reichweite und Flugdauer/.test(reihenfolge[3]) &&
+    reihenfolge[4] === 'Kraftstoffbedarf und Geschwindigkeiten' &&
     uebersichtWerte === 4,
   `${reihenfolge.join(' > ')} — ${uebersichtWerte} Werte`
 );
@@ -522,7 +527,11 @@ await page.setViewportSize({ width: 1024, height: 800 });
 await page.goto(BASE, { waitUntil: 'networkidle' });
 await fuellen(page, { dep: 1000, cruise: 6000, qnh: 1013, dist: 250, power: 70, isa: 0, wind: 0 });
 const startWerte = await page.locator('#startstrecke .aufschluesselung').innerText();
-const startHinweise = await page.locator('#startstrecke .hinweise').first().innerText();
+// Nicht .first(): Seit die Bedingungen oberhalb der Anmerkungen stehen, waere
+// das die falsche der beiden Listen.
+const startHinweise = await page
+  .locator('#startstrecke .hinweise:not(.bedingungen)')
+  .innerText();
 const startQuellen = await page.locator('#startstrecke .quellen').innerText();
 pruefe(
   30,
@@ -541,28 +550,32 @@ pruefe(
   `${startWerte.replace(/\s+/g, ' ')} — ${startQuellen.split('\n')[0]}`
 );
 
-// 31: Überschrift, Fieldset-Inhalt und Ort der Streckenlänge (FR-012 bis FR-014)
+// 31: Inhalt der beiden Eingaberahmen und Ort der Streckenlaenge. Seit
+// Feature 039 tragen die Grundbedingungen genau die drei Groessen, die *jede*
+// Rechnung braucht; Reiseflughoehe und Lasteinstellung stehen in einem eigenen
+// Rahmen unterhalb der Startstrecke.
 const gliederung = await page.evaluate(() => {
-  const feld = [...document.querySelectorAll('fieldset')].find(
-    (f) => f.querySelector('legend')?.textContent.trim() === 'Platzhöhe'
-  );
-  const titel = document.querySelector('.bereich-titel')?.textContent.trim() ?? '';
+  const rahmen = (name) =>
+    [...document.querySelectorAll('fieldset')].find(
+      (f) => f.querySelector('legend')?.textContent.trim() === name
+    );
+  const grund = rahmen('Grundbedingungen');
+  const reise = rahmen('Bedingungen im Reiseflug');
+  const startstrecke = document.querySelector('#startstrecke');
   return {
-    titel,
-    // 4 = DOCUMENT_POSITION_FOLLOWING: das Fieldset steht hinter der Ueberschrift
-    titelVorFieldset: feld
-      ? document.querySelector('.bereich-titel').compareDocumentPosition(feld) & 4
-      : 0,
-    reglerImFieldset: feld ? feld.querySelectorAll('input[type="range"]').length : -1,
+    imGrundrahmen: grund ? [...grund.querySelectorAll('input[type="range"]')].map((e) => e.id) : [],
+    imReiserahmen: reise ? [...reise.querySelectorAll('input[type="range"]')].map((e) => e.id) : [],
+    // 4 = DOCUMENT_POSITION_FOLLOWING: der Reiserahmen steht hinter der Startstrecke
+    startVorReise: startstrecke && reise ? startstrecke.compareDocumentPosition(reise) & 4 : 0,
     streckeImBedarf: document.querySelector('#bedarf #strecke') !== null
   };
 });
 pruefe(
   31,
-  'Überschrift „Start und Streckenflug" über dem Fieldset mit genau einem Regler, Streckenlänge beim Bedarf',
-  gliederung.titel === 'Start und Streckenflug' &&
-    gliederung.titelVorFieldset > 0 &&
-    gliederung.reglerImFieldset === 1 &&
+  'Grundbedingungen tragen Platzhöhe, QNH und Temperatur; die Reisegrößen stehen hinter der Startstrecke',
+  JSON.stringify(gliederung.imGrundrahmen) === JSON.stringify(['platzhoehe', 'qnh', 'temperatur']) &&
+    JSON.stringify(gliederung.imReiserahmen) === JSON.stringify(['reiseflughoehe', 'last']) &&
+    gliederung.startVorReise > 0 &&
     gliederung.streckeImBedarf,
   JSON.stringify(gliederung)
 );
@@ -669,16 +682,30 @@ await page.locator('#nass').uncheck();
 await page.locator('#gras').uncheck();
 await page.waitForTimeout(200);
 
-// 38: Anmerkungen vor Bedingungen, wie im Flughandbuch
+// 38: Bedingungen vor Anmerkungen, wie im Flughandbuch -- dort steht unter der
+// Tabelle zuerst, wofuer sie gilt, danach die nummerierten Anmerkungen. Beide
+// stehen hinter der Ergebnistabelle: davor haetten sie auf schmalen Geraeten
+// das Ergebnis aus dem Sichtfeld geschoben.
 const reihenfolgeUeberschriften = await page.evaluate(() =>
-  [...document.querySelectorAll('#startstrecke h4')].map((e) => e.textContent.trim())
+  // <h3> seit Feature 039: Die Blocktitel sind auf <h2> gewandert, alles
+  // darunter ist eine Stufe mitgezogen -- sonst klaffte zwischen h2 und h4
+  // eine Luecke (Pruefung 39).
+  [...document.querySelectorAll('#startstrecke h3')].map((e) => e.textContent.trim())
 );
+// 4 = DOCUMENT_POSITION_FOLLOWING: die Bedingungen stehen hinter der Tabelle
+const tabelleZuerst = await page.evaluate(() => {
+  const tabelle = document.querySelector('#startstrecke .aufschluesselung');
+  const bedingungen = document.querySelector('#startstrecke .bedingungen');
+  return Boolean(tabelle.compareDocumentPosition(bedingungen) & 4);
+});
 pruefe(
   38,
-  'die Hinweise stehen vor „Es gilt"',
-  reihenfolgeUeberschriften.indexOf('Hinweise') < reihenfolgeUeberschriften.indexOf('Es gilt') &&
-    reihenfolgeUeberschriften.includes('Es gilt'),
-  reihenfolgeUeberschriften.join(' > ')
+  '„Bedingungen:" stehen vor „Anmerkungen:", beide hinter der Ergebnistabelle',
+  reihenfolgeUeberschriften.includes('Anmerkungen:') &&
+    reihenfolgeUeberschriften.indexOf('Bedingungen:') <
+      reihenfolgeUeberschriften.indexOf('Anmerkungen:') &&
+    tabelleZuerst,
+  `${reihenfolgeUeberschriften.join(' > ')}, Tabelle zuerst: ${tabelleZuerst}`
 );
 
 // 39: die Ueberschriften bilden eine lueckenlose Rangfolge und tragen keine
@@ -699,25 +726,33 @@ const kleinerWerdend = ueberschriften.absteigend.every(
 pruefe(
   39,
   'die Überschriften bilden eine lückenlose Rangfolge in Standardgrößen',
-  lueckenlos && kleinerWerdend && ueberschriften.folge.includes(5),
+  lueckenlos && kleinerWerdend && ueberschriften.folge.includes(4),
   `${ueberschriften.folge.join('')} — ${[...new Set(ueberschriften.absteigend)].join('/')} px`
 );
 
 // 34: zwei Spalten im Querformat, eine im Hochformat -- der Fall, an dem eine
-// reine Breitenabfrage scheitern wuerde (quickstart.md Abschnitt 9)
-const bereicheNebeneinander = () =>
+// reine Breitenabfrage scheitern wuerde (quickstart.md Abschnitt 9).
+//
+// Gemessen wird seit Feature 039 *innerhalb* der Startstrecke: Bis dahin
+// standen Startstrecke und Kraftstoffbedarf nebeneinander, was nur ging,
+// solange beide dieselben Eingaben ueber sich hatten. Jetzt stehen die
+// Reisegroessen zwischen ihnen; nebeneinander liegen die Regler und die
+// Ergebnistabelle desselben Bereichs.
+const spaltenInDerStartstrecke = () =>
   page.evaluate(() => {
-    const felder = [...document.querySelectorAll('.bereich')];
-    return new Set(felder.map((e) => Math.round(e.getBoundingClientRect().top))).size === 1;
+    const eingaben = document.querySelector('#startstrecke .eingaben');
+    const auswertung = document.querySelector('#startstrecke .auswertung');
+    if (!eingaben || !auswertung) return false;
+    return Math.abs(eingaben.getBoundingClientRect().top - auswertung.getBoundingClientRect().top) < 4;
   });
 
 await page.setViewportSize({ width: 844, height: 390 });
 await page.waitForTimeout(250);
-const quer = await bereicheNebeneinander();
+const quer = await spaltenInDerStartstrecke();
 
 await page.setViewportSize({ width: 1024, height: 1366 });
 await page.waitForTimeout(250);
-const hoch = await bereicheNebeneinander();
+const hoch = await spaltenInDerStartstrecke();
 const startstreckeZuerst = await page.evaluate(() => {
   const start = document.querySelector('#startstrecke');
   const bedarf = document.querySelector('#bedarf');
@@ -725,7 +760,7 @@ const startstreckeZuerst = await page.evaluate(() => {
 });
 pruefe(
   34,
-  'bei 844 × 390 nebeneinander, bei 1024 × 1366 untereinander mit der Startstrecke zuerst',
+  'bei 844 × 390 Regler neben Tabelle, bei 1024 × 1366 untereinander mit der Startstrecke zuerst',
   quer && !hoch && startstreckeZuerst,
   `quer nebeneinander: ${quer}, hoch nebeneinander: ${hoch}, Startstrecke zuerst: ${startstreckeZuerst}`
 );
@@ -1318,9 +1353,13 @@ pruefe(
   JSON.stringify(nachHoehenwechsel)
 );
 
-// 68: die Anordnung -- beide Windregler stehen zuoberst in ihrem Bereich und
-// auf einer Hoehe (FR-016 bis FR-018). Gemessen wird an den Kastenoberkanten
-// bei einem breiten Fenster, weil genau dort der Nebeneinander-Fall auftritt.
+// 68: die Anordnung -- beide Windregler stehen zuoberst in ihrem Bereich.
+//
+// Der Hoehenvergleich der beiden ist mit Feature 039 entfallen: Er ergab sich
+// daraus, dass Startstrecke und Kraftstoffbedarf nebeneinander standen. Jetzt
+// stehen sie untereinander, und "auf einer Hoehe" waere keine sinnvolle
+// Forderung mehr. Die Stellung *innerhalb* des jeweiligen Bereichs bleibt
+// gefordert (FR-016, FR-017).
 await page.setViewportSize({ width: 1400, height: 1000 });
 await page.waitForTimeout(150);
 const anordnung = await page.evaluate(() => {
@@ -1328,16 +1367,18 @@ const anordnung = await page.evaluate(() => {
   return {
     pistenwind: oben('#pistenwind'),
     bahn: oben('#startstrecke fieldset'),
+    tabelle: oben('#startstrecke .aufschluesselung'),
     streckenwind: oben('#streckenwind'),
     strecke: oben('#strecke')
   };
 });
 pruefe(
   68,
-  'beide Windregler stehen zuoberst in ihrem Bereich und liegen auf einer Höhe',
+  'beide Windregler stehen zuoberst in ihrem Bereich',
   anordnung.pistenwind < anordnung.bahn &&
     anordnung.streckenwind < anordnung.strecke &&
-    Math.abs(anordnung.pistenwind - anordnung.streckenwind) < 24,
+    // Im Querformat liegt die Tabelle neben dem Regler, nicht darunter.
+    Math.abs(anordnung.pistenwind - anordnung.tabelle) < 60,
   JSON.stringify(anordnung)
 );
 

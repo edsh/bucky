@@ -21,6 +21,12 @@ import { chromium } from 'playwright';
 // stattdessen die veroeffentlichte Seite pruefen, etwa
 // BASE=https://edsh.github.io/bucky node tests/ui/klickpfad.mjs
 const BASE = process.env.BASE ?? 'http://localhost:8899';
+/**
+ * Seit Feature 043 ist die Startseite die Auswahl; der Rechner liegt unter dem
+ * Flugzeug. Fast alle Pruefungen gelten dem Rechner und rufen ihn unmittelbar
+ * auf — nur die wenigen zur Auswahl selbst gehen auf BASE.
+ */
+const RECHNER = `${BASE}/d-eelk/poh-rechner/`;
 const NBSP = '\u00A0';
 const befunde = [];
 
@@ -113,7 +119,7 @@ page.on('console', (msg) => {
 });
 page.on('pageerror', (error) => konsolenfehler.push(String(error)));
 
-await page.goto(BASE, { waitUntil: 'networkidle' });
+await page.goto(RECHNER, { waitUntil: 'networkidle' });
 
 // 1: gültiges Flugvorhaben liefert zügig ein Ergebnis (SC-001)
 const start = Date.now();
@@ -450,7 +456,7 @@ pruefe(
 
 // Mobilgerät (FR-027) und Kennzeichnung als Höhe ASL (FR-024, FR-005)
 await page.setViewportSize({ width: 390, height: 844 });
-await page.goto(BASE, { waitUntil: 'networkidle' });
+await page.goto(RECHNER, { waitUntil: 'networkidle' });
 const beschriftungen = await page.locator('label').allInnerTexts();
 const hoehenfelder = beschriftungen.filter((t) => t.includes('(ft)'));
 const alleAsl = hoehenfelder.length === 2 && hoehenfelder.every((t) => t.includes('ASL') && !t.includes('Druckhöhe'));
@@ -460,7 +466,7 @@ pruefe(12, 'kein waagerechtes Scrollen auf 390 px Breite', !ueberbreite);
 
 // 26: der Strassenvergleich als Fun Fact am Ende der Übersicht
 await page.setViewportSize({ width: 1024, height: 800 });
-await page.goto(BASE, { waitUntil: 'networkidle' });
+await page.goto(RECHNER, { waitUntil: 'networkidle' });
 await fuellen(page, { dep: 1000, cruise: 6000, qnh: 1013, dist: 250, power: 70, isa: 0, wind: 0 });
 // Geschuetzte Leerzeichen werden hier zu gewoehnlichen normalisiert; dass sie
 // vorhanden sind, stellt Pruefung 27 fest.
@@ -524,7 +530,7 @@ await page.evaluate(() => window.scrollTo(0, 0));
 // 30: die Startstrecke zeigt beide Werte, die vier Anmerkungen im Wortlaut mit
 // Seitenangabe 5b-2 und eine Quellenangabe mit Seitenzahl (FR-016, SC-004)
 await page.setViewportSize({ width: 1024, height: 800 });
-await page.goto(BASE, { waitUntil: 'networkidle' });
+await page.goto(RECHNER, { waitUntil: 'networkidle' });
 await fuellen(page, { dep: 1000, cruise: 6000, qnh: 1013, dist: 250, power: 70, isa: 0, wind: 0 });
 const startWerte = await page.locator('#startstrecke .aufschluesselung').innerText();
 // Nicht .first(): Seit die Bedingungen oberhalb der Anmerkungen stehen, waere
@@ -1207,7 +1213,7 @@ page.on('request', (anfrage) => {
   if (anfrage.url().includes('open-meteo.com')) fremdanfragen.push(anfrage.url());
 });
 await page.route('**://*.open-meteo.com/**', (route) => route.abort('failed'));
-await page.goto(BASE, { waitUntil: 'networkidle' });
+await page.goto(RECHNER, { waitUntil: 'networkidle' });
 await fuellen(page, { dep: 971, cruise: 6000, dist: 200, power: 70, isa: 10, wind: 5 });
 const ohneNetz = {
   anfragenBeimLaden: fremdanfragen.length,
@@ -1228,7 +1234,7 @@ netzfehlerErwartet = false;
 // 56: die Kernaussage von Feature 026 -- die beiden Windgroessen beeinflussen
 // einander nicht mehr (SC-002). Erst den Pistenwind bewegen, dann den
 // Streckenwind; jedes Mal darf sich nur das zugehoerige Ergebnis ruehren.
-await page.goto(BASE, { waitUntil: 'networkidle' });
+await page.goto(RECHNER, { waitUntil: 'networkidle' });
 await fuellen(page, { dep: 971, cruise: 4500, dist: 200, power: 70, isa: 10, wind: 10 });
 const vorPistenwind = {
   start: await page.locator('#startstrecke .summe').innerText(),
@@ -1273,7 +1279,7 @@ pruefe(
 // andere Seite. Bei *gleicher* Lage rechnet die Anwendung unveraendert
 // (nachgewiesen in T002 der Feature-031-Aufgaben).
 await page.evaluate(() => localStorage.clear());
-await page.goto(BASE, { waitUntil: 'networkidle' });
+await page.goto(RECHNER, { waitUntil: 'networkidle' });
 await page.waitForTimeout(250);
 const anfangsstand = {
   start: (await page.locator('#startstrecke .summe').innerText()).replace(/\s+/g, ' '),
@@ -1563,7 +1569,7 @@ await page.locator('#gras').uncheck();
   nichts durchlaesst, was ein Regler nicht hergaebe (FR-008, Prinzip I).
 */
 await page.evaluate(() => localStorage.clear());
-await page.goto(BASE, { waitUntil: 'networkidle' });
+await page.goto(RECHNER, { waitUntil: 'networkidle' });
 await page.waitForTimeout(200);
 
 // 78: die eingestellten Werte ueberstehen das Neuladen
@@ -1636,7 +1642,7 @@ pruefe(
 // 81: ein alter Wetterabruf traegt die Alterswarnung, ein frischer nicht
 await page.evaluate(() => localStorage.clear());
 await antwortMit(GUTE_ANTWORT);
-await page.goto(BASE, { waitUntil: 'networkidle' });
+await page.goto(RECHNER, { waitUntil: 'networkidle' });
 await wetterKnopf.click();
 await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
 await uebernehmen.click();
@@ -1674,6 +1680,137 @@ pruefe(
 );
 
 await page.evaluate(() => localStorage.clear());
+
+// --- Feature 043: Startseite, Flugzeug-Avatar und Umzug der Adressen ---
+
+await page.goto(BASE, { waitUntil: 'networkidle' });
+
+// 83: der Splash traegt Buckys Frage auch fuer alle, die das Bild nicht sehen
+const splashText = await page.locator('img.splash').getAttribute('alt');
+pruefe(
+  83,
+  'Splash ist da und seine Frage steht als Textalternative bereit (FR-001, FR-002)',
+  await page.locator('img.splash').isVisible() &&
+    /Hi Pilot/.test(splashText ?? '') &&
+    /Windsack/.test(splashText ?? ''),
+  splashText ?? '(kein Alternativtext)'
+);
+
+// 84: auf einem Telefonbildschirm steht der Avatar ohne Scrollen da (FR-004, SC-002)
+await page.setViewportSize({ width: 390, height: 844 });
+await page.waitForTimeout(150);
+const avatarKasten = await page.locator('button.avatar').boundingBox();
+pruefe(
+  84,
+  'Avatar ist auf 390x844 ohne Scrollen sichtbar',
+  avatarKasten !== null && avatarKasten.y + avatarKasten.height <= 844,
+  avatarKasten ? `Unterkante ${Math.round(avatarKasten.y + avatarKasten.height)} px` : 'nicht gefunden'
+);
+
+// 85: der Avatar ist rund, traegt einen Rahmen und nennt sein Kennzeichen
+const avatarStil = await page.locator('button.avatar').evaluate((el) => {
+  const s = getComputedStyle(el);
+  return { radius: s.borderRadius, breite: s.borderTopWidth, farbe: s.borderTopColor };
+});
+pruefe(
+  85,
+  'Avatar ist rund, hat einen Rahmen und die Bildunterschrift D-EELK (FR-005, FR-006)',
+  /50%/.test(avatarStil.radius) &&
+    parseFloat(avatarStil.breite) >= 2 &&
+    avatarStil.farbe !== 'rgba(0, 0, 0, 0)' &&
+    (await page.locator('.kennzeichen').innerText()) === 'D-EELK',
+  JSON.stringify(avatarStil)
+);
+
+// 86: das Menue erscheint erst auf Antippen und meldet seinen Zustand (FR-009)
+pruefe(
+  86,
+  'ohne Antippen ist kein Menue offen',
+  (await page.locator('[role="menu"]').count()) === 0 &&
+    (await page.locator('button.avatar').getAttribute('aria-expanded')) === 'false'
+);
+
+await page.locator('button.avatar').click();
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+const eintraege = await page.locator('[role="menuitem"]').allInnerTexts();
+pruefe(
+  87,
+  'Antippen oeffnet das Menue mit dem Eintrag POH-Rechner (FR-010)',
+  eintraege.length === 1 &&
+    eintraege[0] === 'POH-Rechner' &&
+    (await page.locator('button.avatar').getAttribute('aria-expanded')) === 'true',
+  eintraege.join(' | ')
+);
+
+// 94: das Menue bleibt im Fenster -- mittig unter dem Avatar gehaengt ragte es
+// auf schmalen Schirmen links heraus, weil der erste Avatar am Seitenrand steht
+const menueKasten = await page.locator('[role="menu"]').boundingBox();
+pruefe(
+  94,
+  'das geoeffnete Menue liegt vollstaendig im Sichtfeld',
+  menueKasten !== null && menueKasten.x >= 0 && menueKasten.x + menueKasten.width <= 390,
+  menueKasten ? `${Math.round(menueKasten.x)} bis ${Math.round(menueKasten.x + menueKasten.width)} px` : 'nicht gefunden'
+);
+
+// 88: die Reservierung taucht hier bewusst noch nicht auf (Out of Scope)
+pruefe(
+  88,
+  'die Reservierung erscheint noch nicht',
+  !/Reservierung/.test(await page.locator('main').innerText())
+);
+
+// 89: Escape schliesst und gibt den Fokus dorthin zurueck, wo er herkam (FR-011, FR-012)
+await page.keyboard.press('Escape');
+await page.waitForTimeout(150);
+const fokusNachEscape = await page.evaluate(() => document.activeElement?.className ?? '');
+pruefe(
+  89,
+  'Escape schliesst das Menue und der Fokus kehrt zum Avatar zurueck',
+  (await page.locator('[role="menu"]').count()) === 0 && /avatar/.test(fokusNachEscape),
+  fokusNachEscape
+);
+
+// 90: ein Klick daneben schliesst ebenfalls, ohne etwas auszuloesen (FR-011)
+await page.locator('button.avatar').click();
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+await page.mouse.click(5, 5);
+await page.waitForTimeout(150);
+pruefe(
+  90,
+  'ein Klick neben das Menue schliesst es, ohne zu navigieren',
+  (await page.locator('[role="menu"]').count()) === 0 && new URL(page.url()).pathname.replace(/\/$/, '') === new URL(BASE).pathname.replace(/\/$/, ''),
+  page.url()
+);
+
+// 91: der ganze Weg zum Rechner ist mit der Tastatur begehbar (SC-001, SC-003)
+await page.setViewportSize({ width: 1024, height: 1366 });
+await page.locator('button.avatar').focus();
+await page.keyboard.press('Enter');
+await page.locator('[role="menuitem"]').first().waitFor({ timeout: 3000 });
+await page.keyboard.press('Enter');
+await page.getByRole('heading', { name: 'POH-Rechner D-EELK' }).waitFor({ timeout: 5000 });
+pruefe(
+  91,
+  'Startseite zum Rechner: zwei Bedienschritte, allein mit der Tastatur',
+  /\/d-eelk\/poh-rechner/.test(page.url()),
+  page.url()
+);
+
+// 92: und wieder zurueck zur Auswahl, ohne die Zurueck-Taste des Browsers (FR-016)
+await page.waitForLoadState('networkidle');
+await page.getByRole('link', { name: 'Zurück zur Auswahl' }).first().click();
+await page.locator('button.avatar').waitFor({ timeout: 5000 });
+pruefe(92, 'Rueckweg vom Rechner zur Auswahl funktioniert', true);
+
+// 93: alte Lesezeichen auf die Tabellenseite laufen nicht ins Leere (FR-014, SC-005)
+await page.goto(`${BASE}/tabellen/`, { waitUntil: 'networkidle' });
+await page.getByRole('heading', { name: 'Digitalisierte Tabellen der D-EELK' }).waitFor({ timeout: 8000 });
+pruefe(
+  93,
+  'die alte Tabellenadresse fuehrt weiterhin zur Tabellenuebersicht',
+  /d-eelk\/poh-rechner\/tabellen/.test(page.url()),
+  page.url()
+);
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 

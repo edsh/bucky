@@ -464,6 +464,14 @@
     text-align: left;
     padding: 0.35rem 0.5rem;
     border-bottom: 1px solid #ddd;
+    /*
+      Greift nur, wenn es sonst ueberlaeuft, und aendert sonst nichts. Noetig,
+      weil „Startrollstrecke" nicht umbricht: Auf einem 390 px breiten Schirm
+      passt die Spalte gerade so — mit einer geringfuegig breiter laufenden
+      Systemschrift aber nicht mehr, und dann schob die Tabelle die ganze Seite
+      waagerecht auf.
+    */
+    overflow-wrap: break-word;
   }
 
   td {

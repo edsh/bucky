@@ -357,7 +357,7 @@ duplizieren.
 
 ## Status
 
-Constitution liegt vor (v1.4.0). Feature 1 ist spezifiziert, geplant und
+Constitution liegt vor (v1.5.0). Feature 1 ist spezifiziert, geplant und
 implementiert: die POH-Tabellen der D-EELK sind digitalisiert, der
 Berechnungskern rechnet den Kraftstoffbedarf mitsamt Rechenweg und
 Quellenangaben, beide Zugangswege stehen. Offen ist die Stichprobe der
@@ -371,11 +371,18 @@ Vereinsflieger hineinreicht: nur lesend oder auch schreibend (Prinzip II).
 Entschieden: Frontend SvelteKit (Prinzip III), Architektur mit gemeinsamem
 Berechnungskern und den Zugangswegen SvelteKit-UI und MCP-Endpunkt (Prinzip IV).
 
+Ebenfalls entschieden: Serverseitige Anteile laufen auf **Cloudflare Workers**
+(Prinzip V). Fremde Schnittstellen mit begrenztem Kontingent werden zentral und
+zeitgesteuert abgerufen und zwischengespeichert; die Oberfläche liest nur den
+Zwischenspeicher. Anlass ist Vereinsflieger mit 500 Aufrufen je Tag für den
+ganzen Verein — siehe `tools/vereinsflieger-api/README.md`.
+
 Offene Fragen:
 
-1. Backend/Hosting?
-2. Authentifizierung/Rollenmodell für Vereinsmitglieder?
-3. Wahl der Datenbank?
+1. Authentifizierung/Rollenmodell für Vereinsmitglieder? Die Reservierungsliste
+   enthält Klarnamen und braucht eine Zugangshürde.
+2. Wahl der Datenbank? Für den Zwischenspeicher genügt ein
+   Schlüssel-Wert-Speicher; eine Datenbank ist bisher für nichts nötig.
 
 Geklärt: Die D-EELK ist eine Cessna 172N mit Standardtanks; damit sind
 die Tabellen aus Abschnitt 5b für 1043 kg maßgeblich (siehe

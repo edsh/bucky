@@ -1,5 +1,22 @@
 <!--
 Sync Impact Report
+Version change: 1.4.0 → 1.5.0
+Modified principles: none renamed or redefined
+Added sections: Core Principle V. Serverseitige Anteile auf Cloudflare, mit
+  geteiltem Zwischenspeicher — Laufzeitumgebung entschieden (war offene Frage
+  "Backend/Hosting" im README-Status); fremde Schnittstellen werden zentral und
+  zwischengespeichert abgerufen, Geheimnisse gehören nie ins Repo
+Removed sections: none
+Follow-up TODOs:
+  - README.md — Status-Abschnitt: "Backend/Hosting?" ist keine offene Frage mehr
+    (im selben Durchgang nachgezogen)
+  - Das Reservierungs-Feature ist noch nicht spezifiziert; es ist der erste
+    Anwendungsfall dieses Prinzips
+Templates requiring updates:
+  - ⚠ .specify/templates/plan-template.md — not yet checked against this version
+  - ⚠ .specify/templates/spec-template.md — not yet checked against this version
+
+Sync Impact Report (previous, 1.4.0)
 Version change: 1.3.0 → 1.4.0
 Modified principles: none renamed or redefined
 Added sections: Core Principle IV. Shared Deterministic Core, Multiple Access
@@ -125,6 +142,34 @@ Berechnung gibt: zwei Implementierungen derselben Interpolation würden früher 
 später auseinanderlaufen und genau den Fehler erzeugen, den Prinzip I ausschließen
 soll.
 
+### V. Serverseitige Anteile auf Cloudflare, mit geteiltem Zwischenspeicher
+
+Serverseitige Anteile von Bucky Highfly MÜSSEN auf Cloudflare Workers laufen;
+der SvelteKit-Bau richtet sich danach. Eine erneute Hosting-Entscheidung pro
+Feature findet nicht statt, solange diese Constitution nicht geändert wird.
+
+Zugriffe auf fremde Schnittstellen mit begrenztem Aufrufkontingent — allen voran
+Vereinsflieger mit 500 Aufrufen je Tag und Anwendungsschlüssel — MÜSSEN
+**zentral und zeitgesteuert** erfolgen und in einem von allen Anfragen geteilten
+Speicher abgelegt werden. Eine Anfrage aus der Oberfläche DARF keinen Aufruf der
+fremden Schnittstelle auslösen; sie liest ausschließlich den Zwischenspeicher.
+Die Zahl der Fremdaufrufe MUSS damit unabhängig vom Besucheraufkommen sein.
+
+Zugangsdaten für fremde Dienste (Dienstkonten, Anwendungsschlüssel) DÜRFEN
+niemals im Repository liegen, weder im Klartext noch verschleiert; sie gehören
+in die Geheimnisverwaltung der Laufzeitumgebung. Persönliche Zugangsdaten von
+Vereinsmitgliedern DÜRFEN weder abgefragt noch entgegengenommen oder
+gespeichert werden.
+
+Rationale: Ein Kontingent von 500 Aufrufen am Tag gilt für den ganzen Verein
+zusammen. Würde jede Seitenansicht selbst abrufen, wäre der Dienst nach gut
+hundert Sitzungen für alle gesperrt — und zwar auf eine Weise, die sich mit
+wachsender Nutzung verschlimmert. Der geteilte Zwischenspeicher macht diesen
+Fehler strukturell unmöglich statt ihn nur unwahrscheinlich zu machen. Dass
+Mitglieder ihre eigenen Zugangsdaten nicht herausgeben müssen, ist kein
+Nebeneffekt, sondern Bedingung: Eine Vereins-App, die nach fremden Passwörtern
+fragt, erzieht ihre Nutzer zu genau dem Verhalten, das sie angreifbar macht.
+
 ## Agent-Agnostic Project Knowledge
 
 Verbindliches Projektwissen (Prinzipien, Specs, Pläne) MUSS als werkzeugneutrales
@@ -175,8 +220,8 @@ MAJOR für unvereinbare Streichungen/Neudefinitionen bestehender Prinzipien, MIN
 neue Prinzipien/Abschnitte, PATCH für Klarstellungen. Jede Änderung aktualisiert den
 Sync-Impact-Report am Dateianfang. Pull Requests bzw. Specs, die gegen ein
 Kernprinzip verstoßen oder es berühren, MÜSSEN das betroffene Prinzip referenzieren
-und die Abweichung begründen. Aktuell sind vier Kernprinzipien definiert (I–IV);
+und die Abweichung begründen. Aktuell sind fünf Kernprinzipien definiert (I–V);
 weitere werden ergänzt, sobald sich echte, nicht verhandelbare Regeln aus der
 Praxis ergeben — Platzhalter für ungenutzte Prinzipien werden nicht künstlich befüllt.
 
-**Version**: 1.4.0 | **Ratified**: 2026-08-05 | **Last Amended**: 2026-08-05
+**Version**: 1.5.0 | **Ratified**: 2026-08-05 | **Last Amended**: 2026-08-12

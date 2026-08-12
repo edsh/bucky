@@ -52,6 +52,57 @@
     if (ist) element.focus();
   }
 
+  /**
+   * Stellt das Menü dorthin, wo es hinpasst — wie ein Kontextmenü. Bevorzugt
+   * rechts neben den Avatar, sonst links daneben, sonst darunter; in jedem
+   * Fall innerhalb des Fensters. Eine feste Seite geht nicht: Der erste Avatar
+   * steht am linken Rand, auf einem Telefon ist rechts von ihm womöglich kein
+   * Platz mehr (FR-020).
+   */
+  function platzieren(menue: HTMLElement) {
+    const luecke = 8;
+    const rand = 8;
+
+    function stellen() {
+      const halter = menue.parentElement;
+      const avatar = halter?.querySelector('.avatar');
+      if (!halter || !avatar) return;
+
+      // Erst zuruecksetzen, sonst misst der Browser die alte Stellung mit.
+      menue.style.left = '0px';
+      menue.style.top = '0px';
+
+      const h = halter.getBoundingClientRect();
+      const a = avatar.getBoundingClientRect();
+      const m = menue.getBoundingClientRect();
+      const breite = window.innerWidth;
+      const hoehe = window.innerHeight;
+
+      let x = a.right + luecke;
+      let y = a.top;
+
+      if (x + m.width > breite - rand) {
+        // Rechts ist kein Platz: links daneben versuchen.
+        x = a.left - luecke - m.width;
+      }
+      if (x < rand) {
+        // Auch links nicht: darunter, am Avatar ausgerichtet und ins Fenster geklemmt.
+        x = Math.min(Math.max(a.left, rand), Math.max(breite - rand - m.width, rand));
+        y = a.bottom + luecke;
+      }
+
+      // Senkrecht nur so weit verschieben, dass nichts unten heraushaengt.
+      y = Math.min(y, Math.max(hoehe - rand - m.height, rand));
+
+      menue.style.left = `${x - h.left}px`;
+      menue.style.top = `${y - h.top}px`;
+    }
+
+    stellen();
+    window.addEventListener('resize', stellen);
+    return { destroy: () => window.removeEventListener('resize', stellen) };
+  }
+
   function beiTaste(ereignis: KeyboardEvent) {
     if (ereignis.key === 'Escape' && offen) {
       const war = offen;
@@ -110,7 +161,12 @@
           <span class="kennzeichen">{flugzeug.kennzeichen}</span>
 
           {#if offen === flugzeug.kennzeichen}
-            <div class="menue" role="menu" aria-label="Was mit {flugzeug.kennzeichen} tun?">
+            <div
+              class="menue"
+              role="menu"
+              aria-label="Was mit {flugzeug.kennzeichen} tun?"
+              use:platzieren
+            >
               {#each flugzeug.handlungen as handlung, i (handlung.ziel)}
                 <a role="menuitem" href={handlung.ziel} use:anfangsfokus={i === 0}>
                   {handlung.name}
@@ -228,15 +284,18 @@
   }
 
   /*
-    Linksbuendig am Avatar statt unter ihm zentriert: Der erste Avatar steht am
-    linken Seitenrand, ein mittig gehaengtes Menue ragte dort aus dem Fenster.
+    Die Stellung rechnet `platzieren` aus; hier stehen nur Aussehen und der
+    Ausgangspunkt. `overflow: hidden` haelt den hellen Grund eines
+    angesteuerten Eintrags innerhalb der abgerundeten Ecken -- ohne das brachen
+    die Ecken sichtbar aus dem Rahmen aus.
   */
   .menue {
     position: absolute;
-    top: calc(100% + 0.4rem);
+    top: 0;
     left: 0;
     z-index: 2;
     display: flex;
+    overflow: hidden;
     flex-direction: column;
     min-width: 11rem;
     border: 1px solid #ccc;

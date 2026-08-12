@@ -182,9 +182,13 @@ landen — ohne die Zurück-Taste des Browsers.
 
 ### Beim Bauen hinzugekommen
 
-- **FR-020**: Das geöffnete Auswahlmenü MUSS vollständig im Sichtfeld liegen.
-  Mittig unter dem Avatar gehängt ragte es auf schmalen Bildschirmen links
-  heraus, weil der erste Avatar am Seitenrand steht.
+- **FR-020**: Das geöffnete Auswahlmenü MUSS sich seinen Platz suchen wie ein
+  Kontextmenü: bevorzugt neben dem Avatar, bei Enge darunter, in jedem Fall
+  vollständig im Sichtfeld. Eine feste Seite trägt nicht — der erste Avatar
+  steht am Seitenrand, und auf einem Telefon ist neben ihm womöglich kein Platz.
+- **FR-024**: Der Grund eines angesteuerten Menüeintrags MUSS innerhalb der
+  abgerundeten Ecken des Menüs bleiben; ohne Beschnitt brachen die Ecken
+  sichtbar aus dem Rahmen aus.
 - **FR-021**: Beim Öffnen MUSS der Tastaturfokus in das Menü wandern. Bleibt er
   auf dem Avatar, schließt der nächste Tastendruck das eben geöffnete Menü
   wieder — der Tastaturweg aus SC-003 wäre nicht begehbar.

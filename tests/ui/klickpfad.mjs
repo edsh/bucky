@@ -1762,6 +1762,35 @@ pruefe(
   menueKasten ? `${Math.round(menueKasten.x)} bis ${Math.round(menueKasten.x + menueKasten.width)} px` : 'nicht gefunden'
 );
 
+// 96: neben dem Avatar, wenn dort Platz ist -- wie ein Kontextmenue
+const avatarKasten2 = await page.locator('button.avatar').boundingBox();
+pruefe(
+  96,
+  'das Menue steht neben dem Avatar, solange daneben Platz ist',
+  menueKasten !== null && avatarKasten2 !== null && menueKasten.x >= avatarKasten2.x + avatarKasten2.width,
+  menueKasten && avatarKasten2
+    ? `Avatar bis ${Math.round(avatarKasten2.x + avatarKasten2.width)} px, Menue ab ${Math.round(menueKasten.x)} px`
+    : 'nicht gefunden'
+);
+
+// 97: wird es zu eng, weicht es nach unten aus, statt herauszuragen
+await page.setViewportSize({ width: 260, height: 600 });
+await page.waitForTimeout(200);
+const engMenue = await page.locator('[role="menu"]').boundingBox();
+const engAvatar = await page.locator('button.avatar').boundingBox();
+pruefe(
+  97,
+  'auf 260 px weicht das Menue unter den Avatar aus und bleibt im Fenster',
+  engMenue !== null &&
+    engAvatar !== null &&
+    engMenue.y >= engAvatar.y + engAvatar.height &&
+    engMenue.x >= 0 &&
+    engMenue.x + engMenue.width <= 260,
+  engMenue ? `x ${Math.round(engMenue.x)} bis ${Math.round(engMenue.x + engMenue.width)}, y ${Math.round(engMenue.y)}` : 'nicht gefunden'
+);
+await page.setViewportSize({ width: 390, height: 844 });
+await page.waitForTimeout(200);
+
 // 88: die Reservierung taucht hier bewusst noch nicht auf (Out of Scope)
 pruefe(
   88,

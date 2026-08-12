@@ -1,18 +1,21 @@
-import adapter from '@sveltejs/adapter-static';
+import adapter from '@sveltejs/adapter-cloudflare';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 /**
- * Auf GitHub Pages liegt die Seite unter /<repo>/. Der Basispfad kommt aus
- * der Umgebung, damit die interne Verlinkung dort und lokal gleichermaßen
- * trägt; lokal ist er leer.
+ * Die Seite liegt an der Wurzel ihrer eigenen Domain, deshalb ohne Basispfad.
+ * Bis Feature 045 kam er über `BASE_PATH` aus der Umgebung — GitHub Pages legt
+ * ein Projekt sonst unter `/<repo>/` ab.
+ *
+ * Ausgeliefert wird weiterhin ausschließlich Vorgerendertes: `prerender = true`
+ * und `ssr = false` in `src/routes/+layout.ts` bleiben unangetastet. Der
+ * Adapter wechselt nur die Form der Ablage — und schafft nebenbei die
+ * Möglichkeit für Server-Routen, die die Reservierung brauchen wird
+ * (Verfassungsprinzip V). Gebaut wird hier keine.
  */
-const base = process.env.BASE_PATH ?? '';
-
 /** @type {import('@sveltejs/kit').Config} */
 export default {
   preprocess: vitePreprocess(),
   kit: {
-    adapter: adapter({ fallback: '404.html' }),
-    paths: { base }
+    adapter: adapter()
   }
 };

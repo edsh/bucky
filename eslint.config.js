@@ -32,6 +32,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/build/**',
       '**/.svelte-kit/**',
+      '**/.wrangler/**',
       'data/**',
       'tools/**'
     ]

@@ -4,15 +4,19 @@
  * Browser. So wird er ausgefuehrt:
  *
  *   npm run build
- *   python3 -m http.server 8899 --directory apps/web/build &
+ *   npx wrangler dev --config apps/web/wrangler.jsonc --port 8787
  *   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install --no-save playwright
- *   node tests/ui/klickpfad.mjs
+ *   BASE=http://localhost:8787 node tests/ui/klickpfad.mjs
  *
- * Playwright steht bewusst nicht in den Manifesten des Projekts, damit es
- * weder die Installation noch die CI belastet; `--no-save` laesst package.json
- * und die Lockdatei unberuehrt. Der Browser wird ueber `channel: 'msedge'` aus
- * dem System genommen, statt ihn zu laden — deshalb der uebersprungene
- * Browser-Download.
+ * Playwright steht bewusst nicht in den Manifesten des Projekts, damit es die
+ * Installation nicht belastet; `--no-save` laesst package.json und die
+ * Lockdatei unberuehrt.
+ *
+ * Der Browser kommt oertlich ueber `channel: 'msedge'` aus dem System, statt
+ * geladen zu werden — deshalb der uebersprungene Browser-Download. Auf dem
+ * Bauknecht gibt es kein Edge; dort setzt die Ablaufsteuerung
+ * KLICKPFAD_BROWSER=chromium und nimmt das mitgelieferte Chromium. Ohne
+ * gesetzte Variable bleibt der oertliche Weg unveraendert.
  */
 import { setTimeout as warte } from 'node:timers/promises';
 import { chromium } from 'playwright';
@@ -103,7 +107,13 @@ async function fuellen(page, werte) {
   await page.waitForTimeout(150);
 }
 
-const browser = await chromium.launch({ channel: 'msedge' });
+/**
+ * Ohne Angabe der vertraute Weg ueber Edge aus dem System; mit
+ * KLICKPFAD_BROWSER=chromium das von Playwright mitgelieferte Chromium, das
+ * auf dem Bauknecht die einzige Wahl ist.
+ */
+const kanal = process.env.KLICKPFAD_BROWSER ?? 'msedge';
+const browser = await chromium.launch(kanal === 'chromium' ? {} : { channel: kanal });
 const page = await browser.newPage();
 const konsolenfehler = [];
 /**

@@ -15,7 +15,10 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          # Dieselbe Fassung, mit der veroeffentlicht wird. Bis Feature 045
+          # prueften wir mit 22 und veroeffentlichten mit 24 — der ausgelieferte
+          # Bau war also nie in dieser Form geprueft.
+          node-version: 24
           cache: npm
 
       - name: Abhängigkeiten installieren
@@ -40,3 +43,24 @@ jobs:
 
       - name: Bau
         run: npm run build
+
+      # Der Klickpfad ist die einzige Pruefung, die die Oberflaeche als Ganzes
+      # bedient. Bis Feature 045 lief er nur auf dem Rechner des Entwicklers —
+      # ein Fehler, den nur dort jemand findet, haelt nichts auf.
+      - name: Browser fuer den Klickpfad
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Klickpfad
+        env:
+          KLICKPFAD_BROWSER: chromium
+          BASE: http://localhost:8787
+        run: |
+          npx wrangler dev --config apps/web/wrangler.jsonc --port 8787 &
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null "$BASE" && break
+            sleep 2
+          done
+          curl -sf -o /dev/null "$BASE" || { echo "Wrangler ist nicht hochgekommen"; exit 1; }
+          node tests/ui/klickpfad.mjs

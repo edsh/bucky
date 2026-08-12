@@ -18,9 +18,9 @@ wird.
 
 ## Phase 1: Setup
 
-- [ ] T001 In `apps/web/package.json` `@sveltejs/adapter-static` durch `@sveltejs/adapter-cloudflare` (^7.2.9) ersetzen und `wrangler` (^4.122.0) als Entwicklungsabhängigkeit aufnehmen; danach `npm install` und die Lockdatei mit übernehmen
-- [ ] T002 [P] `apps/web/wrangler.jsonc` anlegen: `$schema`, `name: "bucky"`, `compatibility_date`, Verweis auf das Bauergebnis des Adapters (`.svelte-kit/cloudflare`), Assets-Bindung — Vorlage in research.md E-02/E-03
-- [ ] T003 [P] `.gitignore` um `.wrangler/` ergänzen, damit der örtliche Zwischenstand nicht ins Repository gerät
+- [X] T001 In `apps/web/package.json` `@sveltejs/adapter-static` durch `@sveltejs/adapter-cloudflare` (^7.2.9) ersetzen und `wrangler` (^4.122.0) als Entwicklungsabhängigkeit aufnehmen; danach `npm install` und die Lockdatei mit übernehmen
+- [X] T002 [P] `apps/web/wrangler.jsonc` anlegen: `$schema`, `name: "bucky"`, `compatibility_date`, Verweis auf das Bauergebnis des Adapters (`.svelte-kit/cloudflare`), Assets-Bindung — Vorlage in research.md E-02/E-03
+- [X] T003 [P] `.gitignore` um `.wrangler/` ergänzen, damit der örtliche Zwischenstand nicht ins Repository gerät
 
 ---
 
@@ -28,10 +28,10 @@ wird.
 
 **Blockiert alles Weitere.** Ohne diese Phase gibt es nichts zu veröffentlichen.
 
-- [ ] T004 In `apps/web/svelte.config.js` den Adapter auf `adapter-cloudflare` umstellen und die `BASE_PATH`-Mechanik samt `paths.base` entfernen — sie diente allein GitHub Pages
-- [ ] T005 Prüfen, dass `apps/web/src/routes/+layout.ts` **unverändert** bleibt (`prerender`, `ssr`, `trailingSlash`) und der Bau weiterhin je Seite ein Verzeichnis mit `index.html` erzeugt; andernfalls ist FR-002 verletzt
-- [ ] T006 `npm run build` und danach `npx wrangler dev --config apps/web/wrangler.jsonc`; beide Seiten unmittelbar aufrufen (nicht nur über die Startseite)
-- [ ] T007 Klickpfad örtlich gegen den Wrangler-Server laufen lassen (`BASE=http://localhost:8787 node tests/ui/klickpfad.mjs`) — erwartet: 97 Prüfungen, 0 durchgefallen
+- [X] T004 In `apps/web/svelte.config.js` den Adapter auf `adapter-cloudflare` umstellen und die `BASE_PATH`-Mechanik samt `paths.base` entfernen — sie diente allein GitHub Pages
+- [X] T005 Prüfen, dass `apps/web/src/routes/+layout.ts` **unverändert** bleibt (`prerender`, `ssr`, `trailingSlash`) und der Bau weiterhin je Seite ein Verzeichnis mit `index.html` erzeugt; andernfalls ist FR-002 verletzt
+- [X] T006 `npm run build` und danach `npx wrangler dev --config apps/web/wrangler.jsonc`; beide Seiten unmittelbar aufrufen (nicht nur über die Startseite)
+- [X] T007 Klickpfad örtlich gegen den Wrangler-Server laufen lassen (`BASE=http://localhost:8787 node tests/ui/klickpfad.mjs`) — erwartet: 97 Prüfungen, 0 durchgefallen
 
 **Prüfpunkt**: Der neue Ort liefert örtlich aus. Öffentlich ist bisher nichts angefasst.
 
@@ -45,9 +45,9 @@ Entwicklers abdeckte — Voraussetzung für FR-006.
 **Unabhängig prüfbar**: Auf einem Zweig eine Prüfung absichtlich brechen; die
 Ablaufsteuerung schlägt fehl.
 
-- [ ] T008 [US3] In `tests/ui/klickpfad.mjs` die Browserwahl über die Umgebung steuerbar machen (heute fest `channel: 'msedge'`); ohne gesetzte Variable bleibt das örtliche Verhalten **unverändert**, in der Ablaufsteuerung wird das mitgelieferte Chromium genutzt
-- [ ] T009 [US3] In `.github/workflows/ci.yml` nach dem Bau eine Stufe „Klickpfad" ergänzen: Playwright mit Chromium einrichten, Bauergebnis ausliefern, `node tests/ui/klickpfad.mjs`, Server danach beenden
-- [ ] T010 [US3] Node-Version in `.github/workflows/ci.yml` auf 24 anheben, damit geprüft und veröffentlicht wird, was dieselbe Laufzeit erzeugt hat; `engines` in der Wurzel-`package.json` mitziehen
+- [X] T008 [US3] In `tests/ui/klickpfad.mjs` die Browserwahl über die Umgebung steuerbar machen (heute fest `channel: 'msedge'`); ohne gesetzte Variable bleibt das örtliche Verhalten **unverändert**, in der Ablaufsteuerung wird das mitgelieferte Chromium genutzt
+- [X] T009 [US3] In `.github/workflows/ci.yml` nach dem Bau eine Stufe „Klickpfad" ergänzen: Playwright mit Chromium einrichten, Bauergebnis ausliefern, `node tests/ui/klickpfad.mjs`, Server danach beenden
+- [X] T010 [US3] Node-Version in `.github/workflows/ci.yml` auf 24 anheben, damit geprüft und veröffentlicht wird, was dieselbe Laufzeit erzeugt hat; `engines` in der Wurzel-`package.json` mitziehen
 - [ ] T011 [US3] Nachweisen, dass eine gebrochene Prüfung die Ablaufsteuerung rot macht — mit einer wegwerfbaren Änderung, die danach zurückgenommen wird
 
 **Prüfpunkt**: Die 97 Klickpfad-Prüfungen laufen bei jedem Push mit.

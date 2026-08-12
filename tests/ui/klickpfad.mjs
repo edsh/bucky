@@ -470,7 +470,10 @@ await page.goto(RECHNER, { waitUntil: 'networkidle' });
 const beschriftungen = await page.locator('label').allInnerTexts();
 const hoehenfelder = beschriftungen.filter((t) => t.includes('(ft)'));
 const alleAsl = hoehenfelder.length === 2 && hoehenfelder.every((t) => t.includes('ASL') && !t.includes('Druckhöhe'));
-const ueberbreite = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+const ueberbreite = await page.evaluate(() => {
+  const breite = document.documentElement.clientWidth;
+  return document.documentElement.scrollWidth > breite + 1;
+});
 pruefe(11, 'Höhenfelder sind als Höhe ASL gekennzeichnet, nicht als Druckhöhe', alleAsl, hoehenfelder.join(' | '));
 pruefe(12, 'kein waagerechtes Scrollen auf 390 px Breite', !ueberbreite);
 
@@ -785,16 +788,29 @@ pruefe(
 await page.setViewportSize({ width: 390, height: 844 });
 await page.waitForTimeout(250);
 const engeSicht = await page.evaluate(() => {
-  const ueberbreit = document.documentElement.scrollWidth > window.innerWidth + 1;
+  // Gemessen wird gegen `clientWidth`, nicht gegen `window.innerWidth`: Letzteres
+  // enthaelt die Scrollleiste. Wo sie ueber dem Inhalt liegt (macOS, Telefone),
+  // sind beide gleich; wo sie Platz wegnimmt (Linux), meldete die Pruefung sonst
+  // eine Ueberbreite, die keine ist.
+  const breite = document.documentElement.clientWidth;
+  const ueberbreit = document.documentElement.scrollWidth > breite + 1;
   // Nur was gerade zu sehen ist: Die Knöpfe im geschlossenen Dialog haben
   // keine Ausdehnung und wären sonst ein Fehlalarm.
   const bedienbar = [...document.querySelectorAll('input, button')]
     .filter((element) => element.checkVisibility())
     .every((element) => {
       const kasten = element.getBoundingClientRect();
-      return kasten.width > 0 && kasten.left >= -1 && kasten.right <= window.innerWidth + 1;
+      return kasten.width > 0 && kasten.left >= -1 && kasten.right <= breite + 1;
     });
-  return { ueberbreit, bedienbar };
+  // Bei Ueberbreite ist die blosse Feststellung wertlos — man sucht danach von
+  // Hand. Deshalb gleich benennen, was hinausragt.
+  const schuldige = ueberbreit
+    ? [...document.querySelectorAll('body *')]
+        .filter((element) => element.getBoundingClientRect().right > breite + 1)
+        .slice(0, 3)
+        .map((element) => `${element.tagName.toLowerCase()}.${element.className} bis ${Math.round(element.getBoundingClientRect().right)} px`)
+    : [];
+  return { ueberbreit, bedienbar, breite, schuldige };
 });
 pruefe(
   35,

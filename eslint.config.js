@@ -66,7 +66,10 @@ export default tseslint.config(
         HTMLInputElement: 'readonly',
         Event: 'readonly',
         // Seit Feature 041 prueft der Klickpfad auch das Gedaechtnis der Seite.
-        localStorage: 'readonly'
+        localStorage: 'readonly',
+        // Seit Feature 043 prueft er Avatar-Stil und Adressen der Startseite.
+        getComputedStyle: 'readonly',
+        URL: 'readonly'
       }
     }
   },

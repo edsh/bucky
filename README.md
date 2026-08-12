@@ -14,6 +14,32 @@ den Alltag erleichtern (z. B. Buchungssystem, Wetterbriefing – noch nicht fina
 festgelegt). Als Datenbasis bleibt weiterhin **Vereinsflieger** im Einsatz; Bucky
 ergänzt dessen Funktionsumfang, statt ihn zu ersetzen.
 
+## Aufbau: Bucky als Kompagnon
+
+Die Startseite ist die Auswahl, nicht der Rechner. Bucky begrüßt dort mit „Hi
+Pilot, was darf's sein?", und darunter steht — vorerst allein — die **D-EELK**
+als runder Avatar mit Bildunterschrift. Ein Tippen darauf öffnet, was sich mit
+dieser Maschine tun lässt; heute ist das der POH-Rechner, demnächst kommt die
+Reservierung daneben.
+
+Der Einstieg läuft bewusst über das Flugzeug und nicht über eine Liste von
+Funktionen: Wer die App öffnet, hat in aller Regel eine bestimmte Maschine im
+Sinn und sucht erst dann, was er mit ihr tun will. Der Rahmen um den Avatar ist
+heute neutral und bedeutet nichts — er ist so angelegt, dass er später einen
+Zustand tragen kann.
+
+Daraus folgt die Gliederung der Adressen: Was zu einem Flugzeug gehört, liegt
+unter ihm.
+
+| Adresse | Inhalt |
+|---|---|
+| `/` | Auswahl |
+| `/d-eelk/poh-rechner/` | Der Rechner |
+| `/d-eelk/poh-rechner/tabellen/` | Die digitalisierten Tabellen |
+
+Die alte Adresse `/tabellen` führt weiterhin ans Ziel, damit bestehende
+Lesezeichen nicht ins Leere laufen.
+
 ## Aktueller Fokus: Feature 1 – POH-Leistungsrechner
 
 **Problem:** Das Flughandbuch (POH) enthält Leistungsdaten (Startstrecke,
@@ -336,6 +362,11 @@ implementiert: die POH-Tabellen der D-EELK sind digitalisiert, der
 Berechnungskern rechnet den Kraftstoffbedarf mitsamt Rechenweg und
 Quellenangaben, beide Zugangswege stehen. Offen ist die Stichprobe der
 digitalisierten Werte gegen das gedruckte Handbuch durch einen Menschen.
+
+Seit Feature 043 ist der Rechner nicht mehr die ganze Anwendung, sondern die
+erste Funktion hinter einer Auswahl (siehe „Aufbau: Bucky als Kompagnon"). Als
+nächstes folgt die **Reservierung** — dort wird sich zeigen, wie weit Bucky in
+Vereinsflieger hineinreicht: nur lesend oder auch schreibend (Prinzip II).
 
 Entschieden: Frontend SvelteKit (Prinzip III), Architektur mit gemeinsamem
 Berechnungskern und den Zugangswegen SvelteKit-UI und MCP-Endpunkt (Prinzip IV).

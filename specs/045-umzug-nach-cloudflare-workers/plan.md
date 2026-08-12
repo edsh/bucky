@@ -132,9 +132,9 @@ liefert weiter aus.
 | Vorschau-Adressen im freien Tarif nicht verfügbar | In Schritt 3 früh geprüft. Fällt es aus, bleibt der lokale Weg; die Veröffentlichung hängt nicht daran. |
 | Der Zugangsschlüssel kann zu viel | Vorlage „Edit Cloudflare Workers", **ohne** DNS-Recht. Die Domain wird von Hand angehängt. |
 
-## Offene Entscheidung (Nutzer)
+## Entschieden während der Planung
 
-**FR-016 ist wörtlich nicht haltbar.** Die Spec verlangt eine Umstellung „ohne
+**FR-016 war wörtlich nicht haltbar** und wurde am 12.08.2026 angepasst. Die Spec verlangt eine Umstellung „ohne
 Zeitraum, in dem die Seite unerreichbar ist". Cloudflare nimmt eine Custom
 Domain aber nur an, wenn für den Namen **kein** CNAME mehr besteht — der alte
 Eintrag auf GitHub Pages muss also zuerst weg. Dazwischen liegen eine kurze
@@ -146,4 +146,5 @@ fliegt. Ein wirklich lückenloser Wechsel wäre nur über einen zweiten Namen zu
 haben — der Aufwand steht in keinem Verhältnis zu ein paar Minuten bei einer
 Vereinsanwendung.
 
-*Diese Änderung ist noch nicht in der Spec vollzogen; sie wartet auf Zustimmung.*
+**Ergebnis**: Zugestimmt. FR-016 lautet nun „wenige Minuten, angekündigt, zu
+flugfreier Zeit"; der zugehörige Edge Case ist mitgezogen.

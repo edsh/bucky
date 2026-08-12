@@ -141,9 +141,8 @@ die Ausstellung des Zertifikats (einige Minuten).
 
 **Folge für den Ablauf**: Der Worker wird vorher **vollständig** unter
 `bucky.<konto>.workers.dev` geprüft — einschließlich Klickpfad gegen diese
-Adresse. Erst wenn dort alles steht, wird geschnitten. FR-016 („ohne Zeitraum,
-in dem die Seite unerreichbar ist") ist damit **nicht wörtlich haltbar**; das
-ist im Plan offengelegt und beim Nutzer zu bestätigen.
+Adresse. Erst wenn dort alles steht, wird geschnitten. FR-016 wurde daraufhin
+angepasst: wenige Minuten, angekündigt, zu flugfreier Zeit.
 
 **Richtig ist „Custom Domain", nicht „Route"**: Die Custom Domain legt Eintrag
 und Zertifikat selbst an; eine Route setzt einen bestehenden Eintrag voraus.

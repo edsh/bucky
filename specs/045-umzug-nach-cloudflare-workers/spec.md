@@ -122,8 +122,10 @@ feststellen, dass die öffentliche Seite unverändert bleibt.
 
 ### Edge Cases
 
-- **Umstellung der Adresse**: Zwischen dem alten und dem neuen Ziel darf keine
-  Lücke entstehen, in der die Seite gar nicht erreichbar ist.
+- **Umstellung der Adresse**: Zwischen dem alten und dem neuen Ziel entsteht
+  zwangsläufig eine kurze Lücke. Sie ist klein zu halten und anzukündigen; ein
+  lückenloser Wechsel wäre nur über einen zweiten Namen zu haben und steht in
+  keinem Verhältnis zu wenigen Minuten bei einer Vereinsanwendung.
 - **Zwischengespeicherte alte Dateien**: Browser und Zwischenspeicher der
   Auslieferung können nach der Umstellung noch alte Teile vorhalten. Eine
   Mischung aus alten und neuen Programmteilen darf nicht zu einer scheinbar
@@ -189,8 +191,10 @@ feststellen, dass die öffentliche Seite unverändert bleibt.
 
 - **FR-015**: Vor der Umstellung der Adresse MUSS der neue Ort unter einer
   eigenen Adresse vollständig prüfbar sein.
-- **FR-016**: Die Umstellung MUSS ohne Zeitraum erfolgen, in dem die Seite
-  unerreichbar ist.
+- **FR-016**: Die Umstellung DARF die Seite nur für wenige Minuten unerreichbar
+  machen. Diese Lücke ist unvermeidbar — der neue Ort nimmt die Adresse erst an,
+  wenn der Verweis auf den alten entfernt ist —, sie MUSS aber angekündigt und
+  in eine Zeit gelegt werden, zu der nicht geflogen wird.
 - **FR-017**: Nach erfolgreicher Umstellung MUSS die alte Auslieferung
   abgeschaltet werden, damit kein zweiter, veraltender Stand derselben
   Anwendung erreichbar bleibt.

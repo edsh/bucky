@@ -1,0 +1,451 @@
+# Abzug der Rechenergebnisse von https://bucky.edsh.de
+
+## Standardtag, kurze Strecke
+Eingaben: {"name":"Standardtag, kurze Strecke","dep":1000,"cruise":4000,"qnh":1013,"dist":100,"power":65,"isa":0,"pistenwind":10,"streckenwind":5,"gras":false}
+Roll- und Startstrecke
+Pistenwind (kt, positiv = Gegenwind)
+EDSH
+10 kt
+Bahnzustand
+Trockenes Gras
+Anmerkung 3
+Nass oder Schnee
+Anmerkung 4
+
+Druckhöhe 1007 ft, Außentemperatur 13 °C
+
+	Startrollstrecke	Startstrecke über 15 m Hindernis
+Laut Tabelle	208 m	325 m
+Wind
+−11,1 %
+	−23 m	−36 m
+Bahnzustand
+befestigt und trocken
+	—	—
+Gesamtstrecke	185 m	289 m
+
+Auf ganze Meter gerundet. Die Zeilen können sich deshalb um einen Meter von der Gesamtstrecke unterscheiden.
+
+10 kt Gegenwind: Anmerkung 2 nennt 10 % je 9 kt, hier also 11,1 % weniger auf beide Strecken. Zwischenwerte werden anteilig gerechnet, mehrere Stufen addiert.
+
+Bedingungen:
+Fluggewicht 1043 kg (2300 lbs)
+Klappen 10°
+Vollgas vor lösen der Bremse
+Befestigte, ebene, trockene Startbahn, Windstille
+Abhebegeschwindigkeit: ................................ 48 KIAS/ 55 mph
+Geschwindigkeit in 15 m / 50 ft Höhe: ........... 54 KIAS/ 62 mph
+Anmerkungen:
+1. Kurzstartverfahren
+2. Für je 9 Knoten Gegenwind Strecken um 10% verringern, bei Rückenwind bis 10 Knoten je 2 Knoten um 10% vergrößern
+3. Für Start auf trockener Grasbahn Strecken um 15% des Wertes „Startlauf“ vergrößern.
+4. Zusätzliche Zuschläge (min. 20%) für feuchte Grasbahn, aufgeweichten Untergrund oder Schnee berücksichtigen.
+Verwendete Tabellen
+Abb. 5-1a — Roll- und Startstrecke [m] bei Abfluggewicht 1043 kg (2300 lbs)
+Seite 5b-2, 5b-3 — Ausgabe 2, Änderung -, April 2016
+Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-2/5b-3, Abb. 5-1a – Roll- und Startstrecke [m] bei Abfluggewicht 1043 kg (2300 lbs)
+
+Vor dem Flug gegen das Original-Flughandbuch prüfen. Dieses Ergebnis ersetzt das Handbuch nicht.
+
+Rechenweg in 4 Schritten
+Reiseflug
+Bedingungen im Reiseflug
+Reiseflughöhe ASL (ft)
+4000 ft
+
+≙ Druckhöhe 4007 ft @ 1013 hPa
+
+Lasteinstellung
+70 %
+Reichweite und Flugdauer
+Eigengeschwindigkeit
+114 kt KTAS
+Verbrauch je Stunde
+22,1 l/h (5,8 US gal/h)
+Maximale Reichweite
+541,0 NM
+Maximale Flugdauer
+4 h 36 min
+
+Nebenbei: Auf die Strecke gerechnet sind das 10,5 l/100 km — oder 22,5 mpg, wie es drüben heißen würde. Allerdings schnurgerade und ohne Ampeln.
+
+Reichweite und Flugdauer gelten für volle Standardtanks bei Windstille. Laut Handbuch, Anmerkung 2. Die Tabelle berücksichtigt 4 l für Motorstart und Rollen, Zeit, Kraftstoff und Strecke für den Steigflug sowie 45 min. Reserve.
+
+Abb. 5-4a, Seite 5b-14, 5b-15, 5b-16
+
+Kraftstoffbedarf und Geschwindigkeiten
+Streckenwindkomponente (kt, positiv = Gegenwind)
+5 kt
+Streckenlänge (NM)
+100,0 NM
+Geschwindigkeit über Grund
+109 kt
+Reiseflugzeit dieser Strecke
+0 h 53 min
+Anlassen, Rollen und Start	4,0 l (1,1 US gal)
+Steigflug	1,9 l (0,5 US gal)
+Reiseflug	19,4 l (5,1 US gal)
+Gesamt	25,3 l (6,7 US gal)
+
+Ausfliegbar sind 127,4 l (33,6 US gal). Rechnerisch bleiben 102,1 l (26,9 US gal) übrig — das ist keine Reserve.
+
+Hinweise
+Die Summe enthält keine Reserve. Sinkflug und der Weg zu einem Ausweichflugplatz sind ebenfalls nicht enthalten. Der verbleibende Kraftstoff ist damit keine Reserve im betrieblichen Sinne, sondern nur die rechnerische Differenz zur ausfliegbaren Menge.
+Die Temperaturkorrektur wird auch auf den Steigflug-Kraftstoff angewandt, obwohl Anmerkung 2 der Steigflugtabelle nur Zeit und Steigstrecke nennt: „2. Pro 10°C über Normtemperatur sind die Werte für Zeit und Steigstrecke um ca. 10% zu erhöhen." So verfährt das Rechenbeispiel des Handbuchs, und es ist die konservativere Auslegung.
+Abb. 5-3a, Seite 5b-10, 5b-11
+Gerechnet wird durchgehend mit voller Genauigkeit; gerundet wird erst das Ergebnis. Das Rechenbeispiel des Handbuchs rundet dagegen nach jedem Schritt. Wer von Hand nachrechnet, kann deshalb um rund 0,6 l abweichen — in beide Richtungen.
+Die Steigflugwerte gelten für die maximale Abflugmasse: Startgewicht 1043 kg (2300 lbs). Bei geringerer Masse steigt das Flugzeug schneller und verbraucht weniger — das Ergebnis liegt dann auf der sicheren Seite.
+Abb. 5-3a, Seite 5b-10, 5b-11
+Verwendete Tabellen
+Abb. 5-3a — Zeit, Strecke und Kraftstoffmenge fuer den Steigflug, Abfluggewicht 1043 kg (2300 lbs)
+Seite 5b-10, 5b-11 — Ausgabe 2, Änderung -, April 2016
+Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-10/5b-11, Abb. 5-3a – Zeit, Strecke und Kraftstoffmenge fuer den Steigflug, Abfluggewicht 1043 kg (2300 lbs)
+Abb. 5-4a — Reiseleistung, Reichweite und Flugdauer mit Standardtanks, Fluggewicht 1043 kg (2300 lbs)
+Seite 5b-14, 5b-15, 5b-16 — Ausgabe 2, Änderung -, April 2016
+Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-14/5b-15/5b-16, Abb. 5-4a – Reiseleistung, Reichweite und Flugdauer mit Standardtanks, Fluggewicht 1043 kg (2300 lbs)
+
+Vor dem Flug gegen das Original-Flughandbuch prüfen. Dieses Ergebnis ersetzt das Handbuch nicht.
+
+Nicht aus dem Flughandbuch
+ICAO Doc 7488, Manual of the ICAO Standard Atmosphere, 3. Auflage 1993
+p = QNH · (1 − L·h/T₀)^5,25588; H_p = (T₀/L) · (1 − (p/1013,25)^(1/5,25588)) mit T₀ = 288,15 K und L = 0,0065 K/m
+ICAO Doc 7488, Manual of the ICAO Standard Atmosphere (extended to 80 kilometres), 3. Auflage 1993 — barometrische Höhenformel der Troposphäre. Diese Umrechnung stammt nicht aus dem Flughandbuch der D-EELK.
+Rechenweg in 18 Schritten
+
+## Heisser Hochsommertag
+Eingaben: {"name":"Heisser Hochsommertag","dep":2500,"cruise":8000,"qnh":1005,"dist":350,"power":75,"isa":20,"pistenwind":0,"streckenwind":20,"gras":true}
+Roll- und Startstrecke
+Pistenwind (kt, positiv = Gegenwind)
+EDSH
+0 kt
+Bahnzustand
+Trockenes Gras
+Anmerkung 3
+Nass oder Schnee
+Anmerkung 4
+
+Druckhöhe 2722 ft, Außentemperatur 30 °C
+
+	Startrollstrecke	Startstrecke über 15 m Hindernis
+Laut Tabelle	263 m	411 m
+Wind
+Windstille
+	—	—
+Bahnzustand
++15 % des Startlaufs
+	+39 m	+39 m
+Gesamtstrecke	302 m	451 m
+
+Auf ganze Meter gerundet. Die Zeilen können sich deshalb um einen Meter von der Gesamtstrecke unterscheiden.
+
+Bedingungen:
+Fluggewicht 1043 kg (2300 lbs)
+Klappen 10°
+Vollgas vor lösen der Bremse
+Befestigte, ebene, trockene Startbahn, Windstille
+Abhebegeschwindigkeit: ................................ 48 KIAS/ 55 mph
+Geschwindigkeit in 15 m / 50 ft Höhe: ........... 54 KIAS/ 62 mph
+Anmerkungen:
+1. Kurzstartverfahren
+2. Für je 9 Knoten Gegenwind Strecken um 10% verringern, bei Rückenwind bis 10 Knoten je 2 Knoten um 10% vergrößern
+3. Für Start auf trockener Grasbahn Strecken um 15% des Wertes „Startlauf“ vergrößern. ✓
+4. Zusätzliche Zuschläge (min. 20%) für feuchte Grasbahn, aufgeweichten Untergrund oder Schnee berücksichtigen.
+Verwendete Tabellen
+Abb. 5-1a — Roll- und Startstrecke [m] bei Abfluggewicht 1043 kg (2300 lbs)
+Seite 5b-2, 5b-3 — Ausgabe 2, Änderung -, April 2016
+Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-2/5b-3, Abb. 5-1a – Roll- und Startstrecke [m] bei Abfluggewicht 1043 kg (2300 lbs)
+
+Vor dem Flug gegen das Original-Flughandbuch prüfen. Dieses Ergebnis ersetzt das Handbuch nicht.
+
+Rechenweg in 4 Schritten
+Reiseflug
+Bedingungen im Reiseflug
+Reiseflughöhe ASL (ft)
+8000 ft
+
+≙ Druckhöhe 8214 ft @ 1005 hPa
+
+Lasteinstellung
+80 %
+Reichweite und Flugdauer
+Eigengeschwindigkeit
+127 kt KTAS
+Verbrauch je Stunde
+25,8 l/h (6,8 US gal/h)
+Maximale Reichweite
+495,4 NM
+Maximale Flugdauer
+3 h 35 min
+
+Nebenbei: Auf die Strecke gerechnet sind das 11,0 l/100 km — oder 21,4 mpg, wie es drüben heißen würde. Allerdings schnurgerade und ohne Ampeln.
+
+Reichweite und Flugdauer gelten für volle Standardtanks bei Windstille. Laut Handbuch, Anmerkung 2. Die Tabelle berücksichtigt 4 l für Motorstart und Rollen, Zeit, Kraftstoff und Strecke für den Steigflug sowie 45 min. Reserve.
+
+Abb. 5-4a, Seite 5b-14, 5b-15, 5b-16
+
+Kraftstoffbedarf und Geschwindigkeiten
+Streckenwindkomponente (kt, positiv = Gegenwind)
+20 kt
+Streckenlänge (NM)
+350,0 NM
+Geschwindigkeit über Grund
+107 kt
+Reiseflugzeit dieser Strecke
+3 h 11 min
+Anlassen, Rollen und Start	4,0 l (1,1 US gal)
+Steigflug	4,1 l (1,1 US gal)
+Reiseflug	82,0 l (21,6 US gal)
+Gesamt	90,1 l (23,8 US gal)
+
+Ausfliegbar sind 127,4 l (33,6 US gal). Rechnerisch bleiben 37,3 l (9,8 US gal) übrig — das ist keine Reserve.
+
+Hinweise
+Die Summe enthält keine Reserve. Sinkflug und der Weg zu einem Ausweichflugplatz sind ebenfalls nicht enthalten. Der verbleibende Kraftstoff ist damit keine Reserve im betrieblichen Sinne, sondern nur die rechnerische Differenz zur ausfliegbaren Menge.
+Die Temperaturkorrektur wird auch auf den Steigflug-Kraftstoff angewandt, obwohl Anmerkung 2 der Steigflugtabelle nur Zeit und Steigstrecke nennt: „2. Pro 10°C über Normtemperatur sind die Werte für Zeit und Steigstrecke um ca. 10% zu erhöhen." So verfährt das Rechenbeispiel des Handbuchs, und es ist die konservativere Auslegung.
+Abb. 5-3a, Seite 5b-10, 5b-11
+Gerechnet wird durchgehend mit voller Genauigkeit; gerundet wird erst das Ergebnis. Das Rechenbeispiel des Handbuchs rundet dagegen nach jedem Schritt. Wer von Hand nachrechnet, kann deshalb um rund 0,6 l abweichen — in beide Richtungen.
+Die Steigflugwerte gelten für die maximale Abflugmasse: Startgewicht 1043 kg (2300 lbs). Bei geringerer Masse steigt das Flugzeug schneller und verbraucht weniger — das Ergebnis liegt dann auf der sicheren Seite.
+Abb. 5-3a, Seite 5b-10, 5b-11
+4. Für Reiseflug Lasteinstellung über 75% wird nicht empfohlen. Für wirtschaftlichen Reiseflug die Last auf 70% oder weniger einstellen.
+Abb. 5-4a, Seite 5b-14, 5b-15, 5b-16
+Verwendete Tabellen
+Abb. 5-3a — Zeit, Strecke und Kraftstoffmenge fuer den Steigflug, Abfluggewicht 1043 kg (2300 lbs)
+Seite 5b-10, 5b-11 — Ausgabe 2, Änderung -, April 2016
+Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-10/5b-11, Abb. 5-3a – Zeit, Strecke und Kraftstoffmenge fuer den Steigflug, Abfluggewicht 1043 kg (2300 lbs)
+Abb. 5-4a — Reiseleistung, Reichweite und Flugdauer mit Standardtanks, Fluggewicht 1043 kg (2300 lbs)
+Seite 5b-14, 5b-15, 5b-16 — Ausgabe 2, Änderung -, April 2016
+Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-14/5b-15/5b-16, Abb. 5-4a – Reiseleistung, Reichweite und Flugdauer mit Standardtanks, Fluggewicht 1043 kg (2300 lbs)
+
+Vor dem Flug gegen das Original-Flughandbuch prüfen. Dieses Ergebnis ersetzt das Handbuch nicht.
+
+Nicht aus dem Flughandbuch
+ICAO Doc 7488, Manual of the ICAO Standard Atmosphere, 3. Auflage 1993
+p = QNH · (1 − L·h/T₀)^5,25588; H_p = (T₀/L) · (1 − (p/1013,25)^(1/5,25588)) mit T₀ = 288,15 K und L = 0,0065 K/m
+ICAO Doc 7488, Manual of the ICAO Standard Atmosphere (extended to 80 kilometres), 3. Auflage 1993 — barometrische Höhenformel der Troposphäre. Diese Umrechnung stammt nicht aus dem Flughandbuch der D-EELK.
+Rechenweg in 18 Schritten
+
+## Kalter Wintertag, Rueckenwind
+Eingaben: {"name":"Kalter Wintertag, Rueckenwind","dep":500,"cruise":3000,"qnh":1030,"dist":200,"power":55,"isa":-20,"pistenwind":-5,"streckenwind":-10,"gras":false}
+Roll- und Startstrecke
+Pistenwind (kt, positiv = Gegenwind)
+EDSH
+-5 kt
+Bahnzustand
+Trockenes Gras
+Anmerkung 3
+Nass oder Schnee
+Anmerkung 4
+
+Druckhöhe 47 ft, Außentemperatur -5 °C
+
+	Startrollstrecke	Startstrecke über 15 m Hindernis
+Laut Tabelle	172 m	269 m
+Wind
++25,0 %
+	+43 m	+67 m
+Bahnzustand
+befestigt und trocken
+	—	—
+Gesamtstrecke	214 m	336 m
+
+Auf ganze Meter gerundet. Die Zeilen können sich deshalb um einen Meter von der Gesamtstrecke unterscheiden.
+
+5 kt Rückenwind: Anmerkung 2 nennt 10 % je 2 kt, hier also 25,0 % mehr auf beide Strecken. Zwischenwerte werden anteilig gerechnet, mehrere Stufen addiert.
+
+Bedingungen:
+Fluggewicht 1043 kg (2300 lbs)
+Klappen 10°
+Vollgas vor lösen der Bremse
+Befestigte, ebene, trockene Startbahn, Windstille
+Abhebegeschwindigkeit: ................................ 48 KIAS/ 55 mph
+Geschwindigkeit in 15 m / 50 ft Höhe: ........... 54 KIAS/ 62 mph
+Anmerkungen:
+1. Kurzstartverfahren
+2. Für je 9 Knoten Gegenwind Strecken um 10% verringern, bei Rückenwind bis 10 Knoten je 2 Knoten um 10% vergrößern
+3. Für Start auf trockener Grasbahn Strecken um 15% des Wertes „Startlauf“ vergrößern.
+4. Zusätzliche Zuschläge (min. 20%) für feuchte Grasbahn, aufgeweichten Untergrund oder Schnee berücksichtigen.
+Verwendete Tabellen
+Abb. 5-1a — Roll- und Startstrecke [m] bei Abfluggewicht 1043 kg (2300 lbs)
+Seite 5b-2, 5b-3 — Ausgabe 2, Änderung -, April 2016
+Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-2/5b-3, Abb. 5-1a – Roll- und Startstrecke [m] bei Abfluggewicht 1043 kg (2300 lbs)
+
+Vor dem Flug gegen das Original-Flughandbuch prüfen. Dieses Ergebnis ersetzt das Handbuch nicht.
+
+Rechenweg in 4 Schritten
+Reiseflug
+Bedingungen im Reiseflug
+Reiseflughöhe ASL (ft)
+3000 ft
+
+≙ Druckhöhe 2555 ft @ 1030 hPa
+
+Lasteinstellung
+60 %
+Reichweite und Flugdauer
+Eigengeschwindigkeit
+106 kt KTAS
+Verbrauch je Stunde
+18,6 l/h (4,9 US gal/h)
+Maximale Reichweite
+614,4 NM
+Maximale Flugdauer
+5 h 45 min
+
+Nebenbei: Auf die Strecke gerechnet sind das 9,5 l/100 km — oder 24,7 mpg, wie es drüben heißen würde. Allerdings schnurgerade und ohne Ampeln.
+
+Reichweite und Flugdauer gelten für volle Standardtanks bei Windstille. Laut Handbuch, Anmerkung 2. Die Tabelle berücksichtigt 4 l für Motorstart und Rollen, Zeit, Kraftstoff und Strecke für den Steigflug sowie 45 min. Reserve.
+
+Abb. 5-4a, Seite 5b-14, 5b-15, 5b-16
+
+Kraftstoffbedarf und Geschwindigkeiten
+Streckenwindkomponente (kt, positiv = Gegenwind)
+-10 kt
+Streckenlänge (NM)
+200,0 NM
+Geschwindigkeit über Grund
+116 kt
+Reiseflugzeit dieser Strecke
+1 h 42 min
+Anlassen, Rollen und Start	4,0 l (1,1 US gal)
+Steigflug	1,6 l (0,4 US gal)
+Reiseflug	31,7 l (8,3 US gal)
+Gesamt	37,2 l (9,8 US gal)
+
+Ausfliegbar sind 127,4 l (33,6 US gal). Rechnerisch bleiben 90,2 l (23,8 US gal) übrig — das ist keine Reserve.
+
+Hinweise
+Die Summe enthält keine Reserve. Sinkflug und der Weg zu einem Ausweichflugplatz sind ebenfalls nicht enthalten. Der verbleibende Kraftstoff ist damit keine Reserve im betrieblichen Sinne, sondern nur die rechnerische Differenz zur ausfliegbaren Menge.
+Die Temperaturkorrektur wird auch auf den Steigflug-Kraftstoff angewandt, obwohl Anmerkung 2 der Steigflugtabelle nur Zeit und Steigstrecke nennt: „2. Pro 10°C über Normtemperatur sind die Werte für Zeit und Steigstrecke um ca. 10% zu erhöhen." So verfährt das Rechenbeispiel des Handbuchs, und es ist die konservativere Auslegung.
+Abb. 5-3a, Seite 5b-10, 5b-11
+Gerechnet wird durchgehend mit voller Genauigkeit; gerundet wird erst das Ergebnis. Das Rechenbeispiel des Handbuchs rundet dagegen nach jedem Schritt. Wer von Hand nachrechnet, kann deshalb um rund 0,6 l abweichen — in beide Richtungen.
+Die Steigflugwerte gelten für die maximale Abflugmasse: Startgewicht 1043 kg (2300 lbs). Bei geringerer Masse steigt das Flugzeug schneller und verbraucht weniger — das Ergebnis liegt dann auf der sicheren Seite.
+Abb. 5-3a, Seite 5b-10, 5b-11
+Verwendete Tabellen
+Abb. 5-3a — Zeit, Strecke und Kraftstoffmenge fuer den Steigflug, Abfluggewicht 1043 kg (2300 lbs)
+Seite 5b-10, 5b-11 — Ausgabe 2, Änderung -, April 2016
+Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-10/5b-11, Abb. 5-3a – Zeit, Strecke und Kraftstoffmenge fuer den Steigflug, Abfluggewicht 1043 kg (2300 lbs)
+Abb. 5-4a — Reiseleistung, Reichweite und Flugdauer mit Standardtanks, Fluggewicht 1043 kg (2300 lbs)
+Seite 5b-14, 5b-15, 5b-16 — Ausgabe 2, Änderung -, April 2016
+Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-14/5b-15/5b-16, Abb. 5-4a – Reiseleistung, Reichweite und Flugdauer mit Standardtanks, Fluggewicht 1043 kg (2300 lbs)
+
+Vor dem Flug gegen das Original-Flughandbuch prüfen. Dieses Ergebnis ersetzt das Handbuch nicht.
+
+Nicht aus dem Flughandbuch
+ICAO Doc 7488, Manual of the ICAO Standard Atmosphere, 3. Auflage 1993
+p = QNH · (1 − L·h/T₀)^5,25588; H_p = (T₀/L) · (1 − (p/1013,25)^(1/5,25588)) mit T₀ = 288,15 K und L = 0,0065 K/m
+ICAO Doc 7488, Manual of the ICAO Standard Atmosphere (extended to 80 kilometres), 3. Auflage 1993 — barometrische Höhenformel der Troposphäre. Diese Umrechnung stammt nicht aus dem Flughandbuch der D-EELK.
+Rechenweg in 18 Schritten
+
+## Grenzfall oben
+Eingaben: {"name":"Grenzfall oben","dep":5000,"cruise":12000,"qnh":995,"dist":500,"power":80,"isa":10,"pistenwind":20,"streckenwind":15,"gras":true}
+Roll- und Startstrecke
+Pistenwind (kt, positiv = Gegenwind)
+EDSH
+20 kt
+Bahnzustand
+Trockenes Gras
+Anmerkung 3
+Nass oder Schnee
+Anmerkung 4
+
+Druckhöhe 5485 ft, Außentemperatur 14 °C
+
+	Startrollstrecke	Startstrecke über 15 m Hindernis
+Laut Tabelle	287 m	449 m
+Wind
+−22,2 %
+	−64 m	−100 m
+Bahnzustand
++15 % des Startlaufs
+	+33 m	+33 m
+Gesamtstrecke	257 m	383 m
+
+Auf ganze Meter gerundet. Die Zeilen können sich deshalb um einen Meter von der Gesamtstrecke unterscheiden.
+
+20 kt Gegenwind: Anmerkung 2 nennt 10 % je 9 kt, hier also 22,2 % weniger auf beide Strecken. Zwischenwerte werden anteilig gerechnet, mehrere Stufen addiert.
+
+Bedingungen:
+Fluggewicht 1043 kg (2300 lbs)
+Klappen 10°
+Vollgas vor lösen der Bremse
+Befestigte, ebene, trockene Startbahn, Windstille
+Abhebegeschwindigkeit: ................................ 48 KIAS/ 55 mph
+Geschwindigkeit in 15 m / 50 ft Höhe: ........... 54 KIAS/ 62 mph
+Anmerkungen:
+1. Kurzstartverfahren
+2. Für je 9 Knoten Gegenwind Strecken um 10% verringern, bei Rückenwind bis 10 Knoten je 2 Knoten um 10% vergrößern
+3. Für Start auf trockener Grasbahn Strecken um 15% des Wertes „Startlauf“ vergrößern. ✓
+4. Zusätzliche Zuschläge (min. 20%) für feuchte Grasbahn, aufgeweichten Untergrund oder Schnee berücksichtigen.
+Verwendete Tabellen
+Abb. 5-1a — Roll- und Startstrecke [m] bei Abfluggewicht 1043 kg (2300 lbs)
+Seite 5b-2, 5b-3 — Ausgabe 2, Änderung -, April 2016
+Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-2/5b-3, Abb. 5-1a – Roll- und Startstrecke [m] bei Abfluggewicht 1043 kg (2300 lbs)
+
+Vor dem Flug gegen das Original-Flughandbuch prüfen. Dieses Ergebnis ersetzt das Handbuch nicht.
+
+Rechenweg in 5 Schritten
+Reiseflug
+Bedingungen im Reiseflug
+Reiseflughöhe ASL (ft)
+12000 ft
+
+≙ Druckhöhe 12461 ft @ 995 hPa
+
+Lasteinstellung
+80 %
+Reichweite und Flugdauer
+Eigengeschwindigkeit
+131 kt KTAS
+Verbrauch je Stunde
+25,8 l/h (6,8 US gal/h)
+Maximale Reichweite
+501,0 NM
+Maximale Flugdauer
+3 h 21 min
+
+Nebenbei: Auf die Strecke gerechnet sind das 10,6 l/100 km — oder 22,1 mpg, wie es drüben heißen würde. Allerdings schnurgerade und ohne Ampeln.
+
+Reichweite und Flugdauer gelten für volle Standardtanks bei Windstille. Laut Handbuch, Anmerkung 2. Die Tabelle berücksichtigt 4 l für Motorstart und Rollen, Zeit, Kraftstoff und Strecke für den Steigflug sowie 45 min. Reserve.
+
+Abb. 5-4a, Seite 5b-14, 5b-15, 5b-16
+
+Kraftstoffbedarf und Geschwindigkeiten
+Streckenwindkomponente (kt, positiv = Gegenwind)
+15 kt
+Streckenlänge (NM)
+500,0 NM
+Geschwindigkeit über Grund
+116 kt
+Reiseflugzeit dieser Strecke
+4 h 11 min
+Anlassen, Rollen und Start	4,0 l (1,1 US gal)
+Steigflug	4,3 l (1,2 US gal)
+Reiseflug	108,1 l (28,5 US gal)
+Gesamt	116,4 l (30,7 US gal)
+
+Ausfliegbar sind 127,4 l (33,6 US gal). Rechnerisch bleiben 11,0 l (2,9 US gal) übrig — das ist keine Reserve.
+
+Hinweise
+Die Summe enthält keine Reserve. Sinkflug und der Weg zu einem Ausweichflugplatz sind ebenfalls nicht enthalten. Der verbleibende Kraftstoff ist damit keine Reserve im betrieblichen Sinne, sondern nur die rechnerische Differenz zur ausfliegbaren Menge.
+Die Temperaturkorrektur wird auch auf den Steigflug-Kraftstoff angewandt, obwohl Anmerkung 2 der Steigflugtabelle nur Zeit und Steigstrecke nennt: „2. Pro 10°C über Normtemperatur sind die Werte für Zeit und Steigstrecke um ca. 10% zu erhöhen." So verfährt das Rechenbeispiel des Handbuchs, und es ist die konservativere Auslegung.
+Abb. 5-3a, Seite 5b-10, 5b-11
+Gerechnet wird durchgehend mit voller Genauigkeit; gerundet wird erst das Ergebnis. Das Rechenbeispiel des Handbuchs rundet dagegen nach jedem Schritt. Wer von Hand nachrechnet, kann deshalb um rund 0,6 l abweichen — in beide Richtungen.
+Die Steigflugwerte gelten für die maximale Abflugmasse: Startgewicht 1043 kg (2300 lbs). Bei geringerer Masse steigt das Flugzeug schneller und verbraucht weniger — das Ergebnis liegt dann auf der sicheren Seite.
+Abb. 5-3a, Seite 5b-10, 5b-11
+4. Für Reiseflug Lasteinstellung über 75% wird nicht empfohlen. Für wirtschaftlichen Reiseflug die Last auf 70% oder weniger einstellen.
+Abb. 5-4a, Seite 5b-14, 5b-15, 5b-16
+Verwendete Tabellen
+Abb. 5-3a — Zeit, Strecke und Kraftstoffmenge fuer den Steigflug, Abfluggewicht 1043 kg (2300 lbs)
+Seite 5b-10, 5b-11 — Ausgabe 2, Änderung -, April 2016
+Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-10/5b-11, Abb. 5-3a – Zeit, Strecke und Kraftstoffmenge fuer den Steigflug, Abfluggewicht 1043 kg (2300 lbs)
+Abb. 5-4a — Reiseleistung, Reichweite und Flugdauer mit Standardtanks, Fluggewicht 1043 kg (2300 lbs)
+Seite 5b-14, 5b-15, 5b-16 — Ausgabe 2, Änderung -, April 2016
+Anhang Flughandbuch fuer (Reims) Cessna (F)172 N&P mit TAE 125-02-114 Installation, Ausgabe 2, Abschnitt 5b (Propeller MTV-6-A/190-69), Seite 5b-14/5b-15/5b-16, Abb. 5-4a – Reiseleistung, Reichweite und Flugdauer mit Standardtanks, Fluggewicht 1043 kg (2300 lbs)
+
+Vor dem Flug gegen das Original-Flughandbuch prüfen. Dieses Ergebnis ersetzt das Handbuch nicht.
+
+Nicht aus dem Flughandbuch
+ICAO Doc 7488, Manual of the ICAO Standard Atmosphere, 3. Auflage 1993
+p = QNH · (1 − L·h/T₀)^5,25588; H_p = (T₀/L) · (1 − (p/1013,25)^(1/5,25588)) mit T₀ = 288,15 K und L = 0,0065 K/m
+ICAO Doc 7488, Manual of the ICAO Standard Atmosphere (extended to 80 kilometres), 3. Auflage 1993 — barometrische Höhenformel der Troposphäre. Diese Umrechnung stammt nicht aus dem Flughandbuch der D-EELK.
+Rechenweg in 18 Schritten

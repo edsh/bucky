@@ -64,3 +64,89 @@ jobs:
           done
           curl -sf -o /dev/null "$BASE" || { echo "Wrangler ist nicht hochgekommen"; exit 1; }
           node tests/ui/klickpfad.mjs
+
+  # Ab Feature 045 gibt es genau einen Weg nach draussen, und er fuehrt durch
+  # `pruefen`. Die frueheren Pages-Ablaeufe liefen unabhaengig davon — rote
+  # Tests hielten eine Veroeffentlichung nicht auf (FR-007).
+  veroeffentlichen:
+    name: Nach Cloudflare veröffentlichen
+    needs: pruefen
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Bau
+        run: npm run build
+
+      # Gebaut wird hier erneut, statt das Ergebnis aus `pruefen` weiterzureichen.
+      # Der Bau dauert Sekunden; ein Artefakt-Umweg waere mehr Bewegteile fuer
+      # denselben, aus demselben Commit reproduzierten Stand.
+      - name: Veröffentlichen
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --config apps/web/wrangler.jsonc
+
+  # Jeder Änderungsvorschlag bekommt eine eigene Adresse zum Ansehen — auch vom
+  # Telefon, ohne Entwicklungsumgebung. `versions upload` laedt hoch, ohne zu
+  # veroeffentlichen: der oeffentliche Stand bleibt unberuehrt (FR-013).
+  vorschau:
+    name: Vorschau für den Änderungsvorschlag
+    needs: pruefen
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Bau
+        run: npm run build
+
+      - name: Vorschau hochladen
+        id: hochladen
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: versions upload --config apps/web/wrangler.jsonc --preview-alias pr-${{ github.event.pull_request.number }}
+
+      - name: Adresse in den Vorschlag schreiben
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUSGABE: ${{ steps.hochladen.outputs.command-output }}
+        run: |
+          # Wrangler nennt die Vorschau-Adresse in seiner Ausgabe. Sie wird
+          # daraus gelesen statt selbst zusammengebaut, weil der Kontoteil des
+          # Namens nirgends sonst im Ablauf bekannt ist.
+          ADRESSE=$(printf '%s' "$AUSGABE" | grep -oE 'https://pr-[0-9]+-[a-z0-9-]+\.[a-z0-9-]+\.workers\.dev' | head -1)
+          if [ -z "$ADRESSE" ]; then
+            echo "Keine Vorschau-Adresse in der Wrangler-Ausgabe gefunden"
+            exit 1
+          fi
+          printf '%s\n' \
+            "Vorschau zu diesem Stand: $ADRESSE" \
+            "" \
+            "Sie ist nur zum Ansehen — der öffentliche Stand ist unverändert." > /tmp/vorschau.txt
+          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/vorschau.txt --edit-last --create-if-none

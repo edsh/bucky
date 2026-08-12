@@ -66,10 +66,17 @@ abgenommen. Die öffentliche Adresse zeigt weiterhin auf GitHub Pages.
 
 **Unabhängig prüfbar**: Der Klickpfad läuft grün gegen die `workers.dev`-Adresse.
 
-- [ ] T012 [US1] **Von Hand (Nutzer)**: Cloudflare-Token nach Vorlage „Edit Cloudflare Workers" anlegen und mit der Konto-Kennung als Geheimnisse `CLOUDFLARE_API_TOKEN` und `CLOUDFLARE_ACCOUNT_ID` im Repository hinterlegen — ohne DNS-Recht, siehe research.md E-09
-- [ ] T013 [US1] **Vor jeder Umstellung**: den Sollzustand der öffentlichen Seite festhalten — `BASE=https://bucky.edsh.de node tests/ui/klickpfad.mjs` sowie einen festen Satz Eingaben samt aller angezeigten Werte und Quellenangaben sichern (Grundlage für SC-001)
-- [ ] T014 [US1] In `.github/workflows/ci.yml` die Aufgabe „veroeffentlichen" ergänzen: `needs: pruefen`, nur auf `main`, `cloudflare/wrangler-action@v4` mit `deploy`
-- [ ] T015 [US1] `.github/workflows/pages.yml` löschen — sie ist der zweite Weg an der Prüfung vorbei, den FR-007 ausschließt
+- [X] T012 [US1] **Von Hand (Nutzer)**: Cloudflare-Token nach Vorlage „Edit Cloudflare Workers" anlegen und mit der Konto-Kennung als Geheimnisse `CLOUDFLARE_API_TOKEN` und `CLOUDFLARE_ACCOUNT_ID` im Repository hinterlegen — ohne DNS-Recht, siehe research.md E-09
+- [X] T013 [US1] **Vor jeder Umstellung**: den Sollzustand der öffentlichen Seite festhalten — `BASE=https://bucky.edsh.de node tests/ui/klickpfad.mjs` sowie einen festen Satz Eingaben samt aller angezeigten Werte und Quellenangaben sichern (Grundlage für SC-001)
+- [X] T014 [US1] In `.github/workflows/ci.yml` die Aufgabe „veroeffentlichen" ergänzen: `needs: pruefen`, nur auf `main`, `cloudflare/wrangler-action@v4` mit `deploy`
+- [X] T015 [US1] `.github/workflows/pages.yml` löschen — sie ist der zweite Weg an der Prüfung vorbei, den FR-007 ausschließt
+**Nachweis zu T013**: Klickpfad gegen `https://bucky.edsh.de` — 97 Prüfungen,
+0 durchgefallen. Der feste Eingabesatz liegt als `sollzustand-github-pages.txt`
+in diesem Ordner; erzeugt mit dem neuen, wiederholbaren Skript
+`tests/ui/sollzustand.mjs` (vier Eingabesätze, alle angezeigten Werte samt
+Quellenangaben). Derselbe Abzug wird in T017 gegen den neuen Ort gefahren und
+Zeile für Zeile verglichen.
+
 - [ ] T016 [US1] Einmalig von Hand `npx wrangler deploy` ausführen, damit der Worker vor dem Merge unter `bucky.<konto>.workers.dev` prüfbar ist (die Ablaufsteuerung veröffentlicht erst auf `main`)
 - [ ] T017 [US1] Klickpfad gegen die `workers.dev`-Adresse laufen lassen und den festgehaltenen Eingabesatz von Hand vergleichen — jeder Wert muss Ziffer für Ziffer übereinstimmen (SC-001)
 
@@ -84,8 +91,8 @@ vom Telefon.
 
 **Unabhängig prüfbar**: Am Änderungsvorschlag dieses Features selbst.
 
-- [ ] T018 [US2] In `.github/workflows/ci.yml` die Aufgabe „vorschau" ergänzen: `needs: pruefen`, nur bei Änderungsvorschlägen, `wrangler versions upload --preview-alias pr-<nummer>`
-- [ ] T019 [US2] Die entstandene Adresse als Kommentar in den Vorschlag schreiben; benötigte Rechte (`pull-requests: write`) im Workflow setzen
+- [X] T018 [US2] In `.github/workflows/ci.yml` die Aufgabe „vorschau" ergänzen: `needs: pruefen`, nur bei Änderungsvorschlägen, `wrangler versions upload --preview-alias pr-<nummer>`
+- [X] T019 [US2] Die entstandene Adresse als Kommentar in den Vorschlag schreiben; benötigte Rechte (`pull-requests: write`) im Workflow setzen
 - [ ] T020 [US2] Prüfen, dass die Vorschau den öffentlichen Stand **nicht** verändert (FR-013) — `versions upload` veröffentlicht nicht, das ist am Stand der öffentlichen Adresse nachzuweisen
 - [ ] T021 [US2] Falls Vorschau-Adressen im kostenlosen Tarif nicht verfügbar sind (research.md E-05, unsicher): den Befund in research.md nachtragen, die Aufgabe entfernen und den lokalen Weg in `AGENTS.md` stehen lassen
 

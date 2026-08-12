@@ -23,6 +23,14 @@
     type TakeoffDistanceResult
   } from '@edsh-bucky/deelk-poh-core';
   import { EDSH } from '$lib/weather/edsh.js';
+  import {
+    ladeStand,
+    sichereStand,
+    istVeraltet,
+    type Herkunft as GespeicherteHerkunft,
+    type Stand
+  } from '$lib/einstellungen/speicher.js';
+  import { onMount } from 'svelte';
   import CruiseCapabilityView from '$lib/components/CruiseCapability.svelte';
   import FuelResult from '$lib/components/FuelResult.svelte';
   import PowerLever from '$lib/components/PowerLever.svelte';
@@ -52,7 +60,7 @@
    * Vermerke und nicht einer für den ganzen Abruf — wer den Pistenwind
    * nachjustiert, hat den Luftdruck deswegen nicht selbst gesetzt.
    */
-  type Herkunft = { dienst: string; ort: string; gueltigkeit: string } | undefined;
+  type Herkunft = GespeicherteHerkunft | undefined;
 
   let qnhHerkunft = $state<Herkunft>(undefined);
   let temperaturHerkunft = $state<Herkunft>(undefined);
@@ -69,10 +77,11 @@
    * unangetastet (W-09): Abwählen ist kein Zurücksetzen. Wer den Luftdruck
    * beim zweiten Abruf abwählt, will den ersten behalten, nicht löschen.
    */
-  function wetterUebernehmen(
-    werte: Uebernahmewerte,
-    herkunft: { dienst: string; ort: string; gueltigkeit: string }
-  ): void {
+  function wetterUebernehmen(werte: Uebernahmewerte, herkunft: GespeicherteHerkunft): void {
+    // Der Vergleichszeitpunkt wird sonst nur im Minutentakt nachgefuehrt. Ohne
+    // diese Zeile stuende an einem eben abgerufenen Wert unter Umstaenden
+    // schon die Alterswarnung.
+    jetzt = Date.now();
     if (werte.qnhHpa !== undefined) {
       qnhHpa = werte.qnhHpa;
       qnhHerkunft = herkunft;
@@ -113,6 +122,99 @@
 
   function pistenwindVonHand(): void {
     pistenwindHerkunft = undefined;
+  }
+
+  /**
+   * Die Ausgangswerte an einer Stelle. Sie dienen doppelt: als Belegung beim
+   * allerersten Besuch und als Rueckfallwert fuer jedes Feld, das sich aus dem
+   * Speicher nicht zweifelsfrei lesen laesst (FR-009).
+   */
+  function ausgangswerte(): Stand {
+    return {
+      departureElevationFt: EDSH.elevationFt,
+      cruiseAltitudeAmslFt: 4500,
+      qnhHpa: 1013,
+      outsideAirTemperatureC: 23,
+      runwayWindComponentKt: 10,
+      routeWindComponentKt: 10,
+      distanceNm: 75,
+      powerSettingPct: 70,
+      dryGrassRunway: false,
+      wetOrSnowRunway: false
+    };
+  }
+
+  /**
+   * Der gesicherte Stand wird erst **nach** dem ersten Rendern eingesetzt, nicht
+   * schon bei der Belegung der Zustaende: Die Seite wird vorgerendert, und dort
+   * gibt es keinen Browser-Speicher. Wuerde hier etwas anderes stehen als im
+   * vorgerenderten HTML, widerspraechen sich Server- und Browserfassung.
+   */
+  onMount(() => {
+    const stand = ladeStand(ausgangswerte());
+    departureElevationFt = stand.departureElevationFt;
+    cruiseAltitudeAmslFt = stand.cruiseAltitudeAmslFt;
+    qnhHpa = stand.qnhHpa;
+    outsideAirTemperatureC = stand.outsideAirTemperatureC;
+    runwayWindComponentKt = stand.runwayWindComponentKt;
+    routeWindComponentKt = stand.routeWindComponentKt;
+    distanceNm = stand.distanceNm;
+    powerSettingPct = stand.powerSettingPct;
+    dryGrassRunway = stand.dryGrassRunway;
+    wetOrSnowRunway = stand.wetOrSnowRunway;
+    qnhHerkunft = stand.qnhHerkunft;
+    temperaturHerkunft = stand.temperaturHerkunft;
+    pistenwindHerkunft = stand.pistenwindHerkunft;
+    geladen = true;
+
+    /*
+      Die Alterung der Vermerke laeuft auch bei offener Seite weiter: Wer die
+      Seite eine Stunde lang stehen laesst, soll die Warnung sehen, ohne neu
+      zu laden. Minutentakt genuegt -- die Grenze ist eine Stunde.
+    */
+    const takt = setInterval(() => (jetzt = Date.now()), 60_000);
+    return () => clearInterval(takt);
+  });
+
+  let geladen = $state(false);
+  let jetzt = $state(Date.now());
+
+  /**
+   * Sichert bei jeder Aenderung. Erst nach dem Laden, sonst schriebe der erste
+   * Lauf die Ausgangswerte ueber den gerade noch ungelesenen Stand.
+   */
+  $effect(() => {
+    const stand: Stand = {
+      departureElevationFt,
+      cruiseAltitudeAmslFt,
+      qnhHpa,
+      outsideAirTemperatureC,
+      runwayWindComponentKt,
+      routeWindComponentKt,
+      distanceNm,
+      powerSettingPct,
+      dryGrassRunway,
+      wetOrSnowRunway,
+      qnhHerkunft,
+      temperaturHerkunft,
+      pistenwindHerkunft
+    };
+    if (geladen) sichereStand(stand);
+  });
+
+  /**
+   * Der Herkunftsvermerk als fertiger Satz. Liegt der Abruf mehr als eine
+   * Stunde zurueck, sagt der Vermerk das ausdruecklich und traegt ein
+   * Warnzeichen: Ein gespeicherter Wetterwert sieht sonst genauso frisch aus
+   * wie ein eben abgerufener (FR-006, Prinzip I). Der Wert selbst bleibt
+   * unangetastet -- was damit geschieht, entscheidet der Pilot (FR-007).
+   */
+  function vermerk(herkunft: Herkunft): string | undefined {
+    if (!herkunft) return undefined;
+    const kopf = `aus ${herkunft.dienst}, gültig für ${herkunft.ort} ${herkunftZeit(herkunft.gueltigkeit)} Uhr`;
+    return istVeraltet(herkunft, jetzt)
+      ? `⚠️ ${kopf} — vor über einer Stunde abgerufen, bitte erneut abrufen`
+      : `${kopf} — unverbindlich`;
   }
 
   /** Gültigkeitszeitpunkt in Ortszeit — dieselbe Schreibweise wie im Dialog. */
@@ -466,11 +568,7 @@
           {/snippet}
           {#snippet folge()}
             {#if qnhHerkunft}
-              <span data-testid="qnh-herkunft">
-                aus {qnhHerkunft.dienst}, gültig für {qnhHerkunft.ort} {herkunftZeit(qnhHerkunft.gueltigkeit)}
-                Uhr —
-                unverbindlich
-              </span>
+              <span data-testid="qnh-herkunft">{vermerk(qnhHerkunft)}</span>
             {/if}
           {/snippet}
         </RangeField>
@@ -509,11 +607,7 @@
               ≙ ISA-Abweichung {formatCelsiusPrecise(isaAbleitung.isaDeviationC)}
             </span>
             {#if temperaturHerkunft}
-              <span data-testid="temperatur-herkunft">
-                aus {temperaturHerkunft.dienst}, gültig für {temperaturHerkunft.ort}
-                {herkunftZeit(temperaturHerkunft.gueltigkeit)} Uhr —
-                unverbindlich
-              </span>
+              <span data-testid="temperatur-herkunft">{vermerk(temperaturHerkunft)}</span>
             {/if}
           {/snippet}
         </RangeField>
@@ -555,9 +649,7 @@
       bind:dryGrass={dryGrassRunway}
       bind:wetOrSnow={wetOrSnowRunway}
       bind:windComponentKt={runwayWindComponentKt}
-      windHerkunft={pistenwindHerkunft
-        ? `aus ${pistenwindHerkunft.dienst}, gültig für ${pistenwindHerkunft.ort} ${herkunftZeit(pistenwindHerkunft.gueltigkeit)} Uhr — unverbindlich`
-        : undefined}
+      windHerkunft={vermerk(pistenwindHerkunft)}
       windBedient={pistenwindVonHand}
       wetterAbrufen={() => wetterDialog?.oeffnen()}
     />

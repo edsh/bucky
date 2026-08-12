@@ -64,7 +64,9 @@ export default tseslint.config(
         window: 'readonly',
         // Kommen in den Rueckrufen vor, die im Browser ausgefuehrt werden.
         HTMLInputElement: 'readonly',
-        Event: 'readonly'
+        Event: 'readonly',
+        // Seit Feature 041 prueft der Klickpfad auch das Gedaechtnis der Seite.
+        localStorage: 'readonly'
       }
     }
   },

@@ -98,6 +98,15 @@
     display: none;
   }
 
+  /*
+    Jeder Zusatz in eine eigene Zeile: Unter der Temperatur stehen zwei --
+    die ISA-Ableitung und der Herkunftsvermerk. Nebeneinander lasen sie sich
+    seit der Alterswarnung (Feature 041) wie ein einziger langer Satz.
+  */
+  .folge :global(> *) {
+    display: block;
+  }
+
   .folge {
     grid-column: 1 / -1;
     margin: 0.1rem 0 0;

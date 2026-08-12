@@ -1261,6 +1261,10 @@ pruefe(
 // 026 und wurden mit den Vorgabewerten der Oberflaeche ermittelt; weicht hier
 // etwas ab, ist unterwegs eine Umrechnung entstanden, die es nicht geben darf.
 //
+// Seit Feature 041 haelt die Seite ihre Einstellungen fest. Fuer diese Pruefung
+// muss der Speicher deshalb ausdruecklich geleert werden -- sonst stuenden hier
+// die Werte der vorangegangenen Pruefungen statt der Ausgangswerte.
+//
 // Die Startstrecke steht seit Feature 031 auf 197 statt 198 m. Das ist keine
 // Umrechnung, sondern eine andere Ausgangslage: Eingestellt wird jetzt die
 // Temperatur in ganzen Grad, und bei der Platzdruckhoehe von 977,8 ft trifft
@@ -1268,6 +1272,7 @@ pruefe(
 // Die Rollstrecke faellt damit von 197,57 auf 197,49 m und rundet auf die
 // andere Seite. Bei *gleicher* Lage rechnet die Anwendung unveraendert
 // (nachgewiesen in T002 der Feature-031-Aufgaben).
+await page.evaluate(() => localStorage.clear());
 await page.goto(BASE, { waitUntil: 'networkidle' });
 await page.waitForTimeout(250);
 const anfangsstand = {
@@ -1551,6 +1556,124 @@ pruefe(
   (await page.locator('#platzhoehe-wert').innerText()).trim()
 );
 await page.locator('#gras').uncheck();
+
+/*
+  Feature 041: Die Seite behaelt ihre Einstellungen. Geprueft wird beides --
+  dass die Werte ein Neuladen ueberstehen und dass ein gespeicherter Stand
+  nichts durchlaesst, was ein Regler nicht hergaebe (FR-008, Prinzip I).
+*/
+await page.evaluate(() => localStorage.clear());
+await page.goto(BASE, { waitUntil: 'networkidle' });
+await page.waitForTimeout(200);
+
+// 78: die eingestellten Werte ueberstehen das Neuladen
+await regler(page, 'Platzhöhe ASL (ft)', 1200);
+await regler(page, 'Lasteinstellung', 75);
+await regler(page, 'Streckenlänge (NM)', 130);
+await page.locator('#gras').check();
+await page.waitForTimeout(250);
+const vorNeuladen = {
+  // Der Lasthebel rastet in festen Stufen: Gemerkt wird, wo er tatsaechlich
+  // stehen bleibt, nicht, was angefragt wurde.
+  last: await page.locator('#last').inputValue(),
+  start: (await page.locator('#startstrecke .summe').innerText()).replace(/\s+/g, ' '),
+  bedarf: (await page.locator('#bedarf .summe').innerText()).replace(/\s+/g, ' ')
+};
+await page.reload({ waitUntil: 'networkidle' });
+await page.waitForTimeout(250);
+const nachNeuladen = {
+  platzhoehe: await page.locator('#platzhoehe').inputValue(),
+  last: await page.locator('#last').inputValue(),
+  strecke: await page.locator('#strecke').inputValue(),
+  gras: await page.locator('#gras').isChecked(),
+  start: (await page.locator('#startstrecke .summe').innerText()).replace(/\s+/g, ' '),
+  bedarf: (await page.locator('#bedarf .summe').innerText()).replace(/\s+/g, ' ')
+};
+pruefe(
+  78,
+  'Regler, Schalter und Ergebnisse stehen nach dem Neuladen unveraendert da',
+  nachNeuladen.platzhoehe === '1200' &&
+    nachNeuladen.last === vorNeuladen.last &&
+    nachNeuladen.strecke === '130' &&
+    nachNeuladen.gras &&
+    nachNeuladen.start === vorNeuladen.start &&
+    nachNeuladen.bedarf === vorNeuladen.bedarf,
+  JSON.stringify(nachNeuladen)
+);
+
+// 79: ein Wert ausserhalb des Reglerbereichs wird verworfen, die uebrigen
+// bleiben stehen -- ein gespeicherter Wert hat nie einen Regler durchlaufen
+await page.evaluate(() => {
+  const umschlag = JSON.parse(localStorage.getItem('bucky.einstellungen'));
+  umschlag.stand.departureElevationFt = 99000;
+  localStorage.setItem('bucky.einstellungen', JSON.stringify(umschlag));
+});
+await page.reload({ waitUntil: 'networkidle' });
+await page.waitForTimeout(250);
+const nachUnsinn = {
+  platzhoehe: await page.locator('#platzhoehe').inputValue(),
+  strecke: await page.locator('#strecke').inputValue()
+};
+pruefe(
+  79,
+  'eine Platzhoehe ausserhalb des Reglerbereichs wird verworfen, die Strecke bleibt',
+  nachUnsinn.platzhoehe === '970' && nachUnsinn.strecke === '130',
+  JSON.stringify(nachUnsinn)
+);
+
+// 80: beschaedigter Speicher laesst die Seite anstandslos starten
+await page.evaluate(() => localStorage.setItem('bucky.einstellungen', '{kein json'));
+await page.reload({ waitUntil: 'networkidle' });
+await page.waitForTimeout(250);
+pruefe(
+  80,
+  'beschaedigter Speicher fuehrt zu den Ausgangswerten statt zu einer leeren Seite',
+  (await page.locator('#platzhoehe').inputValue()) === '970' &&
+    (await page.locator('#startstrecke .summe').count()) === 1,
+  await page.locator('#platzhoehe').inputValue()
+);
+
+// 81: ein alter Wetterabruf traegt die Alterswarnung, ein frischer nicht
+await page.evaluate(() => localStorage.clear());
+await antwortMit(GUTE_ANTWORT);
+await page.goto(BASE, { waitUntil: 'networkidle' });
+await wetterKnopf.click();
+await page.getByTestId('wetter-wert-qnh').waitFor({ timeout: 5000 });
+await uebernehmen.click();
+await page.waitForTimeout(200);
+const frischerVermerk = await page.getByTestId('qnh-herkunft').innerText();
+
+await page.evaluate(() => {
+  const umschlag = JSON.parse(localStorage.getItem('bucky.einstellungen'));
+  const zweiStundenHer = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  for (const feld of ['qnhHerkunft', 'temperaturHerkunft', 'pistenwindHerkunft']) {
+    umschlag.stand[feld].abgerufenAm = zweiStundenHer;
+  }
+  localStorage.setItem('bucky.einstellungen', JSON.stringify(umschlag));
+});
+await page.reload({ waitUntil: 'networkidle' });
+await page.waitForTimeout(250);
+const alterVermerk = await page.getByTestId('qnh-herkunft').innerText();
+pruefe(
+  81,
+  'ein ueber eine Stunde alter Abruf wird als veraltet gekennzeichnet, ein frischer nicht',
+  /unverbindlich/.test(frischerVermerk) &&
+    !/erneut abrufen/.test(frischerVermerk) &&
+    /erneut abrufen/.test(alterVermerk) &&
+    // Ohne Farbsehen erkennbar: Zeichen und Wortlaut, nicht bloss eine Farbe.
+    alterVermerk.includes('\u26a0'),
+  `frisch: ${frischerVermerk} | alt: ${alterVermerk}`
+);
+
+// 82: der Wert selbst bleibt dabei unangetastet (FR-007)
+pruefe(
+  82,
+  'der veraltete Wert bleibt stehen und wird nicht zurueckgesetzt',
+  (await page.locator('#qnh').inputValue()) === '1023',
+  await page.locator('#qnh').inputValue()
+);
+
+await page.evaluate(() => localStorage.clear());
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 

@@ -4,23 +4,28 @@
  * Browser. So wird er ausgefuehrt:
  *
  *   npm run build
- *   python3 -m http.server 8899 --directory apps/web/build &
+ *   npx wrangler dev --config apps/web/wrangler.jsonc --port 8787
  *   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install --no-save playwright
- *   node tests/ui/klickpfad.mjs
+ *   BASE=http://localhost:8787 node tests/ui/klickpfad.mjs
  *
- * Playwright steht bewusst nicht in den Manifesten des Projekts, damit es
- * weder die Installation noch die CI belastet; `--no-save` laesst package.json
- * und die Lockdatei unberuehrt. Der Browser wird ueber `channel: 'msedge'` aus
- * dem System genommen, statt ihn zu laden — deshalb der uebersprungene
- * Browser-Download.
+ * Playwright steht bewusst nicht in den Manifesten des Projekts, damit es die
+ * Installation nicht belastet; `--no-save` laesst package.json und die
+ * Lockdatei unberuehrt.
+ *
+ * Der Browser kommt oertlich ueber `channel: 'msedge'` aus dem System, statt
+ * geladen zu werden — deshalb der uebersprungene Browser-Download. Auf dem
+ * Bauknecht gibt es kein Edge; dort setzt die Ablaufsteuerung
+ * KLICKPFAD_BROWSER=chromium und nimmt das mitgelieferte Chromium. Ohne
+ * gesetzte Variable bleibt der oertliche Weg unveraendert.
  */
 import { setTimeout as warte } from 'node:timers/promises';
 import { chromium } from 'playwright';
 
-// Standardmaessig gegen den lokal ausgelieferten Bundle; mit BASE laesst sich
-// stattdessen die veroeffentlichte Seite pruefen, etwa
-// BASE=https://edsh.github.io/bucky node tests/ui/klickpfad.mjs
-const BASE = process.env.BASE ?? 'http://localhost:8899';
+// Ohne Angabe gegen den oertlich laufenden `wrangler dev`; mit BASE laesst sich
+// stattdessen ein veroeffentlichter Stand pruefen, etwa
+// BASE=https://bucky.edsh.de node tests/ui/klickpfad.mjs
+// oder eine Vorschau: BASE=https://pr-46-bucky.edsh.workers.dev
+const BASE = process.env.BASE ?? 'http://localhost:8787';
 /**
  * Seit Feature 043 ist die Startseite die Auswahl; der Rechner liegt unter dem
  * Flugzeug. Fast alle Pruefungen gelten dem Rechner und rufen ihn unmittelbar
@@ -103,7 +108,13 @@ async function fuellen(page, werte) {
   await page.waitForTimeout(150);
 }
 
-const browser = await chromium.launch({ channel: 'msedge' });
+/**
+ * Ohne Angabe der vertraute Weg ueber Edge aus dem System; mit
+ * KLICKPFAD_BROWSER=chromium das von Playwright mitgelieferte Chromium, das
+ * auf dem Bauknecht die einzige Wahl ist.
+ */
+const kanal = process.env.KLICKPFAD_BROWSER ?? 'msedge';
+const browser = await chromium.launch(kanal === 'chromium' ? {} : { channel: kanal });
 const page = await browser.newPage();
 const konsolenfehler = [];
 /**
@@ -460,7 +471,10 @@ await page.goto(RECHNER, { waitUntil: 'networkidle' });
 const beschriftungen = await page.locator('label').allInnerTexts();
 const hoehenfelder = beschriftungen.filter((t) => t.includes('(ft)'));
 const alleAsl = hoehenfelder.length === 2 && hoehenfelder.every((t) => t.includes('ASL') && !t.includes('Druckhöhe'));
-const ueberbreite = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+const ueberbreite = await page.evaluate(() => {
+  const breite = document.documentElement.clientWidth;
+  return document.documentElement.scrollWidth > breite + 1;
+});
 pruefe(11, 'Höhenfelder sind als Höhe ASL gekennzeichnet, nicht als Druckhöhe', alleAsl, hoehenfelder.join(' | '));
 pruefe(12, 'kein waagerechtes Scrollen auf 390 px Breite', !ueberbreite);
 
@@ -775,16 +789,29 @@ pruefe(
 await page.setViewportSize({ width: 390, height: 844 });
 await page.waitForTimeout(250);
 const engeSicht = await page.evaluate(() => {
-  const ueberbreit = document.documentElement.scrollWidth > window.innerWidth + 1;
+  // Gemessen wird gegen `clientWidth`, nicht gegen `window.innerWidth`: Letzteres
+  // enthaelt die Scrollleiste. Wo sie ueber dem Inhalt liegt (macOS, Telefone),
+  // sind beide gleich; wo sie Platz wegnimmt (Linux), meldete die Pruefung sonst
+  // eine Ueberbreite, die keine ist.
+  const breite = document.documentElement.clientWidth;
+  const ueberbreit = document.documentElement.scrollWidth > breite + 1;
   // Nur was gerade zu sehen ist: Die Knöpfe im geschlossenen Dialog haben
   // keine Ausdehnung und wären sonst ein Fehlalarm.
   const bedienbar = [...document.querySelectorAll('input, button')]
     .filter((element) => element.checkVisibility())
     .every((element) => {
       const kasten = element.getBoundingClientRect();
-      return kasten.width > 0 && kasten.left >= -1 && kasten.right <= window.innerWidth + 1;
+      return kasten.width > 0 && kasten.left >= -1 && kasten.right <= breite + 1;
     });
-  return { ueberbreit, bedienbar };
+  // Bei Ueberbreite ist die blosse Feststellung wertlos — man sucht danach von
+  // Hand. Deshalb gleich benennen, was hinausragt.
+  const schuldige = ueberbreit
+    ? [...document.querySelectorAll('body *')]
+        .filter((element) => element.getBoundingClientRect().right > breite + 1)
+        .slice(0, 3)
+        .map((element) => `${element.tagName.toLowerCase()}.${element.className} bis ${Math.round(element.getBoundingClientRect().right)} px`)
+    : [];
+  return { ueberbreit, bedienbar, breite, schuldige };
 });
 pruefe(
   35,

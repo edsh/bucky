@@ -2,6 +2,8 @@ node_modules/
 dist/
 build/
 .svelte-kit/
+# Oertlicher Zwischenstand von Wrangler (Zustand des nachgebildeten Workers).
+.wrangler/
 *.tsbuildinfo
 .DS_Store
 http-client.private.env.json

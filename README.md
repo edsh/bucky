@@ -282,16 +282,33 @@ Adapterdatei eine Winkelfunktion enthält.
 
 ## Veröffentlichte Oberfläche
 
-<https://edsh.github.io/bucky/>
+<https://bucky.edsh.de/>
 
-Jeder Push auf `main` baut das statische Bundle und veröffentlicht es
-(`.github/workflows/pages.yml`). Der Basispfad kommt aus
-`actions/configure-pages`, damit die internen Verweise unter `/bucky/`
-ebenso tragen wie lokal unter `/`.
+Die Oberfläche läuft als Cloudflare Worker. Jeder Push auf `main` baut sie und
+veröffentlicht sie — aber erst, **nachdem** Lint, Typen, 541 Tests, der Bau und
+die 97 Klickpfad-Prüfungen durchgelaufen sind. Es gibt bewusst keinen zweiten
+Weg nach draußen: Was rot ist, geht nicht live.
+
+Jeder Änderungsvorschlag bekommt zusätzlich eine eigene Adresse zum Ansehen
+(`https://pr-<nummer>-bucky.edsh.workers.dev`), die als Kommentar im Vorschlag
+steht. Sie ist nur hochgeladen, nicht veröffentlicht — der öffentliche Stand
+bleibt unberührt.
+
+Ging etwas schief, hilft der Rückweg ohne Neubau:
+
+```bash
+npx wrangler rollback --config apps/web/wrangler.jsonc
+```
+
+Er schaltet binnen Sekunden auf die vorige Fassung zurück; Cloudflare hält die
+letzten hundert vor.
 
 ## Bauen und starten
 
-Voraussetzung ist Node 22 oder neuer.
+Voraussetzung ist Node 24 oder neuer — dieselbe Fassung, mit der geprüft und
+veröffentlicht wird. Bis Feature 045 liefen Prüfung und Veröffentlichung auf
+verschiedenen Fassungen; der ausgelieferte Bau war damit nie in genau dieser
+Form geprüft.
 
 ```bash
 npm ci

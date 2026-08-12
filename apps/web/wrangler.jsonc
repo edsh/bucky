@@ -1,0 +1,25 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "bucky",
+  // Legt fest, welchen Stand der Laufzeit Cloudflare nachbildet. Das Datum
+  // bleibt stehen, auch wenn die Zeit weiterlaeuft: Es ist die Zusicherung,
+  // dass sich das Verhalten unter uns nicht aendert. Angehoben wird es nur
+  // bewusst und mit einem Prueflauf.
+  "compatibility_date": "2026-08-12",
+  // Die Anwendung rechnet ausschliesslich im Browser (`ssr = false`). Der
+  // Worker leiht sich hier nur die Node-Bausteine, die SvelteKit selbst
+  // erwartet.
+  "compatibility_flags": ["nodejs_als"],
+  "main": ".svelte-kit/cloudflare/_worker.js",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".svelte-kit/cloudflare"
+  },
+  // Ohne diese Adresse gaebe es keinen Ort, an dem sich der Worker pruefen
+  // liesse, bevor `bucky.edsh.de` auf ihn zeigt — und genau das ist die
+  // Bedingung, unter der die Umstellung ohne Ueberraschung ablaeuft.
+  "workers_dev": true,
+  "observability": {
+    "enabled": true
+  }
+}

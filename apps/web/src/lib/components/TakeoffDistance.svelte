@@ -464,6 +464,19 @@
     text-align: left;
     padding: 0.35rem 0.5rem;
     border-bottom: 1px solid #ddd;
+    /*
+      „Startrollstrecke" bricht nicht von selbst um, und die Mindestbreite der
+      Tabelle richtet sich nach dem laengsten Wort: Auf einem 390 px breiten
+      Schirm passte die Spalte gerade so, mit einer geringfuegig breiter
+      laufenden Systemschrift aber nicht mehr — dann schob die Tabelle die
+      ganze Seite waagerecht auf.
+
+      `anywhere` statt `break-word`, weil nur ersteres in die Berechnung der
+      Mindestbreite eingeht. `break-word` erlaubt den Umbruch zwar, die Tabelle
+      fordert aber trotzdem weiter den Platz fuer das ungebrochene Wort an —
+      und blieb damit wirkungslos. Solange der Platz reicht, bricht nichts um.
+    */
+    overflow-wrap: anywhere;
   }
 
   td {

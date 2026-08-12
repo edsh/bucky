@@ -403,10 +403,37 @@
 
       <div class="felder">
         <!--
-          Der Luftdruck steht an erster Stelle, weil er in beide Druckhöhen
-          eingeht: Wer die Folgezeile „≙ Druckhöhe … @ …" liest, findet den
-          Regler, der sie verstellt, davor und nicht dahinter (Issue #9).
+          Die Platzhöhe steht an erster Stelle und der Luftdruck direkt
+          dahinter: Beide zusammen ergeben die Druckhöhe, die in der Folgezeile
+          der Platzhöhe steht. Wer sie liest, findet die zwei Regler, die sie
+          bestimmen, davor — und nicht in zwei getrennten Rahmen, wie es bis
+          Feature 039 war (Issue #9, Issue #39).
         -->
+        <RangeField
+          id="platzhoehe"
+          label="Platzhöhe ASL (ft)"
+          range={domain.departureElevationFt}
+          bind:value={departureElevationFt}
+          format={formatFeet}
+        >
+          {#snippet neben()}
+            <!--
+              Zwei Knöpfe tragen jetzt die Aufschrift „EDSH"; ohne eigene
+              Beschriftung wären sie für Vorlesewerkzeuge nicht zu
+              unterscheiden.
+            -->
+            <button
+              type="button"
+              class="schnellwahl"
+              aria-label="Platzhöhe und Bahnzustand von EDSH übernehmen"
+              onclick={edshWaehlen}>EDSH</button
+            >
+          {/snippet}
+          {#snippet folge()}
+            ≙ Druckhöhe {formatFeet(platzDruckhoehe.pressureAltitudeFt)} @ {formatHectopascal(qnhHpa)}
+          {/snippet}
+        </RangeField>
+
         <RangeField
           id="qnh"
           label="Luftdruck QNH (hPa)"
@@ -448,17 +475,6 @@
           {/snippet}
         </RangeField>
 
-        <RangeField
-          id="reiseflughoehe"
-          label="Reiseflughöhe ASL (ft)"
-          range={domain.cruiseAltitudeAmslFt}
-          bind:value={cruiseAltitudeAmslFt}
-          format={formatFeet}
-        >
-          {#snippet folge()}
-            ≙ Druckhöhe {formatFeet(reiseDruckhoehe.pressureAltitudeFt)} @ {formatHectopascal(qnhHpa)}
-          {/snippet}
-        </RangeField>
 
         <RangeField
           id="temperatur"
@@ -521,83 +537,75 @@
         uebernehmen={wetterUebernehmen}
       />
 
-      <PowerLever
-        id="last"
-        label="Lasteinstellung"
-        range={domain.powerSettingPct}
-        bind:value={powerSettingPct}
-        format={formatPercent}
-      />
     </fieldset>
   </form>
 
-  <CruiseCapabilityView capability={reiseleistung.wert} fehler={reiseleistung.fehler} />
 
   <!--
-    Die Platzhöhe gehört beiden Bereichen darunter: Die Startstrecke braucht sie
-    ebenso wie der Kraftstoffbedarf. Sie steht deshalb einmal oben und nicht
-    doppelt in den Spalten (FR-013).
-
-    Der Wind stand bis Feature 026 aus demselben Grund hier — zu Unrecht: Es
-    sind zwei Größen, nicht eine. Der Wind auf der Bahn und der Wind auf der
-    Strecke stehen jetzt jeweils bei dem Ergebnis, auf das sie wirken.
+    Die Startstrecke steht seit Feature 039 unmittelbar unter den
+    Grundbedingungen: Sie kommt mit genau diesen drei Größen aus. Alles
+    darunter braucht zwei weitere — wer nur die Bahnlänge prüft, soll sie
+    nicht erst einstellen müssen.
   -->
-  <h2 class="bereich-titel">Start und Streckenflug</h2>
-
-  <form onsubmit={(event) => event.preventDefault()}>
-    <fieldset>
-      <legend>Platzhöhe</legend>
-
-      <div class="felder">
-        <RangeField
-          id="platzhoehe"
-          label="Platzhöhe ASL (ft)"
-          range={domain.departureElevationFt}
-          bind:value={departureElevationFt}
-          format={formatFeet}
-        >
-          {#snippet neben()}
-            <!--
-              Zwei Knöpfe tragen jetzt die Aufschrift „EDSH"; ohne eigene
-              Beschriftung wären sie für Vorlesewerkzeuge nicht zu
-              unterscheiden.
-            -->
-            <button
-              type="button"
-              class="schnellwahl"
-              aria-label="Platzhöhe und Bahnzustand von EDSH übernehmen"
-              onclick={edshWaehlen}>EDSH</button
-            >
-          {/snippet}
-          {#snippet folge()}
-            ≙ Druckhöhe {formatFeet(platzDruckhoehe.pressureAltitudeFt)} @ {formatHectopascal(qnhHpa)}
-          {/snippet}
-        </RangeField>
-      </div>
-    </fieldset>
-  </form>
+  <section id="startstrecke" class="bereich" aria-labelledby="startstrecke-titel">
+    <h2 id="startstrecke-titel">Roll- und Startstrecke</h2>
+    <TakeoffDistance
+      result={startstrecke.wert}
+      fehler={startstrecke.fehler}
+      bind:dryGrass={dryGrassRunway}
+      bind:wetOrSnow={wetOrSnowRunway}
+      bind:windComponentKt={runwayWindComponentKt}
+      windHerkunft={pistenwindHerkunft
+        ? `aus ${pistenwindHerkunft.dienst}, gültig für ${pistenwindHerkunft.ort} ${herkunftZeit(pistenwindHerkunft.gueltigkeit)} Uhr — unverbindlich`
+        : undefined}
+      windBedient={pistenwindVonHand}
+      wetterAbrufen={() => wetterDialog?.oeffnen()}
+    />
+  </section>
 
   <!--
-    Zwei nebeneinanderstehende Bereiche, sobald genug Breite da ist. Die
-    Startstrecke steht zuerst, weil sie zeitlich zuerst gebraucht wird — beim
-    Rollen zur Bahn, nicht unterwegs.
+    Alles, was den Reiseflug betrifft, unter einer gemeinsamen Überschrift:
+    Reiseflughöhe und Lasteinstellung wirken auf *beide* folgenden Blöcke, und
+    ohne die Klammer stand nicht da, worauf sie sich beziehen. Die Regler
+    standen bis Feature 039 oben bei den Grundbedingungen; dort gehörten sie
+    nicht hin, weil die Startstrecke an keiner von beiden hängt (Issue #39).
   -->
-  <div class="bereiche">
-    <section id="startstrecke" class="bereich" aria-labelledby="startstrecke-titel">
-      <h3 id="startstrecke-titel">Roll- und Startstrecke</h3>
-      <TakeoffDistance
-        result={startstrecke.wert}
-        fehler={startstrecke.fehler}
-        bind:dryGrass={dryGrassRunway}
-        bind:wetOrSnow={wetOrSnowRunway}
-        bind:windComponentKt={runwayWindComponentKt}
-        windHerkunft={pistenwindHerkunft
-          ? `aus ${pistenwindHerkunft.dienst}, gültig für ${pistenwindHerkunft.ort} ${herkunftZeit(pistenwindHerkunft.gueltigkeit)} Uhr — unverbindlich`
-          : undefined}
-        windBedient={pistenwindVonHand}
-        wetterAbrufen={() => wetterDialog?.oeffnen()}
-      />
-    </section>
+  <section class="reiseflug-bereich" aria-labelledby="reiseflug-titel">
+    <h2 id="reiseflug-titel">Reiseflug</h2>
+
+    <form class="reiseflug" onsubmit={(event) => event.preventDefault()}>
+      <fieldset>
+        <!--
+          Nicht noch einmal "Reiseflug": Die Überschrift darüber sagt das bereits,
+          der Rahmen sagt, *welche* Bedingungen gemeint sind.
+        -->
+        <legend>Bedingungen im Reiseflug</legend>
+
+        <div class="felder">
+          <RangeField
+            id="reiseflughoehe"
+            label="Reiseflughöhe ASL (ft)"
+            range={domain.cruiseAltitudeAmslFt}
+            bind:value={cruiseAltitudeAmslFt}
+            format={formatFeet}
+          >
+            {#snippet folge()}
+              ≙ Druckhöhe {formatFeet(reiseDruckhoehe.pressureAltitudeFt)} @ {formatHectopascal(qnhHpa)}
+            {/snippet}
+          </RangeField>
+        </div>
+
+        <PowerLever
+          id="last"
+          label="Lasteinstellung"
+          range={domain.powerSettingPct}
+          bind:value={powerSettingPct}
+          format={formatPercent}
+        />
+      </fieldset>
+    </form>
+
+    <CruiseCapabilityView capability={reiseleistung.wert} fehler={reiseleistung.fehler} />
 
     <section id="bedarf" class="bereich" aria-labelledby="bedarf-titel">
       <h3 id="bedarf-titel">Kraftstoffbedarf und Geschwindigkeiten</h3>
@@ -640,7 +648,7 @@
         <FuelResult {result} />
       {/if}
     </section>
-  </div>
+  </section>
 </main>
 
 <style>
@@ -656,53 +664,48 @@
     margin: 0 0 1rem;
   }
 
-  .bereich-titel,
-  .bereich h3 {
+  /*
+    Mehr Luft nach oben als ein Formular sonst hat: Darueber endet die
+    Startstrecke mit ihrem aufklappbaren Rechenweg. Ohne diesen Abstand sieht
+    der Reiseflug aus, als gehoerte er noch zu ihr -- er beginnt aber den
+    naechsten Teil.
+  */
+  .reiseflug-bereich {
+    margin-top: 2.5rem;
+  }
+
+  /*
+    Die Rangfolge der Bloecke: <h2> fuer die beiden Teile "Roll- und
+    Startstrecke" und "Reiseflug", <h3> fuer die beiden Ergebnisbloecke
+    darunter, die derselben Reiseflughoehe und Lasteinstellung folgen.
+  */
+  .bereich h3,
+  #startstrecke h2,
+  .reiseflug-bereich > h2 {
     margin: 1.5rem 0 0.5rem;
   }
 
   /*
-    Untereinander als Vorgabe, nebeneinander erst ab genug Breite. Die
-    Startstrecke steht in der Reihenfolge des Auszeichnungstexts zuerst und
-    damit im Hochformat oben (FR-015).
+    Bis Feature 039 standen Startstrecke und Kraftstoffbedarf im Querformat
+    nebeneinander. Das ging, solange beide dieselben Eingaben ueber sich
+    hatten. Jetzt stehen die Reisegroessen zwischen ihnen -- zwei Spalten
+    haetten die Reihenfolge zerschnitten, die dieses Feature herstellt.
   */
-  .bereiche {
-    display: grid;
-    /*
-      Untereinander braucht es mehr Luft als nebeneinander: Ohne Spalte, die
-      sie trennt, gehen die beiden Bereiche sonst ineinander ueber. Waagerecht
-      genuegt der Spaltenabstand, weil die Spalten selbst schon trennen.
-    */
-    gap: 2.5rem 2rem;
-  }
-
   .bereich {
     min-width: 0;
   }
 
-  .bereich h3 {
-    margin-top: 0;
-  }
+
 
   /*
-    Zwei Spalten erst im Querformat und nicht allein nach Breite. Eine reine
-    Breitenabfrage kann beides nicht auseinanderhalten: Ein Telefon im
-    Querformat ist 667 px breit, ein Tablet im Hochformat 1032 px. Ein
-    Haltepunkt dazwischen wuerde genau falsch herum entscheiden -- einspaltig
-    auf dem Telefon quer, zweispaltig auf dem Tablet hoch. Ein Haltepunkt
-    darunter ergaebe zwei Spalten auf dem Telefon *hochkant*; einer darueber
-    keine im Querformat. Erst Breite **und** Ausrichtung zusammen treffen die
-    Faustregel: hochkant einspaltig, quer zweispaltig.
+    Im Querformat mehr Breite. Die Bedingung "Breite **und** Ausrichtung"
+    stammt aus der Zeit der zwei Spalten: Ein Telefon quer ist 667 px breit,
+    ein Tablet hoch 1032 px -- eine reine Breitenabfrage entschiede genau
+    falsch herum. Sie bleibt, weil sie fuer die Textbreite dasselbe leistet.
   */
   @media (min-width: 40rem) and (orientation: landscape) {
     main {
       max-width: 64rem;
-    }
-
-    .bereiche {
-      grid-template-columns: 1fr 1fr;
-      align-items: start;
-      row-gap: 0;
     }
 
     /* Das Avatar folgt der breiteren Textspalte, sonst ueberdeckt es sie. */

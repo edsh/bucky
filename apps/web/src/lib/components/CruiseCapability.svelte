@@ -52,7 +52,7 @@
 </script>
 
 <section class="uebersicht" aria-labelledby="uebersicht-titel">
-  <h2 id="uebersicht-titel">Reichweite und Flugdauer</h2>
+  <h3 id="uebersicht-titel">Reichweite und Flugdauer</h3>
 
   {#if fehler}
     <p class="fehler" role="alert">{fehler}</p>
@@ -114,7 +114,7 @@
     margin: 1rem 0;
   }
 
-  h2 {
+  h3 {
     margin: 0 0 0.5rem;
   }
 

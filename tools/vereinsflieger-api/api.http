@@ -1,0 +1,32 @@
+### 2.1 Sitzungsschlüssel anfordern
+GET https://www.vereinsflieger.de/interface/rest/auth/accesstoken
+
+> {%
+    client.test("Request executed successfully", () =>
+        client.assert(response.status === 200, "Response status is not 200")
+    );
+    client.test("Response contains access token", function() {
+        client.assert(response.body.hasOwnProperty("accesstoken"), "Cannot find 'accesstoken' in response");
+    });
+    client.global.set("access_token", response.body.accesstoken);
+%}
+
+### 2.2 Anmelden
+POST https://www.vereinsflieger.de/interface/rest/auth/signin
+Content-Type: application/x-www-form-urlencoded
+
+accesstoken = {{access_token}} &
+username = {{user-username}} &
+password = {{user-password}} &
+appkey = {{lsv-app-key}} #&
+#cid =
+
+### 6.1 Aktuelle Reservierungen auslesen
+POST https://www.vereinsflieger.de/interface/rest/reservation/list/active
+Content-Type: application/x-www-form-urlencoded
+
+accesstoken = {{access_token}}
+
+# Hinweise zur response: ist leider numerisch-objektindiziert, PHP-style
+# …also {"0": { …… }, "1": {…} }
+# "prid" ist der identifier der Reservierung, "uid" die ID des users.

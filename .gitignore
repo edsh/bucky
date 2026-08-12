@@ -4,3 +4,4 @@ build/
 .svelte-kit/
 *.tsbuildinfo
 .DS_Store
+http-client.private.env.json

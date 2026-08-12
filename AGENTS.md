@@ -19,4 +19,19 @@ zugehörigen Skills liegen unter `.claude/skills/speckit-*` und werden von
 Copilot CLI ebenfalls als Projekt-Skills geladen. Feature-Nummern werden über
 GitHub-Issues vergeben (`create-new-feature.sh --number <issue-nummer>`).
 
+**Vorschau vor dem Merge:** Bei allem, was das Aussehen oder die Bedienung der
+Oberfläche verändert, gehört vor der Merge-Rückfrage eine Vorschau angeboten —
+bauen, ausliefern, Browser öffnen:
+
+```bash
+npm run build
+python3 -m http.server 8899 --directory apps/web/build &
+open http://localhost:8899/
+```
+
+Ein Bildschirmfoto des Agenten ersetzt das nicht: Gestaltungsfragen entscheidet,
+wer die Seite vor sich hat. Nach jeder Änderung neu bauen, der Server liefert
+statische Dateien aus. Zum Schluss den Server über seine PID beenden
+(`lsof -ti :8899`).
+
 @.specify/memory/constitution.md

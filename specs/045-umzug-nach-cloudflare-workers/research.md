@@ -102,11 +102,23 @@ macht die Adresse vorhersagbar (`pr-45-bucky.<konto>.workers.dev`) statt an
 einen wechselnden Kennzeichner gebunden; damit erfüllt sie FR-014 gleich mit:
 Man sieht ihr an, dass sie eine Vorschau ist.
 
-**Unsicher**: Die Recherche konnte nicht restlos belegen, dass Vorschau-Adressen
-im kostenlosen Tarif verfügbar sind — die Preisseite führt sie nicht eigens auf.
-Das ist beim ersten Versuch zu prüfen. Fällt es aus, bleibt die Vorschau über
-`wrangler dev` bzw. den bisherigen lokalen Weg; die Veröffentlichung ist davon
-nicht betroffen.
+**Beim ersten Versuch geklärt** (12.08.2026): Der Tarif war nicht das Hindernis.
+`versions upload` scheiterte an etwas anderem — *„You cannot upload a new version
+of a Worker that does not yet exist. Please run the `deploy` command first."*
+Eine Vorschau setzt also einen bereits bestehenden Worker voraus. Da die
+Veröffentlichung nur auf `main` läuft, kann die Ablaufsteuerung diese Henne-Ei-
+Lage im ersten Vorschlag nicht selbst auflösen; der Worker wurde einmalig von
+Hand angelegt (T016). Ab dem zweiten Vorschlag stellt sich die Frage nicht mehr.
+
+**Zweiter Stolperstein derselben Art**: Ein Konto ohne `workers.dev`-Subdomain
+kann überhaupt nicht veröffentlichen. Wrangler verweist auf einen
+`…/workers/onboarding`-Link, den es in der heutigen Oberfläche nicht mehr gibt —
+die Subdomain wird in der Workers-Übersicht gesetzt. Ob eine besteht, beantwortet
+`GET /accounts/<konto>/workers/subdomain` verlässlicher als die Fehlermeldung:
+In unserem Fall behauptete Wrangler, es gebe keine, während die Schnittstelle
+längst eine auswies. Sie wurde anschließend auf `edsh` geändert
+(`bucky.edsh.workers.dev`); nach der Änderung steht das Zertifikat erst nach
+einigen Minuten.
 
 Quelle: https://developers.cloudflare.com/workers/wrangler/commands/
 

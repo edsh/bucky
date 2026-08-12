@@ -20,7 +20,34 @@ Beides passiert außerhalb des Repositories und ist bewusst Handarbeit.
    Das Recht, DNS zu ändern, bekommt dieser Schlüssel **nicht**. Er liegt
    täglich in der Ablaufsteuerung; er soll nur veröffentlichen dürfen.
 
-2. **Domain anhängen** (erst in Schritt 4, siehe unten).
+2. **`workers.dev`-Subdomain des Kontos** — einmalig kontoweit, nicht je Worker.
+   Cloudflare → Compute (Workers) → in der Übersicht *Subdomain* ändern. Ohne sie
+   verweigert `wrangler deploy` die Arbeit; der von Wrangler genannte
+   `…/workers/onboarding`-Link führt allerdings ins Leere. Ob eine Subdomain
+   besteht, verrät zuverlässiger die Schnittstelle:
+
+   ```bash
+   curl -H "Authorization: Bearer $TOKEN" \
+     https://api.cloudflare.com/client/v4/accounts/<konto>/workers/subdomain
+   ```
+
+   Sie wurde auf `edsh` gesetzt, die Adressen lauten also `bucky.edsh.workers.dev`.
+   Nach einer Änderung dauert es einige Minuten, bis das Zertifikat steht — in
+   der Zwischenzeit antwortet weder der alte noch der neue Name.
+
+3. **Erstmaliger Deploy von Hand** — `npx wrangler login`, dann:
+
+   ```bash
+   npm run build
+   npx wrangler deploy --config apps/web/wrangler.jsonc
+   ```
+
+   Das ist einmalig nötig, weil `wrangler versions upload` (der Vorschau-Weg)
+   einen bereits bestehenden Worker voraussetzt: *„You cannot upload a new
+   version of a Worker that does not yet exist."* Die Ablaufsteuerung kann diese
+   Henne-Ei-Lage nicht selbst auflösen, solange noch nichts auf `main` liegt.
+
+4. **Domain anhängen** (erst nach dem Merge, siehe unten).
 
 ---
 
@@ -33,9 +60,17 @@ vorher dastand.
 BASE=https://bucky.edsh.de node tests/ui/klickpfad.mjs
 ```
 
-Zusätzlich von Hand: einen festen Satz Eingaben stellen (etwa 1000 kg, 15 °C,
-1013 hPa, 300 ft) und **alle** angezeigten Werte samt Quellenangaben abfotografieren
-oder abschreiben. Genau dieser Satz wird nachher wiederholt.
+Den festen Eingabesatz nimmt inzwischen ein Skript ab, statt ihn abzuschreiben:
+
+```bash
+BASE=https://bucky.edsh.de        node tests/ui/sollzustand.mjs > /tmp/alt.txt
+BASE=https://bucky.edsh.workers.dev node tests/ui/sollzustand.mjs > /tmp/neu.txt
+diff <(tail -n +2 /tmp/alt.txt) <(tail -n +2 /tmp/neu.txt)
+```
+
+Vier Eingabesätze, alle angezeigten Werte samt Quellenangaben. Die erste Zeile
+nennt die Adresse und wird deshalb vom Vergleich ausgenommen. Der Abzug vom
+bisherigen Ort liegt als `sollzustand-github-pages.txt` in diesem Ordner.
 
 ---
 

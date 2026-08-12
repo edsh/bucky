@@ -20,18 +20,23 @@ Copilot CLI ebenfalls als Projekt-Skills geladen. Feature-Nummern werden über
 GitHub-Issues vergeben (`create-new-feature.sh --number <issue-nummer>`).
 
 **Vorschau vor dem Merge:** Bei allem, was das Aussehen oder die Bedienung der
-Oberfläche verändert, gehört vor der Merge-Rückfrage eine Vorschau angeboten —
-bauen, ausliefern, Browser öffnen:
+Oberfläche verändert, gehört vor der Merge-Rückfrage eine Vorschau angeboten.
+Liegt die Änderung bereits in einem Vorschlag, gibt es sie geschenkt: Die
+Ablaufsteuerung lädt jeden Vorschlag nach `https://pr-<nummer>-bucky.edsh.workers.dev`
+und schreibt die Adresse als Kommentar hinein. Sie ist auch vom Telefon aus
+erreichbar — dafür ist sie da.
+
+Für Zwischenstände, die noch in keinem Vorschlag liegen, bleibt der örtliche Weg:
 
 ```bash
 npm run build
-python3 -m http.server 8899 --directory apps/web/build &
-open http://localhost:8899/
+npx wrangler dev --config apps/web/wrangler.jsonc --port 8787 &
+open http://localhost:8787/
 ```
 
-Ein Bildschirmfoto des Agenten ersetzt das nicht: Gestaltungsfragen entscheidet,
-wer die Seite vor sich hat. Nach jeder Änderung neu bauen, der Server liefert
-statische Dateien aus. Zum Schluss den Server über seine PID beenden
-(`lsof -ti :8899`).
+`wrangler dev` braucht rund 40 Sekunden bis zur ersten Antwort. Ein
+Bildschirmfoto des Agenten ersetzt die Vorschau nicht: Gestaltungsfragen
+entscheidet, wer die Seite vor sich hat. Zum Schluss den Server über seine PID
+beenden (`lsof -ti :8787`).
 
 @.specify/memory/constitution.md

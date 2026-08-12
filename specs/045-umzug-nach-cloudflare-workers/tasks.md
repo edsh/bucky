@@ -77,8 +77,8 @@ in diesem Ordner; erzeugt mit dem neuen, wiederholbaren Skript
 Quellenangaben). Derselbe Abzug wird in T017 gegen den neuen Ort gefahren und
 Zeile für Zeile verglichen.
 
-- [ ] T016 [US1] Einmalig von Hand `npx wrangler deploy` ausführen, damit der Worker vor dem Merge unter `bucky.<konto>.workers.dev` prüfbar ist (die Ablaufsteuerung veröffentlicht erst auf `main`)
-- [ ] T017 [US1] Klickpfad gegen die `workers.dev`-Adresse laufen lassen und den festgehaltenen Eingabesatz von Hand vergleichen — jeder Wert muss Ziffer für Ziffer übereinstimmen (SC-001)
+- [X] T016 [US1] Einmalig von Hand `npx wrangler deploy` ausführen, damit der Worker vor dem Merge unter `bucky.<konto>.workers.dev` prüfbar ist (die Ablaufsteuerung veröffentlicht erst auf `main`)
+- [X] T017 [US1] Klickpfad gegen die `workers.dev`-Adresse laufen lassen und den festgehaltenen Eingabesatz von Hand vergleichen — jeder Wert muss Ziffer für Ziffer übereinstimmen (SC-001)
 
 **Prüfpunkt**: Der neue Ort ist vollständig abgenommen. Die öffentliche Seite ist unverändert.
 
@@ -93,12 +93,28 @@ vom Telefon.
 
 - [X] T018 [US2] In `.github/workflows/ci.yml` die Aufgabe „vorschau" ergänzen: `needs: pruefen`, nur bei Änderungsvorschlägen, `wrangler versions upload --preview-alias pr-<nummer>`
 - [X] T019 [US2] Die entstandene Adresse als Kommentar in den Vorschlag schreiben; benötigte Rechte (`pull-requests: write`) im Workflow setzen
-- [ ] T020 [US2] Prüfen, dass die Vorschau den öffentlichen Stand **nicht** verändert (FR-013) — `versions upload` veröffentlicht nicht, das ist am Stand der öffentlichen Adresse nachzuweisen
-- [ ] T021 [US2] Falls Vorschau-Adressen im kostenlosen Tarif nicht verfügbar sind (research.md E-05, unsicher): den Befund in research.md nachtragen, die Aufgabe entfernen und den lokalen Weg in `AGENTS.md` stehen lassen
+- [X] T020 [US2] Prüfen, dass die Vorschau den öffentlichen Stand **nicht** verändert (FR-013) — `versions upload` veröffentlicht nicht, das ist am Stand der öffentlichen Adresse nachzuweisen
+- [~] T021 [US2] **Entfällt** — Vorschau-Adressen funktionieren im kostenlosen Tarif; die Ursache des ersten Fehlschlags war eine andere (siehe Nachweis unten). Ursprünglich: Falls Vorschau-Adressen im kostenlosen Tarif nicht verfügbar sind (research.md E-05, unsicher): den Befund in research.md nachtragen, die Aufgabe entfernen und den lokalen Weg in `AGENTS.md` stehen lassen
 
 **Prüfpunkt**: Der Vorschlag zu diesem Feature trägt eine funktionierende Vorschau-Adresse.
 
 ---
+
+**Nachweis zu Phase 4 und 5** (12.08.2026):
+
+- Der Worker steht unter `https://bucky.edsh.workers.dev`. Zwei Stolpersteine
+  auf dem Weg dorthin, beide in research.md E-05 festgehalten: Das Konto
+  brauchte erst eine `workers.dev`-Subdomain (Wranglers Meldung dazu war
+  irreführend, sein Onboarding-Link tot), und `versions upload` verlangt einen
+  bereits bestehenden Worker — daher T016 von Hand.
+- Klickpfad gegen den neuen Ort: **97 Prüfungen, 0 durchgefallen**.
+- **SC-001 belegt**: `tests/ui/sollzustand.mjs` gegen alten und neuen Ort,
+  `diff` über alle vier Eingabesätze samt Quellenangaben — identisch, Zeile für
+  Zeile. Der Abzug vom alten Ort liegt als `sollzustand-github-pages.txt` bei.
+- **FR-013 belegt**: Nach dem Vorschau-Upload zu PR #46 lagen weiterhin 100 %
+  des Verkehrs auf der veröffentlichten Fassung; die hochgeladene stand
+  daneben, ohne Verkehr. `https://pr-46-bucky.edsh.workers.dev` antwortet, die
+  Adresse steht als Kommentar im Vorschlag.
 
 ## Phase 6 (US1, P1): Die Adresse umhängen — **nach dem Merge**
 
@@ -117,10 +133,10 @@ angekündigte Lücke aus FR-016.
 
 ## Phase 7: Dokumentation und Aufräumen
 
-- [ ] T026 [P] `AGENTS.md`: den Absatz „Vorschau vor dem Merge" auf die Vorschau-Adresse umstellen; der lokale Server bleibt als Weg für Zwischenstände, die noch in keinem Vorschlag liegen
-- [ ] T027 [P] `README.md`: Ort der Veröffentlichung, Rückweg (`wrangler rollback`) und die vereinheitlichte Node-Version beschreiben; Verweise auf GitHub Pages entfernen (FR-018)
-- [ ] T028 [P] In `tests/ui/klickpfad.mjs` den Kopfkommentar an den neuen Ablauf anpassen — er beschreibt heute den Weg über `python3 -m http.server`
-- [ ] T029 Vollständiger Prüflauf zum Abschluss: `npm run lint`, `npm run check --workspace @edsh-bucky/web`, `npx vitest run` (541), `npm run build`, Klickpfad gegen die öffentliche Adresse (97)
+- [X] T026 [P] `AGENTS.md`: den Absatz „Vorschau vor dem Merge" auf die Vorschau-Adresse umstellen; der lokale Server bleibt als Weg für Zwischenstände, die noch in keinem Vorschlag liegen
+- [X] T027 [P] `README.md`: Ort der Veröffentlichung, Rückweg (`wrangler rollback`) und die vereinheitlichte Node-Version beschreiben; Verweise auf GitHub Pages entfernen (FR-018)
+- [X] T028 [P] In `tests/ui/klickpfad.mjs` den Kopfkommentar an den neuen Ablauf anpassen — er beschreibt heute den Weg über `python3 -m http.server`
+- [X] T029 Vollständiger Prüflauf zum Abschluss: `npm run lint`, `npm run check --workspace @edsh-bucky/web`, `npx vitest run` (541), `npm run build`, Klickpfad gegen die öffentliche Adresse (97)
 
 ---
 

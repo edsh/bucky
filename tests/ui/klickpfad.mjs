@@ -21,10 +21,11 @@
 import { setTimeout as warte } from 'node:timers/promises';
 import { chromium } from 'playwright';
 
-// Standardmaessig gegen den lokal ausgelieferten Bundle; mit BASE laesst sich
-// stattdessen die veroeffentlichte Seite pruefen, etwa
-// BASE=https://edsh.github.io/bucky node tests/ui/klickpfad.mjs
-const BASE = process.env.BASE ?? 'http://localhost:8899';
+// Ohne Angabe gegen den oertlich laufenden `wrangler dev`; mit BASE laesst sich
+// stattdessen ein veroeffentlichter Stand pruefen, etwa
+// BASE=https://bucky.edsh.de node tests/ui/klickpfad.mjs
+// oder eine Vorschau: BASE=https://pr-46-bucky.edsh.workers.dev
+const BASE = process.env.BASE ?? 'http://localhost:8787';
 /**
  * Seit Feature 043 ist die Startseite die Auswahl; der Rechner liegt unter dem
  * Flugzeug. Fast alle Pruefungen gelten dem Rechner und rufen ihn unmittelbar

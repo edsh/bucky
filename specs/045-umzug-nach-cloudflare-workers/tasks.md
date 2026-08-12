@@ -48,7 +48,12 @@ Ablaufsteuerung schlägt fehl.
 - [X] T008 [US3] In `tests/ui/klickpfad.mjs` die Browserwahl über die Umgebung steuerbar machen (heute fest `channel: 'msedge'`); ohne gesetzte Variable bleibt das örtliche Verhalten **unverändert**, in der Ablaufsteuerung wird das mitgelieferte Chromium genutzt
 - [X] T009 [US3] In `.github/workflows/ci.yml` nach dem Bau eine Stufe „Klickpfad" ergänzen: Playwright mit Chromium einrichten, Bauergebnis ausliefern, `node tests/ui/klickpfad.mjs`, Server danach beenden
 - [X] T010 [US3] Node-Version in `.github/workflows/ci.yml` auf 24 anheben, damit geprüft und veröffentlicht wird, was dieselbe Laufzeit erzeugt hat; `engines` in der Wurzel-`package.json` mitziehen
-- [ ] T011 [US3] Nachweisen, dass eine gebrochene Prüfung die Ablaufsteuerung rot macht — mit einer wegwerfbaren Änderung, die danach zurückgenommen wird
+- [X] T011 [US3] Nachweisen, dass eine gebrochene Prüfung die Ablaufsteuerung rot macht — mit einer wegwerfbaren Änderung, die danach zurückgenommen wird
+
+**Nachweis zu T011**: Eine wegwerfbare Änderung war nicht nötig — der Nachweis
+fiel unfreiwillig an. Die Prüfung 35 fiel in drei Läufen hintereinander durch
+und machte die Ablaufsteuerung jedes Mal rot, obwohl örtlich alles grün war.
+Genau dafür ist sie da.
 
 **Prüfpunkt**: Die 97 Klickpfad-Prüfungen laufen bei jedem Push mit.
 

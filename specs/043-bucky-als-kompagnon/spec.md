@@ -188,6 +188,9 @@ landen — ohne die Zurück-Taste des Browsers.
 - **FR-021**: Beim Öffnen MUSS der Tastaturfokus in das Menü wandern. Bleibt er
   auf dem Avatar, schließt der nächste Tastendruck das eben geöffnete Menü
   wieder — der Tastaturweg aus SC-003 wäre nicht begehbar.
+- **FR-023**: Der Splash MUSS bis an den Rand des Fensters reichen. Ein weißer
+  Streifen ringsum ließe ihn wie ein eingefügtes Bild aussehen statt wie den
+  Kopf der Seite; der übrige Inhalt behält seinen Abstand.
 - **FR-022**: Jede Seite MUSS unter ihrer Adresse **unmittelbar** aufrufbar
   sein, nicht nur über einen Klick von der Startseite aus. Seit die Seiten
   geschachtelt liegen, entscheidet das darüber, ob ein einfacher Dateiserver

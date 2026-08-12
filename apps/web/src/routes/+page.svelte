@@ -148,11 +148,17 @@
     white-space: nowrap;
   }
 
+  /*
+    Der Splash zieht sich ueber den Innenabstand der Seite hinweg bis an den
+    Rand: Ein weisser Streifen ringsum liesse ihn wie ein eingefuegtes Bild
+    aussehen statt wie den Kopf der Seite. Der Abstand gilt weiter fuer alles
+    andere, deshalb wird er hier nur oertlich zurueckgenommen.
+  */
   .splash {
     display: block;
-    width: 100%;
+    width: calc(100% + 2rem);
     height: auto;
-    border-radius: 0.75rem;
+    margin: -1rem -1rem 0;
   }
 
   .flugzeuge {

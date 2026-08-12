@@ -1707,6 +1707,16 @@ pruefe(
   avatarKasten ? `Unterkante ${Math.round(avatarKasten.y + avatarKasten.height)} px` : 'nicht gefunden'
 );
 
+// 95: der Splash liegt buendig am Rand -- der Innenabstand der Seite gilt fuer
+// alles andere, nicht fuer ihn
+const splashKasten = await page.locator('img.splash').boundingBox();
+pruefe(
+  95,
+  'der Splash reicht ohne weissen Rand bis an die Fensterkante',
+  splashKasten !== null && splashKasten.x === 0 && Math.round(splashKasten.width) === 390,
+  splashKasten ? `x ${splashKasten.x}, Breite ${Math.round(splashKasten.width)}` : 'nicht gefunden'
+);
+
 // 85: der Avatar ist rund, traegt einen Rahmen und nennt sein Kennzeichen
 const avatarStil = await page.locator('button.avatar').evaluate((el) => {
   const s = getComputedStyle(el);

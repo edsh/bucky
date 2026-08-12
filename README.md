@@ -223,6 +223,28 @@ von Hand verstellt wird.
 Der Abruf geschieht ausschließlich auf Knopfdruck. Ohne Netz bleibt die Seite
 vollständig bedienbar; beim Laden geht keine Anfrage nach außen.
 
+### Die Seite merkt sich die Einstellungen
+
+Alle Regler, die Bahnwahl und der Bahnzustand überstehen ein Neuladen und das
+Schließen des Fensters: Wer meist mit derselben Beladung von EDSH aus fliegt,
+findet seine Werte wieder vor, ohne sie erneut einzustellen. Gespeichert wird
+allein im Browser des Geräts — es geht nichts an einen Server, und ein zweites
+Gerät weiß nichts davon.
+
+Übernommene Wetterwerte bleiben mitsamt ihrem Herkunftsvermerk stehen. Liegt der
+Abruf über eine Stunde zurück, wird der Vermerk zur Warnung („⚠️ … vor über einer
+Stunde abgerufen, bitte erneut abrufen"). Der Wert selbst bleibt unangetastet —
+ihn stillschweigend zu verwerfen würde eine Rechnung verändern, ohne dass es
+jemand merkt; ihn unkommentiert stehen zu lassen würde altes Wetter wie frisches
+aussehen lassen.
+
+Ein gespeicherter Wert hat nie einen Regler durchlaufen, könnte also aus einer
+älteren Fassung oder von Hand verändertem Speicher stammen. Deshalb wird beim
+Laden **jedes Feld einzeln** gegen die Grenzen des Rechenkerns geprüft; was nicht
+passt, fällt auf den Ausgangswert zurück, der Rest bleibt erhalten. Ist der
+Speicher unlesbar oder gesperrt (privates Fenster), startet die Seite einfach mit
+den Ausgangswerten.
+
 **Der Fallstrick beim Pistenwind**: Die Bahnkennungen 10 und 28 sind
 *missweisend* und auf zehn Grad gerundet, die Windrichtung des Wetterdienstes
 ist *rechtweisend*. Gerechnet wird deshalb mit **103°** und **283°** — den

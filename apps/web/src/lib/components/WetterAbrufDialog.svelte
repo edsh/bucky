@@ -38,6 +38,7 @@
     type NumericRange
   } from '@edsh-bucky/deelk-poh-core';
   import { EDSH, RUNWAYS, type EdshRunway } from '$lib/weather/edsh.js';
+  import type { Herkunft } from '$lib/einstellungen/speicher.js';
   import { holeWetter, type WetterAbruf } from '$lib/weather/openMeteo.js';
 
   /**
@@ -77,7 +78,7 @@
     /** Wird mit den angehakten Größen und ihrer gemeinsamen Herkunft gerufen. */
     uebernehmen: (
       werte: Uebernahmewerte,
-      herkunft: { dienst: string; ort: string; gueltigkeit: string }
+      herkunft: Herkunft
     ) => void;
   } = $props();
 
@@ -393,7 +394,11 @@
       // EDSH gelten und nicht dort, wo der Nutzer gerade sitzt. Ohne ihn liest
       // sich „gilt für 16:45 Uhr“ so, als gälte es überall.
       ort: EDSH.kennung,
-      gueltigkeit: zustand.abruf.gueltigkeit
+      gueltigkeit: zustand.abruf.gueltigkeit,
+      // Nicht dasselbe wie die Gültigkeit: Die nennt die Stunde, für die der
+      // Dienst rechnet, dieser Zeitpunkt den Moment der Frage. Erst er macht
+      // später sichtbar, wie alt eine gespeicherte Angabe ist (FR-005).
+      abgerufenAm: new Date().toISOString()
     });
     schliessen();
   }

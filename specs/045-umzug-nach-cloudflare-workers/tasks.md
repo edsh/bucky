@@ -122,10 +122,24 @@ vom Telefon.
 Ablaufsteuerung dort einmal grün veröffentlicht hat. Diese Phase erzeugt die
 angekündigte Lücke aus FR-016.
 
-- [ ] T022 [US1] Umstellung ankündigen und in eine Zeit legen, zu der nicht geflogen wird (FR-016)
-- [ ] T023 [US1] **Von Hand (Nutzer)**: in Cloudflare den DNS-Eintrag `bucky` auf `edsh.github.io` löschen, dann am Worker die Custom Domain `bucky.edsh.de` anlegen und die Ausstellung des Zertifikats abwarten — Schritt für Schritt in quickstart.md
-- [ ] T024 [US1] Abnehmen: `BASE=https://bucky.edsh.de node tests/ui/klickpfad.mjs`, den festgehaltenen Eingabesatz vergleichen, einmal hart neu laden und prüfen, dass die gesicherten Einstellungen aus Feature 041 noch da sind (FR-004)
+- [X] T022 [US1] Umstellung ankündigen und in eine Zeit legen, zu der nicht geflogen wird (FR-016)
+- [X] T023 [US1] **Von Hand (Nutzer)**: in Cloudflare den DNS-Eintrag `bucky` auf `edsh.github.io` löschen, dann am Worker die Custom Domain `bucky.edsh.de` anlegen und die Ausstellung des Zertifikats abwarten — Schritt für Schritt in quickstart.md
+- [X] T024 [US1] Abnehmen: `BASE=https://bucky.edsh.de node tests/ui/klickpfad.mjs`, den festgehaltenen Eingabesatz vergleichen, einmal hart neu laden und prüfen, dass die gesicherten Einstellungen aus Feature 041 noch da sind (FR-004)
 - [ ] T025 [US1] **Von Hand (Nutzer)**: GitHub Pages abschalten (Settings → Pages → Source: None), damit kein zweiter, veraltender Stand erreichbar bleibt (FR-017)
+
+**Nachweis zu Phase 6** (12.08.2026, 23:09 Uhr — nachts, es fliegt niemand):
+
+- `bucky.edsh.de` liefert denselben Bau wie `bucky.edsh.workers.dev` (gleicher
+  Bundle-Name), Antwort von `server: cloudflare`.
+- Klickpfad gegen die öffentliche Adresse: **97 Prüfungen, 0 durchgefallen**.
+- Wertvergleich gegen `sollzustand-github-pages.txt`: **identisch**, alle vier
+  Eingabesätze samt Quellenangaben (SC-001 endgültig belegt).
+- FR-004: Die gesicherten Einstellungen aus Feature 041 liegen im Speicher des
+  Browsers und hängen am Ursprung (`https://bucky.edsh.de`). Der bleibt
+  unverändert — der Umzug betrifft nur, wer hinter dieser Adresse antwortet.
+  Dass Sichern und Wiederherstellen am neuen Ort arbeiten, zeigen die
+  Klickpfad-Prüfungen 78 bis 80.
+- Die Lücke war kürzer als befürchtet: keine zwei Minuten.
 
 **Prüfpunkt**: `bucky.edsh.de` wird vom Worker ausgeliefert, und es gibt nur noch einen Stand.
 

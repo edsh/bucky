@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain — **zwei offen: FR-019, FR-021**
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,17 +31,20 @@
 
 ## Notes
 
-Zwei Fragen sind bewusst offen geblieben, weil beide den Zuschnitt verändern und
-kein Vorgabewert sich von selbst versteht:
+Beide zunächst offenen Fragen sind am 2026-08-13 entschieden:
 
-- **FR-019** — ob die Anzeige den Rückfall ausdrücklich benennt. Berührt das
-  Vertrauen in die Aussage: Zu viel Technik verwirrt, zu wenig verschweigt.
-- **FR-021** — was aus dem bisherigen Abruf über die Programmierschnittstelle
-  wird. Entscheidet über den Umfang des Features und über die Frage, ob der
-  Rückfall aus User Story 2 überhaupt trägt.
+- **FR-021** — Der bisherige Abruf über die Programmierschnittstelle **bleibt,
+  läuft aber in deutlich größerem Takt** und dient nur noch dem Rückfall.
+  Begründung: Beide Wege nutzen verschiedene Zugänge und verschiedene
+  Zugangsdaten und fallen deshalb nicht gemeinsam aus. Eine Umstellung auch des
+  Cron auf den Kalender wäre schlanker gewesen, hätte aber alles an eine einzige
+  Adresse gehängt, die sich nicht rotieren lässt.
+- **FR-019** — Der Rückfall wird **zurückhaltend benannt** („letzter bekannter
+  Stand"), ohne Ursache, Technik oder Schuldzuweisung.
 
-Beide sind dem Nutzer vorgelegt worden. Vor `/speckit-plan` müssen sie
-beantwortet und hier eingearbeitet sein.
+Nachgezogen wurden im selben Durchgang FR-009, FR-021a, SC-004, SC-004a sowie
+User Story 2 (Begründung, unabhängiger Test, ein zusätzliches Abnahmeszenario
+für die Rückkehr in den Normalzustand).
 
 Bewusst **nicht** als Frage gestellt, sondern als Annahme festgehalten:
 
@@ -49,3 +52,10 @@ Bewusst **nicht** als Frage gestellt, sondern als Annahme festgehalten:
   siehe Assumptions. Ein Schutz vor Überlastung ist als FR-005 ohnehin verlangt.
 - Der Verbleib der Abo-Adresse — dafür gibt es nur eine vertretbare Antwort, sie
   steht als FR-002 und FR-003 fest.
+
+Offen für `/speckit-plan`, weil dort und nicht hier zu entscheiden:
+
+- Der konkrete Takt des Rückfall-Abrufs (FR-021 verlangt „deutlich größer",
+  nennt aber bewusst keine Zahl).
+- Die konkrete Wartezeit des Kalenderabrufs (FR-004).
+- Die Form des Überlastschutzes (FR-005).

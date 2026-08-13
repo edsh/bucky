@@ -54,16 +54,20 @@ das wie „frei" aussieht.
 Rückschritt wäre. Der heutige Weg ist langsam, aber robust: Der gespeicherte
 Stand überlebt jeden Ausfall der Gegenstelle. Diese Eigenschaft darf das neue
 Feature nicht eintauschen — sonst wird aus „bis zu zehn Minuten alt"
-gelegentlich „gar keine Auskunft".
+gelegentlich „gar keine Auskunft". Entscheidend ist, dass beide Wege
+**verschiedene Zugänge und verschiedene Zugangsdaten** nutzen: Sie fallen
+deshalb nicht gemeinsam aus, und genau darin liegt der Wert des Rückfalls.
 
 **Independent Test**: Den Zugang zum Kalender vorübergehend unbrauchbar machen
 und die Seite aufrufen. Es muss der zuletzt gespeicherte Stand mit ehrlichem
-Alter erscheinen.
+Alter und dem zurückhaltenden Hinweis erscheinen, dass es sich um den letzten
+bekannten Stand handelt.
 
 **Acceptance Scenarios**:
 
 1. **Given** der Kalender ist nicht erreichbar, **When** ein Mitglied die Seite
-   öffnet, **Then** erscheint der zuletzt gespeicherte Stand samt seinem Alter.
+   öffnet, **Then** erscheint der zuletzt gespeicherte Stand samt seinem Alter,
+   erkennbar als letzter bekannter Stand.
 2. **Given** der Kalender antwortet, aber unverständlich, **When** ein Mitglied
    die Seite öffnet, **Then** gilt dasselbe wie bei Nichterreichbarkeit.
 3. **Given** der Kalender braucht ungewöhnlich lange, **When** eine festgelegte
@@ -72,6 +76,9 @@ Alter erscheinen.
 4. **Given** weder Kalender noch gespeicherter Stand liefern etwas, **When** ein
    Mitglied die Seite öffnet, **Then** sagt die Seite das offen und behauptet
    nicht, das Flugzeug sei frei.
+5. **Given** der Kalender antwortet wieder, **When** ein Mitglied die Seite
+   erneut öffnet, **Then** verschwindet der Hinweis auf den letzten bekannten
+   Stand ohne weiteres Zutun.
 
 ---
 
@@ -158,7 +165,7 @@ liegt, und nachsehen, ob die Anzeige sie als Sperre benennt.
   Anzeige das offen sagen und DARF nicht behaupten, das Flugzeug sei frei
   (bekräftigt FR-010 aus Feature 047).
 - **FR-009**: Der gespeicherte Stand MUSS weiterhin regelmäßig aufgefrischt
-  werden, damit der Rückfall nicht seinerseits veraltet.
+  werden, damit der Rückfall nicht seinerseits veraltet (Takt siehe FR-021).
 
 #### Auswertung des Kalenders
 
@@ -185,17 +192,27 @@ liegt, und nachsehen, ob die Anzeige sie als Sperre benennt.
 - **FR-018**: Die Anzeige MUSS weiterhin das Alter der Auskunft nennen. Stammt
   sie aus einem unmittelbaren Abruf, MUSS das als solches erkennbar sein.
 - **FR-019**: Beruht die gezeigte Aussage auf dem Rückfall statt auf einem
-  unmittelbaren Abruf, MUSS [NEEDS CLARIFICATION: Soll die Anzeige das
-  ausdrücklich kenntlich machen, oder genügt die Altersangabe?]
+  unmittelbaren Abruf, MUSS die Anzeige das zurückhaltend kenntlich machen —
+  etwa als „letzter bekannter Stand". Sie DARF dabei weder den Grund des
+  Fehlschlags erklären noch technische Begriffe verwenden noch die Gegenstelle
+  beschuldigen. Der Zweck ist, dass das Mitglied die Aussage richtig einordnet,
+  nicht dass es die Ursache erfährt.
 - **FR-020**: Alle übrigen Zusicherungen der Anzeige aus Feature 047 (Ortszeit,
   Nennung von Vereinsflieger als verbindliche Quelle, Weg zur Buchung) MÜSSEN
   unverändert gelten.
 
 #### Verhältnis zum bisherigen Weg
 
-- **FR-021**: Der bisherige Abruf über die Programmierschnittstelle
-  [NEEDS CLARIFICATION: Soll er unverändert weiterlaufen, seltener laufen, auf
-  den Kalender umgestellt oder ganz entfallen?]
+- **FR-021**: Der bisherige Abruf über die Programmierschnittstelle MUSS
+  bestehen bleiben, jedoch in **deutlich größerem Takt** laufen. Er dient nicht
+  mehr der Anzeige, sondern allein dem Rückfall: Er hält den gespeicherten Stand
+  so frisch, dass er im Störungsfall noch brauchbar ist. Der Takt MUSS so
+  gewählt sein, dass der gespeicherte Stand jung genug für eine ehrliche Aussage
+  bleibt und zugleich das Tageskontingent des Vereins spürbar entlastet wird.
+- **FR-021a**: Die beiden Wege MÜSSEN voneinander unabhängig bleiben — ein
+  Fehlschlag des einen DARF den anderen nicht beeinträchtigen. Genau in dieser
+  Unabhängigkeit liegt der Wert des Rückfalls: Beide Wege nutzen verschiedene
+  Zugänge und verschiedene Zugangsdaten und fallen deshalb nicht gemeinsam aus.
 - **FR-022**: Die Aussage über Belegung, nächsten Wechsel und Kettenbildung MUSS
   unabhängig von der Herkunft der Daten dieselbe bleiben — es DARF keine zweite
   Auslegung derselben Frage entstehen (Verfassungsprinzip IV).
@@ -225,9 +242,14 @@ liegt, und nachsehen, ob die Anzeige sie als Sperre benennt.
   100 % der Aufrufe weiterhin eine ehrliche Aussage — entweder den
   gespeicherten Stand mit Alter oder den offenen Hinweis, dass nichts vorliegt.
   In keinem Fall erscheint fälschlich „frei".
-- **SC-004**: Über einen vollen Tag hinweg entstehen keine Anmeldungen an der
-  Programmierschnittstelle, die dem Tageskontingent des Vereins gefährlich
-  werden könnten.
+- **SC-004**: Der Verbrauch an Anmeldungen bei der Programmierschnittstelle
+  sinkt gegenüber Feature 047 deutlich, weil der Abruf nur noch den Rückfall
+  pflegt. Über einen vollen Tag hinweg bleibt er weit unterhalb dessen, was dem
+  Tageskontingent des Vereins gefährlich werden könnte.
+- **SC-004a**: Der gespeicherte Rückfallstand ist zu jedem Zeitpunkt jung genug,
+  dass die daraus abgeleitete Aussage über den *laufenden* Zustand noch zutrifft.
+  Wird er älter, sagt die Anzeige das (FR-018, FR-019), statt ihn als gegenwärtig
+  auszugeben.
 - **SC-005**: Ändert sich der Aufbau der Kalendereinträge, schlägt die dafür
   vorgesehene Prüfung fehl, bevor die Änderung in Betrieb geht.
 - **SC-006**: Zu keinem Zeitpunkt sind Namen von Mitgliedern über die Anzeige

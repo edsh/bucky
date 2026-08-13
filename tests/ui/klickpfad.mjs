@@ -2047,19 +2047,22 @@ pruefe(
   cacheRegel || '(keine Angabe)'
 );
 
-// 108: und die Seite fragt mit wechselnder Adresse, damit auch ein
-// Zwischenspeicher, der sich nicht an die Vorgabe haelt, keine alte Auskunft
-// unterschieben kann. Genau das tat die Zone `bucky.edsh.de`
-let befragt = '';
+// 108: und die Seite fragt auch clientseitig ohne Zwischenspeicher. Beides
+// gehoert zusammen: Der Server sagt „nicht ablegen", der Browser fragt
+// „nicht aus dem Lager". Gemessen wurde, dass Cloudflare den Header
+// unveraendert durchreicht und die Route nicht am Rand ablegt -- ein
+// Cache-Buster in der Adresse ist deshalb nicht noetig und waere nur
+// ein Pflaster ueber einer Steuerung, die ohnehin greift
+let ohneLager = false;
 page.on('request', (r) => {
-  if (r.url().includes('/api/reservierung')) befragt = r.url();
+  if (r.url().includes('/api/reservierung')) ohneLager = !r.url().includes('?t=');
 });
 await page.goto(RESERVIERUNG, { waitUntil: 'networkidle' });
 pruefe(
   108,
-  'die Seite fragt mit wechselnder Adresse, umgeht also jeden Zwischenspeicher',
-  /\/api\/reservierung\?t=\d+/.test(befragt),
-  befragt || '(keine Anfrage beobachtet)'
+  'die Seite fragt die Auskunft ohne Cache-Buster, allein ueber die Cache-Steuerung',
+  ohneLager,
+  ohneLager ? 'saubere Adresse' : '(Cache-Buster in der Adresse)'
 );
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));

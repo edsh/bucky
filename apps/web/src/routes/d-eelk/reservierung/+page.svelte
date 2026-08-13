@@ -44,14 +44,12 @@
   async function laden() {
     zustand = 'laedt';
     try {
-      // Der Zeitstempel ist kein Schmuck. Die Zone `bucky.edsh.de` schreibt
-      // Antwort-Header um und legt sie am Rand ab; eine einmal gespeicherte
-      // Fehlantwort blieb dadurch hängen, bis sie von selbst verfiel — bei
-      // einem Jahr also nie. Mit wechselnder Adresse kann kein Zwischenspeicher
-      // eine alte Auskunft unterschieben, egal wie die Zone eingestellt ist.
-      const ergebnis = await fetch(`${base}/api/reservierung?t=${Date.now()}`, {
-        cache: 'no-store'
-      });
+      // `cache: 'no-store'` ist die protokollgemaesse Ansage an den Browser und
+      // das Gegenstueck zum `no-store` der Server-Route. Eine Auskunft, deren
+      // Alter Teil der Aussage ist, darf nirgends zwischengelagert werden --
+      // eine einmal gespeicherte Fehlantwort haette sonst behauptet, es gebe
+      // keinen Stand, waehrend laengst ein frischer vorlag
+      const ergebnis = await fetch(`${base}/api/reservierung`, { cache: 'no-store' });
       if (!ergebnis.ok) throw new Error(String(ergebnis.status));
       antwort = (await ergebnis.json()) as Antwort;
       bezug = new Date();

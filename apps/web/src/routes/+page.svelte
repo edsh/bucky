@@ -166,8 +166,8 @@
   <h1 class="unsichtbar">Bucky Highfly</h1>
   <img
     class="splash"
-    src="{base}/bucky-start.gif"
-    alt="Bucky steht auf einer Wiese neben einem Windsack und fragt: „Hi Pilot, was darf’s sein?“"
+    src="{base}/bucky-splash.png"
+    alt="Bucky steht auf dem Vereinsgelände vor dem Vereinsheim des Luftsportvereins Backnang-Heiningen und fragt: „Hey Pilot, was darf’s sein?“"
   />
 
   <!--

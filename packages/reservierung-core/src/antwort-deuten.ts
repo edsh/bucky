@@ -1,5 +1,5 @@
 import type { Belegungsart, Deutungsergebnis, Reservierung } from './typen.js';
-import { ortszeitZuZeitpunkt } from './zeit.js';
+import { alsIsoMitVersatz, ortszeitZuZeitpunkt } from './zeit.js';
 
 /**
  * Die Antwort der Gegenstelle deuten.
@@ -114,6 +114,14 @@ function eintragDeuten(roh: RoherEintrag): Reservierung | null {
 
 	// Nur diese vier Felder gehen weiter. Pilot, Fluglehrer, Bemerkung und
 	// alle Kennungen der Quelle bleiben hier zurueck — sie haben in
-	// `Reservierung` gar kein Feld (FR-006).
-	return { kennung, beginn, ende, art: artDeuten(roh.type) };
+	// `Reservierung` gar kein Feld (FR-006). Die Ortszeit wird bereits hier,
+	// beim Deuten, in einen Zeitpunkt mit Versatz uebersetzt (research.md
+	// E-04) — `belegung.ts` bekommt damit dieselbe Form wie vom
+	// Kalender-Weg.
+	return {
+		kennung,
+		beginn: alsIsoMitVersatz(beginnZeitpunkt),
+		ende: alsIsoMitVersatz(endeZeitpunkt),
+		art: artDeuten(roh.type)
+	};
 }

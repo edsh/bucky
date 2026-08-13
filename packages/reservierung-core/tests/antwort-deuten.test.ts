@@ -44,7 +44,7 @@ describe('antwortDeuten — die echte Antwort', () => {
 		const { reservierungen } = antwortDeuten(echteAntwort);
 		const sperren = reservierungen.filter((r) => r.kennung === 'D-EELK' && r.art === 'sperre');
 		expect(sperren).toHaveLength(1);
-		expect(sperren[0]?.beginn).toBe('2026-08-22 00:00:00');
+		expect(sperren[0]?.beginn).toBe('2026-08-22T00:00:00+02:00');
 	});
 
 	it('gibt die Reservierungen nach Beginn geordnet zurueck', () => {

@@ -113,6 +113,40 @@ export function alsIso(zeitpunkt: Date): string {
 	return zeitpunkt.toISOString();
 }
 
+function zweistellig(zahl: number): string {
+	return String(zahl).padStart(2, '0');
+}
+
+/**
+ * Einen Zeitpunkt als ISO 8601 mit dem Zeitversatz der Platzzone ausgeben,
+ * z. B. `2026-08-13T17:00:00+02:00` (Feature 052, research.md E-04).
+ *
+ * Das ist die Gegenrichtung zu `ortszeitZuZeitpunkt` — anders als `alsIso`
+ * (Weltzeit mit `Z`) bleibt hier die Ortszeit lesbar erhalten, waehrend der
+ * Zeitpunkt exakt bleibt. Veraendert nichts an der Aufloesung der doppelten
+ * bzw. uebersprungenen Stunde in `ortszeitZuZeitpunkt` — sie betrifft nur das
+ * *Einlesen* einer Ortszeit ohne Versatz, nicht das *Ausgeben* eines bereits
+ * bekannten Zeitpunkts.
+ */
+export function alsIsoMitVersatz(zeitpunkt: Date): string {
+	const teile = new Map<string, number>();
+	for (const { type, value } of TEILE.formatToParts(zeitpunkt)) {
+		if (type !== 'literal') teile.set(type, Number(value));
+	}
+	const lies = (name: string) => teile.get(name) ?? 0;
+
+	const versatzMinuten = zonenversatz(zeitpunkt) / 60_000;
+	const vorzeichen = versatzMinuten >= 0 ? '+' : '-';
+	const versatzStunden = Math.floor(Math.abs(versatzMinuten) / 60);
+	const versatzRest = Math.abs(versatzMinuten) % 60;
+
+	return (
+		`${lies('year')}-${zweistellig(lies('month'))}-${zweistellig(lies('day'))}` +
+		`T${zweistellig(lies('hour'))}:${zweistellig(lies('minute'))}:${zweistellig(lies('second'))}` +
+		`${vorzeichen}${zweistellig(versatzStunden)}:${zweistellig(versatzRest)}`
+	);
+}
+
 const WOCHENTAG_DATUM_UHRZEIT = new Intl.DateTimeFormat('de-DE', {
 	timeZone: ZONE,
 	weekday: 'long',

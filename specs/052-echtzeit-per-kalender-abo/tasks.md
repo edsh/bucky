@@ -39,32 +39,32 @@ Fachlogik, nur Holen, Warten, Weiterreichen.
 **Sperrend für alle User Stories.** Ohne diese Grundlage kann keine Geschichte
 umgesetzt werden.
 
-- [ ] T004 `Reservierung.beginn`/`.ende` in
+- [X] T004 `Reservierung.beginn`/`.ende` in
       `packages/reservierung-core/src/typen.ts` auf ISO 8601 mit Zeitversatz
       umstellen (research.md E-04); `Quelle`-Typ (`'kalender' | 'rueckfall'`)
       ergänzen
-- [ ] T005 `ortszeitZuZeitpunkt` in `packages/reservierung-core/src/zeit.ts`
+- [X] T005 `ortszeitZuZeitpunkt` in `packages/reservierung-core/src/zeit.ts`
       um eine Gegenrichtung ergänzen (`zeitpunktAlsIsoMitVersatz` o. ä.), die
       einen `Date` als ISO-8601-Zeichenkette mit Versatz der Platzzone
       ausgibt — **ohne** die bestehende Auflösung der doppelten/übersprungenen
       Stunde zu verändern (research.md E-11)
-- [ ] T006 Prüfungen für T005 in
+- [X] T006 Prüfungen für T005 in
       `packages/reservierung-core/tests/zeit.test.ts` ergänzen: Sommerzeit,
       Winterzeit, und dass ein Wert mit Versatz beim erneuten Einlesen über
       `ortszeitZuZeitpunkt`-kompatible Wege denselben Zeitpunkt ergibt
-- [ ] T007 `belegung.ts` in `packages/reservierung-core/src/belegung.ts` auf
+- [X] T007 `belegung.ts` in `packages/reservierung-core/src/belegung.ts` auf
       das neue Zeitformat umstellen: Eine Angabe **mit** Versatz wird direkt
       geparst (`new Date(...)`), eine Angabe **ohne** Versatz weiterhin über
       `ortszeitZuZeitpunkt` gedeutet (data-model.md, Abschnitt
       „Verträglichkeit mit Altbeständen") — `endeDerKette` bleibt inhaltlich
       unverändert
-- [ ] T008 `antwort-deuten.ts` in
+- [X] T008 `antwort-deuten.ts` in
       `packages/reservierung-core/src/antwort-deuten.ts` anpassen: Die
       Umrechnung der Ortszeit-Angaben der Programmierschnittstelle in
       Zeitpunkte mit Versatz geschieht jetzt **beim Deuten**, nicht mehr erst
       in `belegung.ts` (research.md E-04, Abschnitt „Auswirkung auf den
       Bestand")
-- [ ] T009 Bestehende Prüfungen in
+- [X] T009 Bestehende Prüfungen in
       `packages/reservierung-core/tests/antwort-deuten.test.ts` und
       `packages/reservierung-core/tests/belegung.test.ts` auf das neue Format
       umstellen und `npx tsc -p packages/reservierung-core` grün bekommen

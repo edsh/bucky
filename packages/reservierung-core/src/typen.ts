@@ -25,9 +25,16 @@ export type Belegungsart = 'reservierung' | 'sperre';
 export interface Reservierung {
 	/** Luftfahrzeugkennzeichen, vereinheitlicht auf Grossbuchstaben mit Bindestrich. */
 	kennung: string;
-	/** Ortszeit am Platz, `YYYY-MM-DD HH:MM:SS`. */
+	/**
+	 * ISO 8601 mit Zeitversatz, z. B. `2026-08-13T17:00:00+02:00`
+	 * (Feature 052, research.md E-04).
+	 *
+	 * Im Zwischenspeicher koennen noch Altbestaende ohne Versatz liegen
+	 * (`YYYY-MM-DD HH:MM:SS`, Ortszeit) — Leser MUESSEN beide Formen
+	 * verstehen, siehe `belegung.ts`.
+	 */
 	beginn: string;
-	/** Ortszeit am Platz, `YYYY-MM-DD HH:MM:SS`; liegt stets nach `beginn`. */
+	/** Wie `beginn`; liegt stets nach `beginn`. */
 	ende: string;
 	art: Belegungsart;
 }
@@ -74,3 +81,12 @@ export interface Deutungsergebnis {
 	reservierungen: Reservierung[];
 	verworfeneEintraege: number;
 }
+
+/**
+ * Woher die gerade gezeigte Auskunft stammt (Feature 052, data-model.md).
+ *
+ * Geht ausdruecklich **nicht** in `belegungsauskunft` ein — die Entscheidung
+ * frei/belegt bleibt allein eine Frage von Zeitraeumen und Bezugszeitpunkt
+ * (FR-022, Verfassungsprinzip IV).
+ */
+export type Quelle = 'kalender' | 'rueckfall';

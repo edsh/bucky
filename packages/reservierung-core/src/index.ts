@@ -13,6 +13,7 @@ export { alsAltersangabe, alsSatz } from './formulieren.js';
 export { alterInWorten, alterMs, istVeraltet, VERFALLSGRENZE_MS } from './verfall.js';
 export {
 	alsIso,
+	alsIsoMitVersatz,
 	alsUhrzeit,
 	alsWochentagDatumUhrzeit,
 	gleicherTag,
@@ -24,6 +25,7 @@ export type {
 	Belegungsart,
 	Belegungsauskunft,
 	Deutungsergebnis,
+	Quelle,
 	Reservierung,
 	Wechselziel
 } from './typen.js';

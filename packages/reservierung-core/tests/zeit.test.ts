@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	alsIso,
+	alsIsoMitVersatz,
 	alsUhrzeit,
 	alsWochentagDatumUhrzeit,
 	gleicherTag,
@@ -65,6 +66,31 @@ describe('Formulierung von Zeitangaben', () => {
 	it('nennt die Uhrzeit in Ortszeit, nicht in UTC', () => {
 		expect(alsUhrzeit(ortszeitZuZeitpunkt('2026-08-13 20:00:00'))).toBe('20:00 Uhr');
 		expect(alsUhrzeit(ortszeitZuZeitpunkt('2026-01-15 20:00:00'))).toBe('20:00 Uhr');
+	});
+});
+
+describe('alsIsoMitVersatz (Feature 052, E-04)', () => {
+	it('gibt Sommerzeit mit Versatz +02:00 aus', () => {
+		expect(alsIsoMitVersatz(ortszeitZuZeitpunkt('2026-08-13 17:00:00'))).toBe(
+			'2026-08-13T17:00:00+02:00'
+		);
+	});
+
+	it('gibt Winterzeit mit Versatz +01:00 aus', () => {
+		expect(alsIsoMitVersatz(ortszeitZuZeitpunkt('2026-01-15 17:00:00'))).toBe(
+			'2026-01-15T17:00:00+01:00'
+		);
+	});
+
+	it('ergibt beim erneuten Einlesen ueber ortszeitZuZeitpunkt denselben Zeitpunkt', () => {
+		// Die Ortszeit-Ziffern eines Werts mit Versatz sind identisch mit
+		// dem, was ortszeitZuZeitpunkt aus der versatzlosen Schreibweise
+		// gewinnt — die eigentliche Pruefung ist der Zeitpunkt selbst.
+		for (const text of ['2026-08-13 17:00:00', '2026-01-15 17:00:00', '2026-10-25 01:30:00']) {
+			const zeitpunkt = ortszeitZuZeitpunkt(text);
+			const mitVersatz = alsIsoMitVersatz(zeitpunkt);
+			expect(new Date(mitVersatz).getTime()).toBe(zeitpunkt.getTime());
+		}
 	});
 });
 

@@ -2094,6 +2094,37 @@ pruefe(
 
 await page.unroute('**/api/reservierung*');
 
+// 111: Beruht eine Belegung auf einer Sperre (art:'sperre'), benennt die
+// Seite eine Sperre, nicht eine Reservierung -- der bestehende Wortlaut aus
+// FR-007a (Feature 047) laeuft hier erstmals mit einer Auskunft durch, die
+// tatsaechlich aus dem Kalender stammen kann (Feature 052, US3).
+await page.route('**/api/reservierung*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      stand: 'vorhanden',
+      quelle: 'kalender',
+      kennung: 'D-EELK',
+      frei: false,
+      art: 'sperre',
+      wechselAm: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+      wechselZu: 'frei',
+      abgerufenAm: new Date().toISOString(),
+      veraltet: false
+    })
+  })
+);
+await page.goto(RESERVIERUNG, { waitUntil: 'networkidle' });
+const sperrSatz = (await page.locator('.satz').innerText()).trim();
+pruefe(
+  111,
+  'eine Sperre wird als "Gesperrt" benannt, nicht als Reservierung',
+  /^Gesperrt\b/.test(sperrSatz) && !/Belegt/.test(sperrSatz),
+  sperrSatz
+);
+
+await page.unroute('**/api/reservierung*');
+
 // 107: die Auskunft darf nicht zwischengespeichert werden. Das ist die Lehre
 // aus einem echten Fehler: Eine gecachte Fehlantwort liess die Seite „kein
 // Reservierungsstand verfuegbar" melden, waehrend der Speicher gefuellt war.

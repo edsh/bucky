@@ -214,18 +214,18 @@ die D-EELK liegt, und nachsehen, ob die Anzeige sie als Sperre benennt.
 
 ### Tests for User Story 3
 
-- [ ] T029 [P] [US3] Prüfung in
+- [X] T029 [P] [US3] Prüfung in
       `packages/reservierung-core/tests/kalender-deuten.test.ts`, dass ein
       `Grounding`-Eintrag als `art: 'sperre'` gedeutet wird (ergänzt T010,
       falls dort noch nicht abgedeckt)
-- [ ] T030 [P] [US3] Klickpfad-Prüfung in `tests/ui/klickpfad.mjs`: Bei einer
+- [X] T030 [P] [US3] Klickpfad-Prüfung in `tests/ui/klickpfad.mjs`: Bei einer
       abgefangenen Antwort mit `art: 'sperre'` benennt die Seite eine Sperre,
       nicht eine Reservierung (bereits vorhandener Wortlaut aus FR-007a von
       Feature 047 wiederverwenden, nicht neu erfinden)
 
 ### Implementation for User Story 3
 
-- [ ] T031 [US3] Prüfen, dass `formulieren.ts` den bestehenden Wortlaut aus
+- [X] T031 [US3] Prüfen, dass `formulieren.ts` den bestehenden Wortlaut aus
       FR-007a (Feature 047) unverändert auch für Sperren nutzt, die aus dem
       Kalender stammen — vermutlich **keine Codeänderung nötig**, nur
       Nachweis, dass der bestehende Pfad jetzt erstmals mit echten Daten

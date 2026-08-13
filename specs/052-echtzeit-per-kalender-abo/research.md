@@ -36,6 +36,12 @@ Wege stimmen überein** — unabhängig voneinander gewonnen, gleiche Aussage.
 **Verworfen**: Die Annahme, das Abo sei ein täglicher Abzug. Sie hätte das
 ganze Feature entwertet und ließ sich in einer Minute widerlegen.
 
+**Gegengezeichnet (T003, 13.08.2026)**: Zweiter, unabhängiger Abzug für den
+Prüfstoff `tests/beispiele/kalender.ics` bestätigt den Befund erneut — 59
+Einträge, davon 32 Reservierungen und **2 Sperren** für die D-EELK. Der
+Prüfstoff für User Story 3 (Sperren sichtbar) ist damit tatsächlich vorhanden,
+nicht nur vermutet.
+
 ---
 
 ## E-02 — Was der Kalender zusätzlich liefert: Sperren

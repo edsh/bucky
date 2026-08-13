@@ -20,15 +20,15 @@ Fachlogik, nur Holen, Warten, Weiterreichen.
 
 ## Phase 1: Setup
 
-- [ ] T001 Geheimnis `KALENDER_ABO_URL` lokal bereitstellen (Umgebungsvariable,
+- [X] T001 Geheimnis `KALENDER_ABO_URL` lokal bereitstellen (Umgebungsvariable,
       niemals in einer Datei dieser Ablage) und einmal manuell gegen die
       Gegenstelle prüfen — Vorgehen in quickstart.md, Nachweis 1
-- [ ] T002 [P] Echten Kalenderabzug als Prüfstoff in
+- [X] T002 [P] Echten Kalenderabzug als Prüfstoff in
       `packages/reservierung-core/tests/beispiele/kalender.ics` ablegen —
       **alle Personennamen durch erfundene ersetzt**, mit Herkunftsnotiz in
       `packages/reservierung-core/tests/beispiele/README.md` (dieselbe Datei
       wie in Feature 047, dort ergänzen statt anlegen)
-- [ ] T003 [P] Vorab prüfen und in `research.md` E-01 gegenzeichnen, dass der
+- [X] T003 [P] Vorab prüfen und in `research.md` E-01 gegenzeichnen, dass der
       Kalenderabzug in T002 tatsächlich Sperren (`Grounding`) für die D-EELK
       enthält — sonst fehlt der Prüfstoff für User Story 3
 

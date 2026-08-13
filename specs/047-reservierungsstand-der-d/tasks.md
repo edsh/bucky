@@ -204,15 +204,19 @@ auskunftsfähig und die Auskunft erkennbar alt.
       KV-Namensraum und die Geheimnisse ergänzen
 - [x] T033 Vollständiger Prüflauf: `npm test`, `npm run lint`,
       `npm run build`, Klickpfad
-- [ ] T034 Inbetriebnahme nach quickstart.md Schritte 1, 2 und 7 — KV-Namensraum
+- [x] T034 Inbetriebnahme nach quickstart.md Schritte 1, 2 und 7 — KV-Namensraum
       anlegen, Geheimnisse setzen, ersten Deploy **von Hand** (`versions
       upload` setzt einen bestehenden Worker voraus)
-- [ ] T035 Ersten echten Durchlauf beobachten: nach zehn Minuten den Speicher
+- [x] T035 Ersten echten Durchlauf beobachten: nach zehn Minuten den Speicher
       erneut lesen, `abgerufenAm` muss sich bewegt haben. Veröffentlichen
       allein ist kein Nachweis
-- [ ] T036 Nach einem vollen Tag `neuanmeldungen` im gespeicherten Stand
+- [~] T036 Nach einem vollen Tag `neuanmeldungen` im gespeicherten Stand
       betrachten und gegen SC-003 halten. Eine Zahl nahe 144 bedeutet, dass die
-      Rechnung aus E-04 nicht aufgeht und der Takt vergrößert werden muss
+      Rechnung aus E-04 nicht aufgeht und der Takt vergrößert werden muss.
+      **Zwischenstand 13.08., nach zwei Durchgängen: 1.** Der Zugangsschlüssel
+      wurde also wiederverwendet, nicht neu geholt — das ist genau der Fall,
+      auf den E-04 setzt. Endgültig ist es erst nach einem vollen Tag; diese
+      Beobachtung bleibt offen und braucht keinen Code mehr
 
 ---
 

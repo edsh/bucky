@@ -14,9 +14,13 @@ Vom Nutzer, einmalig:
 
 - **`VF_APPKEY`** — der Anwendungsschlüssel des Vereins bei Vereinsflieger
 - **`VF_USERNAME`** und **`VF_PASSWORD`** — das Dienstkonto
-- **`VF_CID`** — die Vereinskennung, falls das Konto mehreren zugeordnet ist
 
-Diese vier gehören **ausschließlich** in die Geheimnisse des Abruf-Workers.
+**`VF_CID` wird nicht gebraucht** und darf auch nicht mitgeschickt werden: Ist
+das Konto nur einem Verein zugeordnet, antwortet die Anmeldung mit `403 Wrong
+User or wrong Password` — eine Meldung, die die Suche in die völlig falsche
+Richtung schickt. Das hat beim Bauen zwei Fehlversuche gekostet.
+
+Diese drei gehören **ausschließlich** in die Geheimnisse des Abruf-Workers.
 Nicht in die Web-App, nicht ins Verzeichnis, nicht in die Ablaufsteuerung
 (FR-013, E-07).
 
@@ -38,9 +42,18 @@ Abruf-Workers und die von `apps/web`. Zwei Worker, ein Namensraum.
 npx wrangler kv namespace list
 ```
 
-Der Namensraum steht in der Liste. (Ob zwei Worker sich denselben Namensraum
-teilen können, war beim Planen nicht belegt — hier zeigt es sich. Schlägt die
-zweite Bindung fehl, ist das der Punkt zum Innehalten, nicht zum Umgehen.)
+Der Namensraum steht in der Liste.
+
+**Erledigt am 13.08.2026**: Kennung `16eb6c9466464025be4066bf52c82da3`, in
+beiden `wrangler.jsonc` eingetragen. Die offene Frage aus dem Plan — ob zwei
+Worker sich denselben Namensraum teilen können — ist damit **beantwortet: ja**.
+Ein KV-Namensraum gehört dem Konto, nicht einem Worker; beide Bindungen
+nahm Cloudflare anstandslos an.
+
+Örtlich gilt das nicht: Dort legt Wrangler den nachgebildeten Speicher unter
+dem jeweiligen App-Verzeichnis ab. Damit `apps/web` sieht, was der Abruf
+geschrieben hat, braucht es
+`--persist-to ../reservierungs-abruf/.wrangler/state`.
 
 ---
 
@@ -51,10 +64,9 @@ cd apps/reservierungs-abruf
 npx wrangler secret put VF_APPKEY
 npx wrangler secret put VF_USERNAME
 npx wrangler secret put VF_PASSWORD
-npx wrangler secret put VF_CID
 ```
 
-**Prüfen**: `npx wrangler secret list` zeigt vier Einträge — **ohne Werte**.
+**Prüfen**: `npx wrangler secret list` zeigt drei Einträge — **ohne Werte**.
 Erscheint irgendwo ein Wert im Klartext, ist etwas falsch gelaufen.
 
 ---
@@ -154,11 +166,24 @@ Feature 045).
 
 ```bash
 npx wrangler deployments list
-npx wrangler kv key get stand --binding RESERVIERUNGEN --remote
+npx wrangler kv key get stand --namespace-id <kennung> --remote
 ```
+
+(`--binding` funktioniert hier nicht: Die Bindung trägt `id` **und**
+`preview_id`, und Wrangler verlangt dann eine ausdrückliche Entscheidung.)
 
 Dann **zehn Minuten warten** und den Speicher erneut lesen: `abgerufenAm` muss
 sich bewegt haben. Erst dann läuft der Cron wirklich.
+
+**Erledigt am 13.08.2026.** Der erste Eintrag erschien nicht sofort, sondern
+erst rund zwanzig Minuten nach dem Deploy — der Zeitplan braucht offenbar
+etwas, bis er greift. Wer zu früh nachsieht, hält das für einen Fehlschlag und
+sucht an der falschen Stelle. Danach lief er sauber im Takt: 07:40:40Z und
+07:50:40Z, exakt zehn Minuten.
+
+Dabei stand `neuanmeldungen` nach zwei Durchgängen auf **1** — der
+Zugangsschlüssel wurde also wiederverwendet und nicht neu geholt. Das ist
+genau die Rechnung aus E-04 (siehe Schritt 8).
 
 ---
 

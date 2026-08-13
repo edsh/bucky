@@ -49,9 +49,20 @@ function antwort(inhalt: unknown): Response {
 	return new Response(JSON.stringify(inhalt), {
 		headers: {
 			'content-type': 'application/json; charset=utf-8',
-			// Der Abruf laeuft alle zehn Minuten; laenger zu puffern hiesse,
-			// eine Aussage laenger zu halten, als sie gilt.
-			'cache-control': 'public, max-age=60'
+			// **Nicht zwischenspeichern.** Das ist keine Vorsichtsmassnahme,
+			// sondern die Lehre aus einem echten Fehler: Die Zone
+			// `bucky.edsh.de` schrieb ein urspruengliches `max-age=60` auf ein
+			// Jahr um und legte die Antwort am Rand ab. Wer in den Minuten
+			// direkt nach einer Veroeffentlichung eine 404 erwischte, bekam
+			// sie danach dauerhaft serviert — die Seite meldete „kein
+			// Reservierungsstand verfuegbar", waehrend der Speicher gefuellt
+			// war.
+			//
+			// Eine Auskunft, die alle zehn Minuten wechselt und deren Alter
+			// Teil der Aussage ist (FR-009), darf ohnehin nicht eingefroren
+			// werden. Ein KV-Lesevorgang je Aufruf ist der Preis dafuer; das
+			// Kontingent bei Vereinsflieger bleibt unberuehrt (SC-003).
+			'cache-control': 'no-store, no-cache, must-revalidate, max-age=0'
 		}
 	});
 }

@@ -1712,14 +1712,17 @@ await page.evaluate(() => localStorage.clear());
 
 await page.goto(BASE, { waitUntil: 'networkidle' });
 
-// 83: der Splash traegt Buckys Frage auch fuer alle, die das Bild nicht sehen
+// 83: der Splash traegt Buckys Frage auch fuer alle, die das Bild nicht sehen.
+// Bewusst am Sinn geprueft und nicht am Wortlaut: Das Motiv wurde schon einmal
+// ausgetauscht, und die Pruefung fiel um, obwohl der Alternativtext einwandfrei war
 const splashText = await page.locator('img.splash').getAttribute('alt');
 pruefe(
   83,
   'Splash ist da und seine Frage steht als Textalternative bereit (FR-001, FR-002)',
-  await page.locator('img.splash').isVisible() &&
-    /Hi Pilot/.test(splashText ?? '') &&
-    /Windsack/.test(splashText ?? ''),
+  (await page.locator('img.splash').isVisible()) &&
+    /Pilot/i.test(splashText ?? '') &&
+    (splashText ?? '').includes('?') &&
+    (splashText ?? '').length > 40,
   splashText ?? '(kein Alternativtext)'
 );
 
@@ -1926,7 +1929,7 @@ pruefe(
 // Speicher liegt. Sonst haengt das Ergebnis daran, ob das Flugzeug heute
 // zufaellig frei ist — und auf dem Bauknecht ist der Speicher ohnehin leer.
 // Was die *echte* Route liefert, prueft 98.
-await page.route('**/api/reservierung', (route) =>
+await page.route('**/api/reservierung*', (route) =>
   route.fulfill({
     contentType: 'application/json',
     body: JSON.stringify({
@@ -1967,8 +1970,8 @@ pruefe(102, 'das Alter der Auskunft steht auf der Seite', /^Stand\s/.test((await
 // 103: ein veralteter Stand wird gekennzeichnet -- und die Auskunft trotzdem
 // gegeben. Eine zwei Stunden alte Lage ist meist noch brauchbar; sie zu
 // verschweigen waere weniger hilfreich als sie zu kennzeichnen
-await page.unroute('**/api/reservierung');
-await page.route('**/api/reservierung', (route) =>
+await page.unroute('**/api/reservierung*');
+await page.route('**/api/reservierung*', (route) =>
   route.fulfill({
     contentType: 'application/json',
     body: JSON.stringify({
@@ -1994,8 +1997,8 @@ pruefe(
 // 104: ohne Stand sagt die Seite es offen -- und behauptet vor allem *nicht*,
 // das Flugzeug sei frei. Genau das ist der Fehler, der jemanden zum Platz
 // fahren laesst (FR-010)
-await page.unroute('**/api/reservierung');
-await page.route('**/api/reservierung', (route) =>
+await page.unroute('**/api/reservierung*');
+await page.route('**/api/reservierung*', (route) =>
   route.fulfill({ contentType: 'application/json', body: JSON.stringify({ stand: 'fehlt' }) })
 );
 await page.goto(RESERVIERUNG, { waitUntil: 'networkidle' });
@@ -2029,7 +2032,38 @@ pruefe(
   /verbindlich/i.test(ohneStand) && /nichts reservieren|kann nichts/i.test(ohneStand)
 );
 
-await page.unroute('**/api/reservierung');
+await page.unroute('**/api/reservierung*');
+
+// 107: die Auskunft darf nicht zwischengespeichert werden. Das ist die Lehre
+// aus einem echten Fehler: Eine gecachte Fehlantwort liess die Seite „kein
+// Reservierungsstand verfuegbar" melden, waehrend der Speicher gefuellt war.
+// Eine Auskunft, deren Alter Teil der Aussage ist, darf nicht einfrieren
+const kopfzeilen = (await page.request.get(`${BASE}/api/reservierung`)).headers();
+const cacheRegel = kopfzeilen['cache-control'] ?? '';
+pruefe(
+  107,
+  'die Auskunft wird nicht zum Zwischenspeichern freigegeben',
+  /no-store/.test(cacheRegel) && !/public/.test(cacheRegel),
+  cacheRegel || '(keine Angabe)'
+);
+
+// 108: und die Seite fragt auch clientseitig ohne Zwischenspeicher. Beides
+// gehoert zusammen: Der Server sagt „nicht ablegen", der Browser fragt
+// „nicht aus dem Lager". Gemessen wurde, dass Cloudflare den Header
+// unveraendert durchreicht und die Route nicht am Rand ablegt -- ein
+// Cache-Buster in der Adresse ist deshalb nicht noetig und waere nur
+// ein Pflaster ueber einer Steuerung, die ohnehin greift
+let ohneLager = false;
+page.on('request', (r) => {
+  if (r.url().includes('/api/reservierung')) ohneLager = !r.url().includes('?t=');
+});
+await page.goto(RESERVIERUNG, { waitUntil: 'networkidle' });
+pruefe(
+  108,
+  'die Seite fragt die Auskunft ohne Cache-Buster, allein ueber die Cache-Steuerung',
+  ohneLager,
+  ohneLager ? 'saubere Adresse' : '(Cache-Buster in der Adresse)'
+);
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 

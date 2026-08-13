@@ -33,6 +33,16 @@ jobs:
       - name: Typen des MCP-Adapters prüfen
         run: npx tsc -p apps/mcp/tsconfig.json
 
+      # Beide neu seit Feature 047. Der Abruf-Worker faellt sonst durch jedes
+      # Netz: Er hat keinen Klickpfad, keine Oberflaeche und laeuft nur nach
+      # Zeitplan — ein Typfehler zeigte sich erst im Betrieb, zehn Minuten
+      # nach der Veroeffentlichung.
+      - name: Typen des Reservierungskerns prüfen
+        run: npx tsc -p packages/reservierung-core/tsconfig.json
+
+      - name: Typen des Abruf-Workers prüfen
+        run: npx tsc -p apps/reservierungs-abruf/tsconfig.json
+
       - name: Typen der Oberfläche prüfen
         run: |
           npm exec --workspace @edsh-bucky/web -- svelte-kit sync
@@ -97,6 +107,21 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --config apps/web/wrangler.jsonc
+
+      # Der zweite Worker (Feature 047). Er wird bewusst **nicht** in der
+      # Vorschau veroeffentlicht: Jeder Aenderungsvorschlag brachte sonst einen
+      # weiteren Cron mit, der alle zehn Minuten beim Verein abruft — bei drei
+      # offenen Vorschlaegen das Vierfache des Kontingents.
+      #
+      # Seine Geheimnisse setzt dieser Ablauf nicht. Sie liegen im Worker und
+      # werden einmalig von Hand gesetzt (quickstart.md Schritt 2); ein
+      # Ablauf, der sie kennt, waere ein zweiter Ort, an dem sie stehen.
+      - name: Abruf-Worker veröffentlichen
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --config apps/reservierungs-abruf/wrangler.jsonc
 
   # Jeder Änderungsvorschlag bekommt eine eigene Adresse zum Ansehen — auch vom
   # Telefon, ohne Entwicklungsumgebung. `versions upload` laedt hoch, ohne zu

@@ -1,0 +1,33 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "bucky-reservierungs-abruf",
+  // Gleicher Stand wie bei `apps/web` — beide Worker sollen sich unter
+  // derselben Laufzeit gleich verhalten.
+  "compatibility_date": "2026-08-12",
+  "main": "src/index.ts",
+  // Dieser Worker hat bewusst *keine* eigene Adresse: Er wird ausschliesslich
+  // vom Zeitplan ausgeloest. Was niemand aufrufen kann, kann auch niemand
+  // missbrauchen -- und er traegt die Zugangsdaten des Vereins.
+  "workers_dev": false,
+  "triggers": {
+    // Alle zehn Minuten: rund 144 Durchgaenge am Tag. Das Kontingent der
+    // Gegenstelle liegt bei 500 Aufrufen fuer den *ganzen Verein*, und ein
+    // Durchgang kostet einen Aufruf, solange der Zugangsschluessel haelt.
+    // Siehe research.md, E-04.
+    "crons": ["*/10 * * * *"]
+  },
+  "kv_namespaces": [
+    {
+      "binding": "RESERVIERUNGEN",
+      // Derselbe Namensraum, den `apps/web` liest. Zwei Worker, ein
+      // Namensraum — hier wird geschrieben, dort nur gelesen.
+      "id": "16eb6c9466464025be4066bf52c82da3",
+      // Oertlich nutzt Wrangler einen nachgebildeten Speicher; die Kennung
+      // spielt dabei keine Rolle.
+      "preview_id": "16eb6c9466464025be4066bf52c82da3"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

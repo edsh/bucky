@@ -1772,9 +1772,10 @@ await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
 const eintraege = await page.locator('[role="menuitem"]').allInnerTexts();
 pruefe(
   87,
-  'Antippen oeffnet das Menue mit dem Eintrag POH-Rechner (FR-010)',
-  eintraege.length === 1 &&
-    eintraege[0] === 'POH-Rechner' &&
+  'Antippen oeffnet das Menue mit beiden Eintraegen (FR-010)',
+  eintraege.length === 2 &&
+    eintraege[0] === 'Reservierung' &&
+    eintraege[1] === 'POH-Rechner' &&
     (await page.locator('button.avatar').getAttribute('aria-expanded')) === 'true',
   eintraege.join(' | ')
 );
@@ -1818,11 +1819,12 @@ pruefe(
 await page.setViewportSize({ width: 390, height: 844 });
 await page.waitForTimeout(200);
 
-// 88: die Reservierung taucht hier bewusst noch nicht auf (Out of Scope)
+// 88: die Reservierung steht im Menue -- seit Feature 047 ist sie da, und zwar
+// als erster Eintrag: Sie beantwortet die Frage, die vor allen anderen kommt
 pruefe(
   88,
-  'die Reservierung erscheint noch nicht',
-  !/Reservierung/.test(await page.locator('main').innerText())
+  'die Reservierung steht als erster Menueeintrag',
+  (await page.locator('[role="menuitem"]').first().innerText()).trim() === 'Reservierung'
 );
 
 // 89: Escape schliesst und gibt den Fokus dorthin zurueck, wo er herkam (FR-011, FR-012)
@@ -1848,16 +1850,20 @@ pruefe(
   page.url()
 );
 
-// 91: der ganze Weg zum Rechner ist mit der Tastatur begehbar (SC-001, SC-003)
+// 91: der ganze Weg zum Rechner ist mit der Tastatur begehbar (SC-001, SC-003).
+// Seit Feature 047 steht die Reservierung davor, deshalb ein Anschlag mehr:
+// Die Frage "ist sie ueberhaupt frei?" kommt vor der Flugplanung, und der
+// erste Eintrag gehoert der Frage, die zuerst kommt.
 await page.setViewportSize({ width: 1024, height: 1366 });
 await page.locator('button.avatar').focus();
 await page.keyboard.press('Enter');
 await page.locator('[role="menuitem"]').first().waitFor({ timeout: 3000 });
+await page.keyboard.press('ArrowDown');
 await page.keyboard.press('Enter');
 await page.getByRole('heading', { name: 'POH-Rechner D-EELK' }).waitFor({ timeout: 5000 });
 pruefe(
   91,
-  'Startseite zum Rechner: zwei Bedienschritte, allein mit der Tastatur',
+  'Startseite zum Rechner: drei Anschlaege, allein mit der Tastatur',
   /\/d-eelk\/poh-rechner/.test(page.url()),
   page.url()
 );
@@ -1877,6 +1883,153 @@ pruefe(
   /d-eelk\/poh-rechner\/tabellen/.test(page.url()),
   page.url()
 );
+
+// --- Reservierungsseite (Feature 047) -----------------------------------
+
+const RESERVIERUNG = `${BASE}/d-eelk/reservierung/`;
+
+// 98: die Antwort der Server-Route traegt ausschliesslich erlaubte Felder.
+// Das ist die schaerfste der Zusicherungen aus contracts/reservierungsstand.md:
+// Ein durchgereichter Bemerkungstext oder eine Mitgliedskennung faellt hier
+// auf, bevor er auf einer Seite landet (FR-006).
+const rohantwort = await (await page.request.get(`${BASE}/api/reservierung`)).json();
+const erlaubt = new Set([
+  'stand',
+  'kennung',
+  'frei',
+  'art',
+  'wechselAm',
+  'wechselZu',
+  'abgerufenAm',
+  'veraltet'
+]);
+const unerlaubt = Object.keys(rohantwort).filter((k) => !erlaubt.has(k));
+pruefe(
+  98,
+  'die Auskunft traegt keine Felder ausser den vereinbarten',
+  unerlaubt.length === 0,
+  unerlaubt.join(', ')
+);
+
+// 99: kein Prueftext und keine Personendaten im ausgelieferten Quelltext --
+// nicht nur im Sichtbaren. Der Prueftext arbeitet mit `PLATZHALTER`; taucht
+// er auf, ist Prueftext in den Betrieb geraten.
+await page.goto(RESERVIERUNG, { waitUntil: 'networkidle' });
+const quelltext = await page.content();
+pruefe(
+  99,
+  'kein PLATZHALTER und kein Feld der Gegenstelle im Quelltext',
+  !/PLATZHALTER/.test(quelltext) && !/\b(uidcreate|uidfi|freeseats|daterange)\b/.test(quelltext)
+);
+
+// 100-102 arbeiten mit einer abgefangenen Antwort statt mit dem, was gerade im
+// Speicher liegt. Sonst haengt das Ergebnis daran, ob das Flugzeug heute
+// zufaellig frei ist — und auf dem Bauknecht ist der Speicher ohnehin leer.
+// Was die *echte* Route liefert, prueft 98.
+await page.route('**/api/reservierung', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      stand: 'vorhanden',
+      kennung: 'D-EELK',
+      frei: true,
+      art: null,
+      wechselAm: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
+      wechselZu: 'belegt',
+      abgerufenAm: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
+      veraltet: false
+    })
+  })
+);
+await page.goto(RESERVIERUNG, { waitUntil: 'networkidle' });
+
+// 100: der Satz nennt den Zustand -- und zwar in Worten, nicht als Farbe
+const satz = (await page.locator('.satz').innerText()).trim();
+pruefe(
+  100,
+  'die Seite nennt den Zustand in Worten',
+  /^(Frei|Belegt|Gesperrt)\b/.test(satz),
+  satz
+);
+
+// 101: der naechste Wechsel steht dabei. "Frei" allein ist buchstaeblich
+// richtig, auch wenn in zehn Minuten jemand kommt -- und trotzdem irrefuehrend
+pruefe(
+  101,
+  'der naechste Wechsel wird mitgenannt',
+  /(bis|ab)\s|keine Belegung in Sicht/.test(satz),
+  satz
+);
+
+// 102: das Alter der Auskunft steht dabei (FR-009)
+pruefe(102, 'das Alter der Auskunft steht auf der Seite', /^Stand\s/.test((await page.locator('.alter').innerText()).trim()));
+
+// 103: ein veralteter Stand wird gekennzeichnet -- und die Auskunft trotzdem
+// gegeben. Eine zwei Stunden alte Lage ist meist noch brauchbar; sie zu
+// verschweigen waere weniger hilfreich als sie zu kennzeichnen
+await page.unroute('**/api/reservierung');
+await page.route('**/api/reservierung', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      stand: 'vorhanden',
+      kennung: 'D-EELK',
+      frei: true,
+      art: null,
+      wechselAm: null,
+      wechselZu: null,
+      abgerufenAm: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+      veraltet: true
+    })
+  })
+);
+await page.goto(RESERVIERUNG, { waitUntil: 'networkidle' });
+const altText = (await page.locator('main').innerText());
+pruefe(
+  103,
+  'ein veralteter Stand wird als solcher gekennzeichnet, die Auskunft bleibt',
+  /veraltet/i.test(altText) && /Frei/.test(altText)
+);
+
+// 104: ohne Stand sagt die Seite es offen -- und behauptet vor allem *nicht*,
+// das Flugzeug sei frei. Genau das ist der Fehler, der jemanden zum Platz
+// fahren laesst (FR-010)
+await page.unroute('**/api/reservierung');
+await page.route('**/api/reservierung', (route) =>
+  route.fulfill({ contentType: 'application/json', body: JSON.stringify({ stand: 'fehlt' }) })
+);
+await page.goto(RESERVIERUNG, { waitUntil: 'networkidle' });
+const ohneStand = await page.locator('main').innerText();
+pruefe(
+  104,
+  'ohne Stand sagt die Seite es offen und behauptet nicht "frei"',
+  /nicht verf(ü|ue)gbar|Kein Reservierungsstand/i.test(ohneStand) && !/\bFrei\b/.test(ohneStand),
+  ohneStand.replace(/\s+/g, ' ').slice(0, 90)
+);
+// 105: der Weg zur Buchung ist da, benannt und fuehrt nach Vereinsflieger
+// (FR-011, US3). Er steht auch dann, wenn gar keine Auskunft vorliegt --
+// gerade dann braucht man ihn
+const buchen = page.getByRole('link', { name: /Vereinsflieger/ });
+pruefe(
+  105,
+  'der Weg nach Vereinsflieger steht auch ohne Auskunft bereit',
+  (await buchen.count()) === 1 &&
+    /vereinsflieger\.de\/member\/community\/reservations\/add/.test(
+      (await buchen.getAttribute('href')) ?? ''
+    ),
+  (await buchen.getAttribute('href')) ?? '(kein Verweis)'
+);
+
+// 106: er sagt, dass dort verbindlich gebucht wird -- und dass diese Seite es
+// nicht kann. Ein Weg ohne diesen Satz laedt dazu ein, die Anzeige fuer die
+// Buchung zu halten
+pruefe(
+  106,
+  'der Weg nennt Vereinsflieger als die verbindliche Stelle',
+  /verbindlich/i.test(ohneStand) && /nichts reservieren|kann nichts/i.test(ohneStand)
+);
+
+await page.unroute('**/api/reservierung');
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 

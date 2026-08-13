@@ -39,4 +39,9 @@ Bildschirmfoto des Agenten ersetzt die Vorschau nicht: Gestaltungsfragen
 entscheidet, wer die Seite vor sich hat. Zum Schluss den Server über seine PID
 beenden (`lsof -ti :8787`).
 
+Für die Reservierungsseite reicht das nicht: Sie liest einen KV-Speicher, den
+ein zweiter Worker füllt, und örtlich hat jeder Worker seinen eigenen. Der
+gemeinsame Speicher kommt über `--persist-to` — Einzelheiten im Abschnitt „Der
+zweite Worker" in `README.md`.
+
 @.specify/memory/constitution.md

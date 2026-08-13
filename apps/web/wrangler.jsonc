@@ -15,6 +15,21 @@
     "binding": "ASSETS",
     "directory": ".svelte-kit/cloudflare"
   },
+  // Derselbe Namensraum, den `apps/reservierungs-abruf` beschreibt. Hier wird
+  // ausschliesslich gelesen: Die Weboberflaeche kennt die Zugangsdaten der
+  // Gegenstelle nicht und soll sie nicht kennen (research.md, E-07).
+  "kv_namespaces": [
+    {
+      "binding": "RESERVIERUNGEN",
+      // Derselbe Namensraum, den `apps/reservierungs-abruf` beschreibt.
+      "id": "16eb6c9466464025be4066bf52c82da3",
+      // Oertlich nutzt Wrangler einen nachgebildeten Speicher; die Kennung
+      // spielt dabei keine Rolle. Damit die Weboberflaeche oertlich das
+      // sieht, was der Abruf-Worker geschrieben hat, muessen beide auf
+      // denselben Ablageort zeigen — siehe quickstart.md.
+      "preview_id": "16eb6c9466464025be4066bf52c82da3"
+    }
+  ],
   // Ohne diese Adresse gaebe es keinen Ort, an dem sich der Worker pruefen
   // liesse, bevor `bucky.edsh.de` auf ihn zeigt — und genau das ist die
   // Bedingung, unter der die Umstellung ohne Ueberraschung ablaeuft.

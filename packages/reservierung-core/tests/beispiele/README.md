@@ -64,3 +64,41 @@ dieses Abzugs Aufrufe gekostet haben:
   zugeordnet ist. Sonst antwortet die Anmeldung mit
   `403 Wrong User or wrong Password` — eine irreführende Meldung, die zum
   Suchen an der falschen Stelle verleitet.
+
+## `kalender.ics`
+
+Ein **echter** Abzug des Kalender-Abos aus Vereinsflieger (Feature 052),
+abgerufen am 13.08.2026 gegen `https://vereinsflieger.de/…/cal.ics`. Die
+Adresse selbst ist ein Geheimnis und steht in **keiner** Datei dieser Ablage
+(research.md, E-06) — sie wird ausschließlich als Worker-Geheimnis
+`KALENDER_ABO_URL` gehalten.
+
+### Was verändert wurde
+
+Alle 25 echten Namen in `SUMMARY` und `DESCRIPTION` (Schreibweise
+`Nachname, Vorname`) wurden durch **erfundene** Namen ersetzt, 1:1 zugeordnet
+über den ganzen Abzug hinweg. Der Hinweistext im Kalendertitel
+(„Bucky Highfly, technischer API-User, … fragen") wurde ebenso anonymisiert.
+Struktur, Zeiten, Kennungen, `UID`s und alle Sachbeschreibungen
+(„Flugplatzfest", „Flieger defekt. LFZ muss in Werft." etc.) blieben
+unverändert — sie enthalten keinen Personenbezug.
+
+### Was dieser Abzug über die Quelle verrät
+
+- **59 `VEVENT`-Blöcke**, davon 32 Reservierungen und 2 Sperren (`Grounding`)
+  für die D-EELK — ausreichend Prüfstoff für User Story 1 und User Story 3.
+- **22 ganztägige Einträge** (`DTSTART;VALUE=DATE:…`, ohne Uhrzeit) — der in
+  research.md E-05 beschriebene Fall ist hier **Alltag**, kein Sonderfall.
+- **8 Einträge ohne Luftfahrzeug-Kennung** (`GRILL`, `LANDEBAR`, `Werkstatt`)
+  — müssen wie beim API-Weg aussortiert werden.
+- **Keine umbrochenen Zeilen** trotz Zeilen über 74 Zeichen (Verstoß gegen
+  RFC 5545) und **keine `TZID`-Angabe** — die Gegenstelle liefert
+  durchgehend Weltzeit (`Z`). Beide Fallstricke aus research.md E-05 sind
+  im Abzug nicht ausgelöst, müssen aber dennoch behandelt werden (Falle mit
+  Zeitzünder).
+
+### Herkunft nachvollziehen
+
+Abruf gegen `$KALENDER_ABO_URL` (Umgebungsvariable, niemals eine Datei),
+siehe quickstart.md, Nachweis 1. Die Anonymisierung erfolgte unmittelbar nach
+dem Abruf; die Rohdatei wurde danach gelöscht.

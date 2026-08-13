@@ -193,6 +193,32 @@ describe('belegungsauskunft — mehrtaegig und Zeitumstellung', () => {
 	});
 });
 
+describe('belegungsauskunft — Zeitangaben mit Versatz (Feature 052, E-04)', () => {
+	it('deutet eine Reservierung mit Zeitversatz genauso wie ohne', () => {
+		const auskunft = belegungsauskunft(
+			stand([r('2026-08-13T17:00:00+02:00', '2026-08-13T20:00:00+02:00')]),
+			'D-EELK',
+			um('2026-08-13 18:00:00')
+		);
+		expect(auskunft.frei).toBe(false);
+		expect(auskunft.wechselAm).toBe('2026-08-13T18:00:00.000Z');
+	});
+
+	it('kommt mit gemischten Formaten in derselben Kette zurecht', () => {
+		// Ein Eintrag aus dem Kalender-Weg (mit Versatz) neben einem
+		// Altbestand (ohne Versatz) — beides muss dieselbe Kette bilden.
+		const auskunft = belegungsauskunft(
+			stand([
+				r('2026-08-13 17:00:00', '2026-08-13 20:00:00'),
+				r('2026-08-13T20:00:00+02:00', '2026-08-13T22:00:00+02:00')
+			]),
+			'D-EELK',
+			um('2026-08-13 18:00:00')
+		);
+		expect(auskunft.wechselAm).toBe('2026-08-13T20:00:00.000Z');
+	});
+});
+
 describe('belegungsauskunft — gegen den echten Abzug', () => {
 	it('meldet die D-EELK waehrend der echten Sperre als gesperrt', () => {
 		const { reservierungen } = antwortDeuten(echteAntwort);

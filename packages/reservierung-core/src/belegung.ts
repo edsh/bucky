@@ -16,13 +16,29 @@ interface Zeitraum {
 	art: Belegungsart;
 }
 
+/** Erkennt einen Zeitversatz am Ende, z. B. `+02:00` oder `Z` (Feature 052, E-04). */
+const TRAEGT_VERSATZ = /(Z|[+-]\d{2}:\d{2})$/;
+
+/**
+ * Eine Zeitangabe aus `Reservierung.beginn`/`.ende` deuten.
+ *
+ * Traegt sie bereits einen Versatz, gilt sie exakt — das ist die Form, die
+ * der Kalender-Weg liefert. Fehlt der Versatz (Altbestand aus Feature 047 im
+ * Zwischenspeicher oder noch nicht neu geschriebener Stand), wird wie bisher
+ * ueber `ortszeitZuZeitpunkt` gedeutet (research.md E-04, „Vertraeglichkeit
+ * mit Altbestaenden").
+ */
+function zeitangabeDeuten(text: string): Date {
+	return TRAEGT_VERSATZ.test(text) ? new Date(text) : ortszeitZuZeitpunkt(text);
+}
+
 function zeitraeumeFuer(reservierungen: Reservierung[], kennung: string): Zeitraum[] {
 	const gesucht = kennung.toUpperCase().replace(/\s+/g, '');
 	return reservierungen
 		.filter((r) => r.kennung === gesucht)
 		.map((r) => ({
-			von: ortszeitZuZeitpunkt(r.beginn).getTime(),
-			bis: ortszeitZuZeitpunkt(r.ende).getTime(),
+			von: zeitangabeDeuten(r.beginn).getTime(),
+			bis: zeitangabeDeuten(r.ende).getTime(),
 			art: r.art
 		}))
 		.sort((a, b) => a.von - b.von);

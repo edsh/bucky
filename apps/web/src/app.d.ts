@@ -19,6 +19,13 @@ declare global {
 				 * kennen (research.md, E-07).
 				 */
 				RESERVIERUNGEN?: KVNamespace;
+				/**
+				 * Die geheime Kalender-Abo-Adresse (Feature 052, research.md
+				 * E-06). Wird ausschliesslich in `lib/server/kalender-holen.ts`
+				 * gelesen — SvelteKit nimmt Dateien aus `lib/server/` nicht in
+				 * das Browserbuendel auf.
+				 */
+				KALENDER_ABO_URL?: string;
 			};
 		}
 	}

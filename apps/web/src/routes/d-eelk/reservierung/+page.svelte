@@ -2,8 +2,10 @@
   import { base } from '$app/paths';
   import {
     alsAltersangabe,
+    alsRueckfallHinweis,
     alsSatz,
-    type Belegungsauskunft
+    type Belegungsauskunft,
+    type Quelle
   } from '@edsh-bucky/reservierung-core';
 
   /**
@@ -18,8 +20,8 @@
    */
 
   type Antwort =
-    | ({ stand: 'vorhanden' } & Belegungsauskunft)
-    | { stand: 'fehlt' };
+    | ({ stand: 'vorhanden'; quelle: Quelle } & Belegungsauskunft)
+    | { stand: 'fehlt'; quelle: Quelle };
 
   /**
    * Der Weg von der Auskunft zur Buchung (FR-011, US3).
@@ -88,6 +90,14 @@
     <p class="alter" class:veraltet={antwort.veraltet}>
       {alsAltersangabe(antwort, bezug)}
     </p>
+    {#if alsRueckfallHinweis(antwort.quelle)}
+      <!--
+        Verschwindet beim naechsten erfolgreichen Laden von selbst, weil
+        `antwort.quelle` sich dann auf 'kalender' aendert (FR-019,
+        Abnahmeszenario 5 der User Story 2) — kein eigener Zustand noetig.
+      -->
+      <p class="rueckfall">{alsRueckfallHinweis(antwort.quelle)}</p>
+    {/if}
   {/if}
 
   <p class="hinweis">
@@ -163,6 +173,13 @@
   .veraltet {
     color: #92400e;
     font-weight: 600;
+  }
+
+  .rueckfall {
+    margin: 0 0 1rem;
+    color: #666;
+    font-size: 0.85rem;
+    font-style: italic;
   }
 
   .hinweis {

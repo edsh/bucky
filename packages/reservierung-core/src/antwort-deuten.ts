@@ -1,4 +1,5 @@
 import type { Belegungsart, Deutungsergebnis, Reservierung } from './typen.js';
+import { istLuftfahrzeug, kennungVereinheitlichen } from './kennzeichen.js';
 import { alsIsoMitVersatz, ortszeitZuZeitpunkt } from './zeit.js';
 
 /**
@@ -22,22 +23,8 @@ interface RoherEintrag {
 	type?: unknown;
 }
 
-/**
- * Ein Luftfahrzeugkennzeichen erkennt man am Bindestrich zwischen Staats- und
- * Eintragungszeichen: `D-EELK`, `D-4413`. `Werkstatt` und `GRILL` haben keinen.
- *
- * Die Grenze ist bewusst grob. Sie soll Raumbuchungen aussortieren, nicht die
- * Zulassungsvorschriften nachbilden — und lieber einen ungewoehnlich
- * benannten Eintrag durchlassen, als ein echtes Flugzeug zu verschlucken.
- */
-const KENNZEICHEN = /^[A-Z0-9]{1,2}-[A-Z0-9]{1,5}$/;
-
 function alsText(wert: unknown): string {
 	return typeof wert === 'string' ? wert.trim() : '';
-}
-
-function kennungVereinheitlichen(roh: string): string {
-	return roh.toUpperCase().replace(/\s+/g, '');
 }
 
 function artDeuten(roh: unknown): Belegungsart {
@@ -96,7 +83,7 @@ export function antwortDeuten(antwort: unknown): Deutungsergebnis {
 
 function eintragDeuten(roh: RoherEintrag): Reservierung | null {
 	const kennung = kennungVereinheitlichen(alsText(roh.ressource));
-	if (!KENNZEICHEN.test(kennung)) return null;
+	if (!istLuftfahrzeug(kennung)) return null;
 
 	const beginn = alsText(roh.datefrom);
 	const ende = alsText(roh.dateto);

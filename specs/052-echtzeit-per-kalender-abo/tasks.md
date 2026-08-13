@@ -87,18 +87,18 @@ erscheint (quickstart.md, Nachweis 7).
 
 ### Tests for User Story 1
 
-- [ ] T010 [P] [US1] Prüfungen für `kalenderDeuten` in
+- [X] T010 [P] [US1] Prüfungen für `kalenderDeuten` in
       `packages/reservierung-core/tests/kalender-deuten.test.ts`:
       Grundfall (Reservierung, Sperre, aussortierter Nicht-Flugzeug-Eintrag),
       Weltzeit, Ortszeit ohne Kennung, ganztägiger Eintrag,
       maskierte Sonderzeichen, umbrochene Zeile (contracts/kalender-deuten.md)
-- [ ] T011 [P] [US1] Der wichtigste Einzelfall zuerst und eigens benannt: eine
+- [X] T011 [P] [US1] Der wichtigste Einzelfall zuerst und eigens benannt: eine
       Prüfung, dass `kalenderDeuten` bei einer Eingabe, die **kein** Kalender
       ist (z. B. eine HTML-Fehlerseite), **wirft** statt ein leeres Ergebnis zu
       liefern — in
       `packages/reservierung-core/tests/kalender-deuten.test.ts`
       (contracts/kalender-deuten.md, „Der entscheidende Unterschied")
-- [ ] T012 [US1] Vertragsprüfung gegen den echten Abzug in
+- [X] T012 [US1] Vertragsprüfung gegen den echten Abzug in
       `packages/reservierung-core/tests/kalender-vertrag.test.ts` — liest
       `tests/beispiele/kalender.ics` (T002), prüft Anzahl der Einträge für
       D-EELK, mindestens eine Sperre, keine aussortierten Ressourcen als
@@ -108,18 +108,18 @@ erscheint (quickstart.md, Nachweis 7).
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] `kalenderDeuten` in
+- [X] T013 [US1] `kalenderDeuten` in
       `packages/reservierung-core/src/kalender-deuten.ts` erstellen:
       Zeilen zusammenfügen (umbrochene Fortsetzungen), `VEVENT`-Blöcke
       extrahieren, `SUMMARY`/`DTSTART`/`DTEND` lesen, Beschriftung in Art und
       Kennung zerlegen, Nicht-Flugzeuge aussortieren, Ergebnis als
       `Deutungsergebnis` liefern — netzfrei, ohne Namen im Ergebnis
       (contracts/kalender-deuten.md)
-- [ ] T014 [US1] In `kalender-deuten.ts` das Erkennungsmerkmal für „kein
+- [X] T014 [US1] In `kalender-deuten.ts` das Erkennungsmerkmal für „kein
       Kalender" ergänzen (Prüfung auf `BEGIN:VCALENDAR` zu Beginn der
       Eingabe) und bei Fehlen werfen, **bevor** irgendein Eintrag verarbeitet
       wird
-- [ ] T015 [US1] `kalenderDeuten` in
+- [X] T015 [US1] `kalenderDeuten` in
       `packages/reservierung-core/src/index.ts` ausführen; `Quelle`-Typ
       mit ausführen
 - [ ] T016 [US1] Netzabruf in `apps/web/src/lib/server/kalender-holen.ts`

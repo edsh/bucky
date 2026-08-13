@@ -19,7 +19,7 @@
   const flugzeuge = [
     {
       kennzeichen: 'D-EELK',
-      bild: `${base}/D-EELK_pixelart_192px.png`,
+      bild: `${base}/D-EELK_pixelart.gif`,
       handlungen: [
         // Reservierung zuerst: Sie beantwortet die Frage, die vor allen
         // anderen kommt — kann ich überhaupt hin? Die Flugplanung folgt

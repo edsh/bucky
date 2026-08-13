@@ -479,7 +479,7 @@
   class="flugzeug"
   style="width: {avatarBreitePx}px; top: {avatarObenPx}px; --schein: {avatarScheinPx}px;"
 >
-  <img src="{base}/D-EELK_pixelart_192px.png" alt="Die D-EELK als Pixelgrafik" />
+  <img src="{base}/D-EELK_pixelart.gif" alt="Die D-EELK als Pixelgrafik" />
 </div>
 
 <main>

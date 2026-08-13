@@ -44,7 +44,14 @@
   async function laden() {
     zustand = 'laedt';
     try {
-      const ergebnis = await fetch(`${base}/api/reservierung`);
+      // Der Zeitstempel ist kein Schmuck. Die Zone `bucky.edsh.de` schreibt
+      // Antwort-Header um und legt sie am Rand ab; eine einmal gespeicherte
+      // Fehlantwort blieb dadurch hängen, bis sie von selbst verfiel — bei
+      // einem Jahr also nie. Mit wechselnder Adresse kann kein Zwischenspeicher
+      // eine alte Auskunft unterschieben, egal wie die Zone eingestellt ist.
+      const ergebnis = await fetch(`${base}/api/reservierung?t=${Date.now()}`, {
+        cache: 'no-store'
+      });
       if (!ergebnis.ok) throw new Error(String(ergebnis.status));
       antwort = (await ergebnis.json()) as Antwort;
       bezug = new Date();

@@ -254,14 +254,14 @@ Daten geprüft.
       `npx tsc -p packages/reservierung-core`,
       `npx tsc -p apps/reservierungs-abruf`, Klickpfad örtlich
       (quickstart.md, Nachweis 5)
-- [ ] T036 Geheimnis `KALENDER_ABO_URL` produktiv setzen
+- [X] T036 Geheimnis `KALENDER_ABO_URL` produktiv setzen
       (`npx wrangler secret put`), Abruf-Worker mit neuem Takt
       veröffentlichen, live nachweisen: `quelle: 'kalender'`, kein
       `cf-cache-status: HIT` (quickstart.md, Nachweis 6)
 - [ ] T037 Von Hand am lebenden System nachweisen (quickstart.md, Nachweis 7):
       Reservierung anlegen, sofort auf der Seite sehen, wieder entfernen,
       Testreservierung **nicht** stehen lassen
-- [ ] T038 Geheimnis-Kontrolle vor dem Zusammenführen: keine Abo-Adresse und
+- [X] T038 Geheimnis-Kontrolle vor dem Zusammenführen: keine Abo-Adresse und
       keine echten Namen in der Versionsgeschichte (quickstart.md, Nachweis 8)
 
 ---

@@ -1,4 +1,4 @@
-import type { Belegungsauskunft } from './typen.js';
+import type { Belegungsauskunft, Quelle } from './typen.js';
 import { alterInWorten } from './verfall.js';
 import { alsUhrzeit, alsWochentagDatumUhrzeit, gleicherTag } from './zeit.js';
 
@@ -45,4 +45,20 @@ export function alsAltersangabe(auskunft: Belegungsauskunft, bezugszeitpunkt: Da
 	return auskunft.veraltet
 		? `Stand ${alter} — möglicherweise veraltet`
 		: `Stand ${alter}`;
+}
+
+/**
+ * Zurückhaltender Hinweis, wenn die Aussage auf dem Rückfall beruht statt auf
+ * einem unmittelbaren Abruf (FR-019, Feature 052).
+ *
+ * Nennt **keine Ursache**, **keine Technik**, **keine Schuldzuweisung** —
+ * absichtlich. Das Mitglied soll die Aussage richtig einordnen, nicht die
+ * Ursache erfahren. `null`, wenn kein Hinweis nötig ist.
+ *
+ * Nimmt `quelle` bewusst als eigenen Parameter statt als Feld von
+ * `Belegungsauskunft` entgegen — die Herkunft geht nicht in die Berechnung
+ * ein (data-model.md, "Wozu das Feld nicht dient").
+ */
+export function alsRueckfallHinweis(quelle: Quelle): string | null {
+	return quelle === 'rueckfall' ? 'Letzter bekannter Stand' : null;
 }

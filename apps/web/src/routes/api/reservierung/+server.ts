@@ -1,5 +1,5 @@
 import { belegungsauskunft, type Abrufstand, type Quelle } from '@edsh-bucky/reservierung-core';
-import { kalenderHolen } from '$lib/server/kalender-holen.js';
+import { kalenderHolen } from '../../../lib/server/kalender-holen.js';
 
 /**
  * Die Auskunft ueber den Reservierungsstand.

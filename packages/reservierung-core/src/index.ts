@@ -9,7 +9,7 @@
 
 export { antwortDeuten } from './antwort-deuten.js';
 export { belegungsauskunft } from './belegung.js';
-export { alsAltersangabe, alsSatz } from './formulieren.js';
+export { alsAltersangabe, alsRueckfallHinweis, alsSatz } from './formulieren.js';
 export { kalenderDeuten } from './kalender-deuten.js';
 export { alterInWorten, alterMs, istVeraltet, VERFALLSGRENZE_MS } from './verfall.js';
 export {

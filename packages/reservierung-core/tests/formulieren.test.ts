@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { alsAltersangabe, alsSatz } from '../src/formulieren.js';
+import { alsAltersangabe, alsRueckfallHinweis, alsSatz } from '../src/formulieren.js';
 import type { Belegungsauskunft } from '../src/typen.js';
 
 const JETZT = new Date('2026-08-13T10:00:00.000Z'); // 12:00 Ortszeit
@@ -96,5 +96,23 @@ describe('alsAltersangabe', () => {
 		);
 		expect(text).toContain('vor 3 Stunden');
 		expect(text).toContain('veraltet');
+	});
+});
+
+describe('alsRueckfallHinweis (FR-019, Feature 052)', () => {
+	it('gibt keinen Hinweis, wenn die Quelle der Kalender ist', () => {
+		expect(alsRueckfallHinweis('kalender')).toBeNull();
+	});
+
+	it('gibt einen zurueckhaltenden Hinweis bei Rueckfall', () => {
+		const hinweis = alsRueckfallHinweis('rueckfall');
+		expect(hinweis).toBe('Letzter bekannter Stand');
+	});
+
+	it('nennt weder Ursache noch Technik noch eine Schuldzuweisung', () => {
+		const hinweis = alsRueckfallHinweis('rueckfall') ?? '';
+		for (const verbotenesWort of ['Fehler', 'Ausfall', 'Kalender', 'Netzwerk', 'Vereinsflieger']) {
+			expect(hinweis).not.toContain(verbotenesWort);
+		}
 	});
 });

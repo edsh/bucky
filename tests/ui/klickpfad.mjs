@@ -1898,6 +1898,7 @@ const RESERVIERUNG = `${BASE}/d-eelk/reservierung/`;
 const rohantwort = await (await page.request.get(`${BASE}/api/reservierung`)).json();
 const erlaubt = new Set([
   'stand',
+  'quelle',
   'kennung',
   'frei',
   'art',
@@ -2030,6 +2031,65 @@ pruefe(
   106,
   'der Weg nennt Vereinsflieger als die verbindliche Stelle',
   /verbindlich/i.test(ohneStand) && /nichts reservieren|kann nichts/i.test(ohneStand)
+);
+
+await page.unroute('**/api/reservierung*');
+
+// 109: Beruht die Aussage auf dem Rueckfall, zeigt die Seite den
+// zurueckhaltenden Hinweis "Letzter bekannter Stand" (FR-019, Feature 052) --
+// ohne Ursache, ohne Technik, ohne Schuldzuweisung.
+await page.route('**/api/reservierung*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      stand: 'vorhanden',
+      quelle: 'rueckfall',
+      kennung: 'D-EELK',
+      frei: true,
+      art: null,
+      wechselAm: null,
+      wechselZu: null,
+      abgerufenAm: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
+      veraltet: false
+    })
+  })
+);
+await page.goto(RESERVIERUNG, { waitUntil: 'networkidle' });
+const rueckfallHinweis = (await page.locator('.rueckfall').innerText()).trim();
+pruefe(
+  109,
+  'ein Rueckfall zeigt "letzter bekannter Stand", ohne Ursache oder Technik zu nennen',
+  /letzter bekannter stand/i.test(rueckfallHinweis) &&
+    !/(fehler|ausfall|kalender|netzwerk|vereinsflieger)/i.test(rueckfallHinweis),
+  rueckfallHinweis
+);
+
+// 110: Kehrt die Quelle beim naechsten Aufruf zum Kalender zurueck,
+// verschwindet der Hinweis ohne weiteres Zutun (Abnahmeszenario 5, US2).
+await page.unroute('**/api/reservierung*');
+await page.route('**/api/reservierung*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      stand: 'vorhanden',
+      quelle: 'kalender',
+      kennung: 'D-EELK',
+      frei: true,
+      art: null,
+      wechselAm: null,
+      wechselZu: null,
+      abgerufenAm: new Date().toISOString(),
+      veraltet: false
+    })
+  })
+);
+await page.goto(RESERVIERUNG, { waitUntil: 'networkidle' });
+const rueckfallSelektorNachKalender = await page.locator('.rueckfall').count();
+pruefe(
+  110,
+  'nach Rueckkehr zum Kalender-Weg verschwindet der Rueckfall-Hinweis',
+  rueckfallSelektorNachKalender === 0,
+  `${rueckfallSelektorNachKalender} Hinweis(e) sichtbar`
 );
 
 await page.unroute('**/api/reservierung*');

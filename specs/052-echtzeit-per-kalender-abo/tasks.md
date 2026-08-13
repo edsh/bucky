@@ -165,11 +165,11 @@ Seite aufrufen — der zuletzt gespeicherte Stand muss samt Hinweis erscheinen
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Prüfung, dass eine Antwort, die kein gültiger Kalender
+- [X] T022 [P] [US2] Prüfung, dass eine Antwort, die kein gültiger Kalender
       ist (z. B. eine HTML-Seite mit Status 200), in der Server-Route als
       Fehlschlag behandelt wird und **nicht** zu `frei: true` ohne
       Datengrundlage führt — härtester Grenzfall aus contracts/api-reservierung.md
-- [ ] T023 [P] [US2] Klickpfad-Prüfungen in `tests/ui/klickpfad.mjs`
+- [X] T023 [P] [US2] Klickpfad-Prüfungen in `tests/ui/klickpfad.mjs`
       ergänzen: Rückfall bei abgefangener Fehlantwort zeigt „letzter bekannter
       Stand"; nach Rückkehr einer gültigen Antwort verschwindet der Hinweis
       ohne weiteres Zutun (Abnahmeszenario 5 der User Story 2 in spec.md) —
@@ -185,12 +185,12 @@ Seite aufrufen — der zuletzt gespeicherte Stand muss samt Hinweis erscheinen
 - [ ] T025 [US2] In `+server.ts`: Bei Rückfall auf KV `quelle: 'rueckfall'`
       setzen und `abgerufenAm` aus dem gespeicherten Stand übernehmen, nicht
       aus der aktuellen Zeit
-- [ ] T026 [US2] `formulieren.ts` in
+- [X] T026 [US2] `formulieren.ts` in
       `packages/reservierung-core/src/formulieren.ts` um einen
       zurückhaltenden Zusatz „letzter bekannter Stand" erweitern — ohne
       Ursache, ohne Technik, ohne Schuldzuweisung (FR-019); nur ausgegeben,
       wenn `quelle === 'rueckfall'`
-- [ ] T027 [US2] `+page.svelte` (`d-eelk/reservierung/`): Hinweis aus T026
+- [X] T027 [US2] `+page.svelte` (`d-eelk/reservierung/`): Hinweis aus T026
       anzeigen, wenn `quelle === 'rueckfall'`; verschwindet beim nächsten
       erfolgreichen Laden von selbst
 - [ ] T028 [US2] Fall „weder Kalender noch gespeicherter Stand" in

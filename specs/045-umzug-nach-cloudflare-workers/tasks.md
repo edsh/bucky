@@ -125,7 +125,7 @@ angekündigte Lücke aus FR-016.
 - [X] T022 [US1] Umstellung ankündigen und in eine Zeit legen, zu der nicht geflogen wird (FR-016)
 - [X] T023 [US1] **Von Hand (Nutzer)**: in Cloudflare den DNS-Eintrag `bucky` auf `edsh.github.io` löschen, dann am Worker die Custom Domain `bucky.edsh.de` anlegen und die Ausstellung des Zertifikats abwarten — Schritt für Schritt in quickstart.md
 - [X] T024 [US1] Abnehmen: `BASE=https://bucky.edsh.de node tests/ui/klickpfad.mjs`, den festgehaltenen Eingabesatz vergleichen, einmal hart neu laden und prüfen, dass die gesicherten Einstellungen aus Feature 041 noch da sind (FR-004)
-- [ ] T025 [US1] **Von Hand (Nutzer)**: GitHub Pages abschalten (Settings → Pages → Source: None), damit kein zweiter, veraltender Stand erreichbar bleibt (FR-017)
+- [X] T025 [US1] GitHub Pages abschalten — erledigt über `gh api -X DELETE repos/edsh/bucky/pages`, danach antwortet die Pages-Schnittstelle mit 404, während `bucky.edsh.de` unverändert 200 liefert. Damit bleibt kein zweiter, veraltender Stand erreichbar (FR-017)
 
 **Nachweis zu Phase 6** (12.08.2026, 23:09 Uhr — nachts, es fliegt niemand):
 

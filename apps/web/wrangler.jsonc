@@ -22,7 +22,12 @@
     {
       "binding": "RESERVIERUNGEN",
       // PLATZHALTER — siehe quickstart.md Schritt 1.
-      "id": "HIER_KENNUNG_EINTRAGEN"
+      "id": "HIER_KENNUNG_EINTRAGEN",
+      // Oertlich nutzt Wrangler einen nachgebildeten Speicher; die Kennung
+      // spielt dabei keine Rolle. Damit die Weboberflaeche oertlich das
+      // sieht, was der Abruf-Worker geschrieben hat, muessen beide auf
+      // denselben Ablageort zeigen — siehe quickstart.md.
+      "preview_id": "HIER_KENNUNG_EINTRAGEN"
     }
   ],
   // Ohne diese Adresse gaebe es keinen Ort, an dem sich der Worker pruefen

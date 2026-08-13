@@ -119,16 +119,16 @@ Reservierungskalender in Vereinsflieger halten.
 
 ### Anzeige
 
-- [ ] T017 [US1] Server-Route `apps/web/src/routes/api/reservierung/+server.ts`
+- [x] T017 [US1] Server-Route `apps/web/src/routes/api/reservierung/+server.ts`
       mit `export const prerender = false` — Speicher über `platform.env`
       lesen, Kern mit dem Jetzt-Zeitpunkt aufrufen, Antwort nach
       contracts/reservierungsstand.md Abschnitt B ausgeben. Nur `GET`
-- [ ] T018 [US1] Seite
+- [x] T018 [US1] Seite
       `apps/web/src/routes/d-eelk/reservierung/+page.svelte` — den Satz
       anzeigen, schlicht, kein Kalender, kein Raster
-- [ ] T019 [P] [US1] Verweis auf die neue Seite von der Startseite
+- [x] T019 [P] [US1] Verweis auf die neue Seite von der Startseite
       `apps/web/src/routes/+page.svelte`
-- [ ] T020 [US1] Klickpfad-Prüfungen in `tests/ui/klickpfad.mjs` ergänzen —
+- [x] T020 [US1] Klickpfad-Prüfungen in `tests/ui/klickpfad.mjs` ergänzen —
       Satz vorhanden, Zustand genannt, nächster Wechsel genannt, und
       ausdrücklich: **kein Personenname im Quelltext der Seite**, nicht nur im
       Sichtbaren, und **kein `PLATZHALTER`** (der Prüfstoff macht ein
@@ -153,14 +153,14 @@ zeigt den letzten Stand mit sichtbarem Alter statt einer Fehlermeldung.
 - [x] T022 [US2] Verfallsgrenze und Altersberechnung im Kern
       (`packages/reservierung-core/src/verfall.ts`) — der Kern gibt die Grenze
       vor, nicht die Anzeige (Prinzip IV)
-- [ ] T023 [US2] Fehlerverhalten in
+- [x] T023 [US2] Fehlerverhalten in
       `apps/reservierungs-abruf/src/index.ts` — ein misslungener oder
       unverständlicher Durchgang **schreibt nicht** (FR-004). Ein einzelner
       kaputter Eintrag dagegen verwirft nur sich selbst
-- [ ] T024 [US2] Fall „kein Stand vorhanden" in der Server-Route —
+- [x] T024 [US2] Fall „kein Stand vorhanden" in der Server-Route —
       `{"stand": "fehlt"}` **ohne** Fehlerstatus (Vertrag Fall 2). Das ist ein
       gültiges Ergebnis, kein Ausfall
-- [ ] T025 [US2] Anzeige um Alter, Veraltet-Kennzeichnung und den Fall ohne
+- [x] T025 [US2] Anzeige um Alter, Veraltet-Kennzeichnung und den Fall ohne
       Stand erweitern in
       `apps/web/src/routes/d-eelk/reservierung/+page.svelte` — bei fehlendem
       Stand offen sagen, dass keine Auskunft möglich ist, und **nicht**
@@ -168,7 +168,7 @@ zeigt den letzten Stand mit sichtbarem Alter statt einer Fehlermeldung.
 - [x] T026 [US2] Fehlerfall örtlich belegen: ein Geheimnis verfälschen, Cron
       auslösen, Speicher lesen — `abgerufenAm` muss **unverändert** sein
       (quickstart.md Schritt 5), danach zurücksetzen
-- [ ] T027 [US2] Klickpfad-Prüfungen für Alter, Veraltet-Kennzeichnung und den
+- [x] T027 [US2] Klickpfad-Prüfungen für Alter, Veraltet-Kennzeichnung und den
       Fall ohne Stand in `tests/ui/klickpfad.mjs`
 
 **Prüfpunkt US2**: SC-004 belegt — bei ausgefallener Quelle bleibt die Seite
@@ -280,3 +280,15 @@ Alter behauptet mehr Aktualität, als sie hat.
   zu verfälschen — der abgelegte Zugangsschlüssel funktioniert ja weiter. Er
   muss zusätzlich ungültig gemacht werden, sonst prüft man gar nicht den
   Fehlerfall.
+- **Örtlich teilen sich die beiden Worker den Speicher nicht von allein.**
+  Wrangler legt den nachgebildeten KV unter dem jeweiligen App-Verzeichnis ab.
+  Damit die Weboberfläche sieht, was der Abruf-Worker geschrieben hat:
+  `npx wrangler dev --persist-to ../reservierungs-abruf/.wrangler/state` aus
+  `apps/web`. In Betrieb stellt sich die Frage nicht, dort zählt die Kennung
+  des Namensraums.
+- **Die Reihenfolge im Avatar-Menü wurde entschieden** (betrifft T019): Die
+  Reservierung steht **vor** dem POH-Rechner — die Frage „ist sie überhaupt
+  frei?" kommt vor der Flugplanung. Der Rechner kostet damit einen
+  Tastaturanschlag mehr; Klickpfad-Prüfung 91 ist entsprechend angepasst.
+  Dabei fiel auf, dass das Menü nie eine Pfeiltastensteuerung hatte — bei
+  einem Eintrag unsichtbar, bei zweien ein Mangel. Sie wurde ergänzt.

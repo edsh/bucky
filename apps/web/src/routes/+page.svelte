@@ -12,16 +12,21 @@
    */
 
   /**
-   * Vorerst genau ein Flugzeug mit genau einer Handlung. Die Liste ist
-   * trotzdem eine Liste, und die Handlung steht in einem Menü: Beides bekommt
-   * demnächst einen zweiten Eintrag (Reservierung), und ein direkter Sprung
-   * wäre dann wieder auszubauen (FR-008, FR-009).
+   * Vorerst genau ein Flugzeug. Die Liste ist trotzdem eine Liste: Ein
+   * zweites Flugzeug ist absehbar, und ein direkter Sprung wäre dann wieder
+   * auszubauen (FR-008, FR-009).
    */
   const flugzeuge = [
     {
       kennzeichen: 'D-EELK',
       bild: `${base}/D-EELK_pixelart_192px.png`,
-      handlungen: [{ name: 'POH-Rechner', ziel: `${base}/d-eelk/poh-rechner` }]
+      handlungen: [
+        // Reservierung zuerst: Sie beantwortet die Frage, die vor allen
+        // anderen kommt — kann ich überhaupt hin? Die Flugplanung folgt
+        // danach (Feature 047).
+        { name: 'Reservierung', ziel: `${base}/d-eelk/reservierung` },
+        { name: 'POH-Rechner', ziel: `${base}/d-eelk/poh-rechner` }
+      ]
     }
   ];
 
@@ -109,6 +114,41 @@
       schliessen(war);
     }
   }
+
+  /**
+   * Pfeiltasten im Menü.
+   *
+   * Ein `role="menu"` verspricht diese Steuerung — wer sie erwartet und nur
+   * Tab vorfindet, verlässt das Menü, statt sich darin zu bewegen. Solange es
+   * nur einen Eintrag gab, fiel das nicht auf; mit dem zweiten (Feature 047)
+   * wird es sichtbar.
+   *
+   * Das Menü trägt dafür `tabindex="-1"`: nicht in der Tab-Reihenfolge, aber
+   * fokussierbar — was Tastendrücke verarbeitet, muss den Fokus halten können.
+   */
+  function beiMenuetaste(ereignis: KeyboardEvent) {
+    const tasten = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
+    if (!tasten.includes(ereignis.key)) return;
+
+    const menue = ereignis.currentTarget as HTMLElement;
+    const eintraege = [...menue.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+    if (eintraege.length === 0) return;
+
+    const jetzt = eintraege.indexOf(document.activeElement as HTMLElement);
+    // Umlaufend: Am letzten Eintrag nach unten landet man wieder oben. Das
+    // ist bei einem kurzen Menü der kürzere Weg zurück.
+    const ziel =
+      ereignis.key === 'Home'
+        ? 0
+        : ereignis.key === 'End'
+          ? eintraege.length - 1
+          : ereignis.key === 'ArrowDown'
+            ? (jetzt + 1) % eintraege.length
+            : (jetzt - 1 + eintraege.length) % eintraege.length;
+
+    ereignis.preventDefault();
+    eintraege[ziel]?.focus();
+  }
 </script>
 
 <svelte:head>
@@ -165,6 +205,8 @@
               class="menue"
               role="menu"
               aria-label="Was mit {flugzeug.kennzeichen} tun?"
+              tabindex="-1"
+              onkeydown={beiMenuetaste}
               use:platzieren
             >
               {#each flugzeug.handlungen as handlung, i (handlung.ziel)}

@@ -19,8 +19,7 @@ ergänzt dessen Funktionsumfang, statt ihn zu ersetzen.
 Die Startseite ist die Auswahl, nicht der Rechner. Bucky begrüßt dort mit „Hi
 Pilot, was darf's sein?", und darunter steht — vorerst allein — die **D-EELK**
 als runder Avatar mit Bildunterschrift. Ein Tippen darauf öffnet, was sich mit
-dieser Maschine tun lässt; heute ist das der POH-Rechner, demnächst kommt die
-Reservierung daneben.
+dieser Maschine tun lässt: der Reservierungsstand und der POH-Rechner.
 
 Der Einstieg läuft bewusst über das Flugzeug und nicht über eine Liste von
 Funktionen: Wer die App öffnet, hat in aller Regel eine bestimmte Maschine im
@@ -34,6 +33,7 @@ unter ihm.
 | Adresse | Inhalt |
 |---|---|
 | `/` | Auswahl |
+| `/d-eelk/reservierung/` | Ist sie gerade frei? |
 | `/d-eelk/poh-rechner/` | Der Rechner |
 | `/d-eelk/poh-rechner/tabellen/` | Die digitalisierten Tabellen |
 
@@ -285,8 +285,8 @@ Adapterdatei eine Winkelfunktion enthält.
 <https://bucky.edsh.de/>
 
 Die Oberfläche läuft als Cloudflare Worker. Jeder Push auf `main` baut sie und
-veröffentlicht sie — aber erst, **nachdem** Lint, Typen, 541 Tests, der Bau und
-die 97 Klickpfad-Prüfungen durchgelaufen sind. Es gibt bewusst keinen zweiten
+veröffentlicht sie — aber erst, **nachdem** Lint, Typen, 633 Tests, der Bau und
+die 106 Klickpfad-Prüfungen durchgelaufen sind. Es gibt bewusst keinen zweiten
 Weg nach draußen: Was rot ist, geht nicht live.
 
 Jeder Änderungsvorschlag bekommt zusätzlich eine eigene Adresse zum Ansehen
@@ -302,6 +302,46 @@ npx wrangler rollback --config apps/web/wrangler.jsonc
 
 Er schaltet binnen Sekunden auf die vorige Fassung zurück; Cloudflare hält die
 letzten hundert vor.
+
+### Der zweite Worker: der Abruf
+
+Seit Feature 047 gibt es einen zweiten Worker, `apps/reservierungs-abruf`. Er
+hat **keine Adresse** — ausgelöst wird er allein von einem Zeitplan, alle zehn
+Minuten. Er meldet sich bei Vereinsflieger an, holt die Reservierungen, schickt
+sie durch den Kern und legt das Ergebnis in einem KV-Namensraum ab. Die
+Oberfläche liest nur diesen Namensraum und spricht selbst nie mit
+Vereinsflieger.
+
+Diese Trennung ist der Grund für den zweiten Worker: Nur er kennt die
+Zugangsdaten des Vereins, und was keine Adresse hat, kann niemand von außen
+aufrufen. Ein Aufruf der Seite kostet dadurch nichts vom Tageskontingent — sonst
+könnte ein einzelner Neulade-Finger die 500 Aufrufe des Vereins aufbrauchen.
+
+Beide Worker binden denselben Namensraum `RESERVIERUNGEN`; der Abruf schreibt,
+die Oberfläche liest. Die Geheimnisse (`VF_APPKEY`, `VF_USERNAME`,
+`VF_PASSWORD`) liegen ausschließlich im Abruf-Worker und werden einmalig von
+Hand gesetzt:
+
+```bash
+npx wrangler secret put VF_APPKEY --config apps/reservierungs-abruf/wrangler.jsonc
+```
+
+Der Ablauf in GitHub Actions kennt sie nicht. Ein Ablauf, der sie kennte, wäre
+ein zweiter Ort, an dem sie stehen.
+
+Örtlich brauchen beide Worker denselben nachgebildeten Speicher, sonst sieht
+die Oberfläche nichts von dem, was der Abruf geschrieben hat:
+
+```bash
+npx wrangler dev --config apps/reservierungs-abruf/wrangler.jsonc --test-scheduled --port 8790
+curl "http://localhost:8790/__scheduled?cron=*/10+*+*+*+*"
+
+cd apps/web && npx wrangler dev --port 8791 --persist-to ../reservierungs-abruf/.wrangler/state
+```
+
+Die Zugangsdaten für den örtlichen Lauf stehen in
+`apps/reservierungs-abruf/.dev.vars` — die Datei ist von der Versionsverwaltung
+ausgenommen.
 
 ## Bauen und starten
 
@@ -380,10 +420,12 @@ Berechnungskern rechnet den Kraftstoffbedarf mitsamt Rechenweg und
 Quellenangaben, beide Zugangswege stehen. Offen ist die Stichprobe der
 digitalisierten Werte gegen das gedruckte Handbuch durch einen Menschen.
 
-Seit Feature 043 ist der Rechner nicht mehr die ganze Anwendung, sondern die
-erste Funktion hinter einer Auswahl (siehe „Aufbau: Bucky als Kompagnon"). Als
-nächstes folgt die **Reservierung** — dort wird sich zeigen, wie weit Bucky in
-Vereinsflieger hineinreicht: nur lesend oder auch schreibend (Prinzip II).
+Seit Feature 043 ist der Rechner nicht mehr die ganze Anwendung, sondern eine
+Funktion hinter einer Auswahl (siehe „Aufbau: Bucky als Kompagnon"). Feature 047
+hat die **Reservierungsauskunft** danebengestellt: Sie sagt in einem Satz, ob
+die D-EELK gerade frei ist und wann sich das ändert. Die Frage, wie weit Bucky
+in Vereinsflieger hineinreicht, ist damit **zugunsten des Lesens** entschieden —
+gebucht wird weiterhin dort, die Seite verweist nur hin (Prinzip II).
 
 Entschieden: Frontend SvelteKit (Prinzip III), Architektur mit gemeinsamem
 Berechnungskern und den Zugangswegen SvelteKit-UI und MCP-Endpunkt (Prinzip IV).
@@ -396,8 +438,10 @@ ganzen Verein — siehe `tools/vereinsflieger-api/README.md`.
 
 Offene Fragen:
 
-1. Authentifizierung/Rollenmodell für Vereinsmitglieder? Die Reservierungsliste
-   enthält Klarnamen und braucht eine Zugangshürde.
+1. Authentifizierung/Rollenmodell für Vereinsmitglieder? Feature 047 kam ohne
+   aus, indem es die Klarnamen gar nicht erst herausgibt — die Auskunft nennt
+   nur Zustand und Zeitpunkt. Sobald etwas gezeigt werden soll, das einer
+   Person zuzuordnen ist, steht die Frage wieder da.
 2. Wahl der Datenbank? Für den Zwischenspeicher genügt ein
    Schlüssel-Wert-Speicher; eine Datenbank ist bisher für nichts nötig.
 

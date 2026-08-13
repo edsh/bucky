@@ -21,6 +21,16 @@
     | ({ stand: 'vorhanden' } & Belegungsauskunft)
     | { stand: 'fehlt' };
 
+  /**
+   * Der Weg von der Auskunft zur Buchung (FR-011, US3).
+   *
+   * Er zeigt auf das Formular zum **Anlegen** einer Reservierung, nicht auf
+   * den Kalender: Wer hier liest, dass das Flugzeug frei ist, will es in aller
+   * Regel gleich haben. Ein Zwischenhalt im Kalender wäre ein Klick ohne
+   * Gegenwert.
+   */
+  const BUCHEN = 'https://vereinsflieger.de/member/community/reservations/add?type=0&inline=0';
+
   let zustand = $state<'laedt' | 'da' | 'unerreichbar'>('laedt');
   let antwort = $state<Antwort | undefined>(undefined);
 
@@ -78,6 +88,16 @@
   <p class="hinweis">
     Unverbindliche Anzeige. Verbindlich ist der Reservierungskalender in
     Vereinsflieger.
+  </p>
+
+  <p class="buchen">
+    <a href={BUCHEN} target="_blank" rel="noopener noreferrer">
+      In Vereinsflieger reservieren ↗
+    </a>
+  </p>
+  <p class="hinweis">
+    Dort wird verbindlich gebucht — eine Anmeldung ist nötig. Diese Seite kann
+    nichts reservieren und ändert in Vereinsflieger nichts.
   </p>
 
   <p class="zurueck"><a href="{base}/">← Übersicht</a></p>
@@ -150,6 +170,30 @@
   .zurueck {
     margin-top: 2rem;
     font-size: 0.9rem;
+  }
+
+  /*
+    Der Weg zur Buchung ist die einzige Handlung auf dieser Seite und sieht
+    deshalb aus wie eine -- die Auskunft soll nicht in einer Sackgasse enden
+    (US3).
+  */
+  .buchen {
+    margin: 0 0 0.75rem;
+  }
+
+  .buchen a {
+    display: inline-block;
+    padding: 0.6rem 1.1rem;
+    border-radius: 0.4rem;
+    background: #1f4e79;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .buchen a:hover,
+  .buchen a:focus-visible {
+    background: #16395a;
   }
 
   .zurueck a {

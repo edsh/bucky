@@ -182,27 +182,27 @@ auskunftsfähig und die Auskunft erkennbar alt.
 
 **Unabhängig prüfbar**: Den Verweis anklicken und in Vereinsflieger landen.
 
-- [ ] T028 [US3] Deutlich benannter Weg nach Vereinsflieger auf
+- [x] T028 [US3] Deutlich benannter Weg nach Vereinsflieger auf
       `apps/web/src/routes/d-eelk/reservierung/+page.svelte`, samt Hinweis,
       dass dort verbindlich gebucht wird (FR-011)
-- [ ] T029 [US3] Klickpfad-Prüfung für Vorhandensein und Ziel des Verweises in
+- [x] T029 [US3] Klickpfad-Prüfung für Vorhandensein und Ziel des Verweises in
       `tests/ui/klickpfad.mjs`
 
 ---
 
 ## Phase 6: Polish & Inbetriebnahme
 
-- [ ] T030 [P] Vertragsprüfung in
+- [x] T030 [P] Vertragsprüfung in
       `packages/reservierung-core/tests/vertrag.test.ts` — die ausgelieferte
       Antwort enthält **ausschließlich** die in
       contracts/reservierungsstand.md Abschnitt B genannten Felder — geprüft
       gegen den **echten** Prüfstoff aus T004. Ein neues Feld muss diese
       Prüfung umwerfen, nicht stillschweigend durchrutschen
-- [ ] T031 [P] `apps/reservierungs-abruf` in `.github/workflows/ci.yml`
+- [x] T031 [P] `apps/reservierungs-abruf` in `.github/workflows/ci.yml`
       aufnehmen — zweiter Veröffentlichungsschritt neben `apps/web`
-- [ ] T032 [P] `README.md` und `AGENTS.md` um den zweiten Worker, den
+- [x] T032 [P] `README.md` und `AGENTS.md` um den zweiten Worker, den
       KV-Namensraum und die Geheimnisse ergänzen
-- [ ] T033 Vollständiger Prüflauf: `npm test`, `npm run lint`,
+- [x] T033 Vollständiger Prüflauf: `npm test`, `npm run lint`,
       `npm run build`, Klickpfad
 - [ ] T034 Inbetriebnahme nach quickstart.md Schritte 1, 2 und 7 — KV-Namensraum
       anlegen, Geheimnisse setzen, ersten Deploy **von Hand** (`versions

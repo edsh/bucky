@@ -1922,6 +1922,27 @@ pruefe(
   !/PLATZHALTER/.test(quelltext) && !/\b(uidcreate|uidfi|freeseats|daterange)\b/.test(quelltext)
 );
 
+// 100-102 arbeiten mit einer abgefangenen Antwort statt mit dem, was gerade im
+// Speicher liegt. Sonst haengt das Ergebnis daran, ob das Flugzeug heute
+// zufaellig frei ist — und auf dem Bauknecht ist der Speicher ohnehin leer.
+// Was die *echte* Route liefert, prueft 98.
+await page.route('**/api/reservierung', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      stand: 'vorhanden',
+      kennung: 'D-EELK',
+      frei: true,
+      art: null,
+      wechselAm: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
+      wechselZu: 'belegt',
+      abgerufenAm: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
+      veraltet: false
+    })
+  })
+);
+await page.goto(RESERVIERUNG, { waitUntil: 'networkidle' });
+
 // 100: der Satz nennt den Zustand -- und zwar in Worten, nicht als Farbe
 const satz = (await page.locator('.satz').innerText()).trim();
 pruefe(
@@ -1946,6 +1967,7 @@ pruefe(102, 'das Alter der Auskunft steht auf der Seite', /^Stand\s/.test((await
 // 103: ein veralteter Stand wird gekennzeichnet -- und die Auskunft trotzdem
 // gegeben. Eine zwei Stunden alte Lage ist meist noch brauchbar; sie zu
 // verschweigen waere weniger hilfreich als sie zu kennzeichnen
+await page.unroute('**/api/reservierung');
 await page.route('**/api/reservierung', (route) =>
   route.fulfill({
     contentType: 'application/json',
@@ -1972,6 +1994,7 @@ pruefe(
 // 104: ohne Stand sagt die Seite es offen -- und behauptet vor allem *nicht*,
 // das Flugzeug sei frei. Genau das ist der Fehler, der jemanden zum Platz
 // fahren laesst (FR-010)
+await page.unroute('**/api/reservierung');
 await page.route('**/api/reservierung', (route) =>
   route.fulfill({ contentType: 'application/json', body: JSON.stringify({ stand: 'fehlt' }) })
 );
@@ -1983,6 +2006,29 @@ pruefe(
   /nicht verf(ü|ue)gbar|Kein Reservierungsstand/i.test(ohneStand) && !/\bFrei\b/.test(ohneStand),
   ohneStand.replace(/\s+/g, ' ').slice(0, 90)
 );
+// 105: der Weg zur Buchung ist da, benannt und fuehrt nach Vereinsflieger
+// (FR-011, US3). Er steht auch dann, wenn gar keine Auskunft vorliegt --
+// gerade dann braucht man ihn
+const buchen = page.getByRole('link', { name: /Vereinsflieger/ });
+pruefe(
+  105,
+  'der Weg nach Vereinsflieger steht auch ohne Auskunft bereit',
+  (await buchen.count()) === 1 &&
+    /vereinsflieger\.de\/member\/community\/reservations\/add/.test(
+      (await buchen.getAttribute('href')) ?? ''
+    ),
+  (await buchen.getAttribute('href')) ?? '(kein Verweis)'
+);
+
+// 106: er sagt, dass dort verbindlich gebucht wird -- und dass diese Seite es
+// nicht kann. Ein Weg ohne diesen Satz laedt dazu ein, die Anzeige fuer die
+// Buchung zu halten
+pruefe(
+  106,
+  'der Weg nennt Vereinsflieger als die verbindliche Stelle',
+  /verbindlich/i.test(ohneStand) && /nichts reservieren|kann nichts/i.test(ohneStand)
+);
+
 await page.unroute('**/api/reservierung');
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));

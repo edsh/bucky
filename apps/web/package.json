@@ -10,7 +10,8 @@
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
-    "@edsh-bucky/deelk-poh-core": "*"
+    "@edsh-bucky/deelk-poh-core": "*",
+    "@edsh-bucky/reservierung-core": "*"
   },
   "devDependencies": {
     "@sveltejs/adapter-cloudflare": "^7.2.9",

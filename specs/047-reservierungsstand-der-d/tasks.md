@@ -18,15 +18,15 @@ gegen die echte Gegenstelle, nicht gegen Attrappen.
 
 ## Phase 1: Setup
 
-- [ ] T001 Paketgerüst `packages/reservierung-core/` anlegen — `package.json`
+- [x] T001 Paketgerüst `packages/reservierung-core/` anlegen — `package.json`
       (Name `@edsh-bucky/reservierung-core`, `private`, `type: module`,
       `exports` auf `./src/index.ts`, Skripte `build` und `test`) und
       `tsconfig.json` nach dem Vorbild von `packages/deelk-poh-core/`
-- [ ] T002 Workerverzeichnis `apps/reservierungs-abruf/` anlegen —
+- [x] T002 Workerverzeichnis `apps/reservierungs-abruf/` anlegen —
       `package.json` und `apps/reservierungs-abruf/wrangler.jsonc` mit
       `main` auf `src/index.ts`, `compatibility_date`, Cron `*/10 * * * *`
       und der KV-Bindung `RESERVIERUNGEN` (Kennung zunächst als Platzhalter)
-- [ ] T003 [P] KV-Bindung `RESERVIERUNGEN` in `apps/web/wrangler.jsonc`
+- [x] T003 [P] KV-Bindung `RESERVIERUNGEN` in `apps/web/wrangler.jsonc`
       ergänzen — **ohne** `main` anzufassen (research.md E-01: der Adapter
       überschreibt die Einstiegsdatei)
 
@@ -43,18 +43,18 @@ umgesetzt werden.
       `packages/reservierung-core/tests/beispiele/README.md`
       ✅ **erledigt am 13.08.2026** — 19 echte Einträge, Struktur unverändert,
       44 personenbezogene Werte durch `PLATZHALTER` ersetzt und gegengeprüft
-- [ ] T005 Typen der drei Größen in
+- [x] T005 Typen der drei Größen in
       `packages/reservierung-core/src/typen.ts` nach data-model.md —
       `Reservierung` (genau `kennung`, `beginn`, `ende`, `art`), `Abrufstand`,
       `Belegungsauskunft`. Für `Reservierung` **kein** Feld für Personen
       vorsehen (Vertrag Abschnitt A)
-- [ ] T006 Zeitwerkzeug in `packages/reservierung-core/src/zeit.ts` —
+- [x] T006 Zeitwerkzeug in `packages/reservierung-core/src/zeit.ts` —
       `YYYY-MM-DD HH:MM:SS` ohne Zeitzone als `Europe/Berlin` deuten und
       umgekehrt formatieren, über `Intl`, ohne eigene Stundenrechnung (E-09)
-- [ ] T007 Prüfungen für das Zeitwerkzeug in
+- [x] T007 Prüfungen für das Zeitwerkzeug in
       `packages/reservierung-core/tests/zeit.test.ts` — Sommerzeit,
       Winterzeit und **ein Zeitraum über die Umstellung hinweg**
-- [ ] T008 Ausfuhr in `packages/reservierung-core/src/index.ts` sammeln und
+- [x] T008 Ausfuhr in `packages/reservierung-core/src/index.ts` sammeln und
       `packages/reservierung-core` als Abhängigkeit in `apps/web/package.json`
       und `apps/reservierungs-abruf/package.json` eintragen
 
@@ -73,12 +73,12 @@ Reservierungskalender in Vereinsflieger halten.
 
 ### Kern
 
-- [ ] T009 [P] [US1] Prüfungen für das Deuten der Antwort in
+- [x] T009 [P] [US1] Prüfungen für das Deuten der Antwort in
       `packages/reservierung-core/tests/antwort-deuten.test.ts` —
       objektindizierte Form, `httpstatuscode` überspringen, leere Antwort als
       **gültiges** Ergebnis mit leerer Liste, Einzeleintrag, unbrauchbarer
       Eintrag wird verworfen ohne den Abruf zu verwerfen
-- [ ] T010 [P] [US1] Prüfungen für die Belegungsableitung in
+- [x] T010 [P] [US1] Prüfungen für die Belegungsableitung in
       `packages/reservierung-core/tests/belegung.test.ts` — frei, belegt,
       Grenze genau auf `beginn` (belegt), Grenze genau auf `ende` (frei),
       **lückenlose Kette** (Wechsel erst nach der letzten Belegung),
@@ -86,18 +86,18 @@ Reservierungskalender in Vereinsflieger halten.
       Belegung, keine Reservierung für die Kennung, **Sperre belegt ebenso**,
       **Kette aus Sperre und anschließender Reservierung**, `art` der laufenden
       Belegung wird durchgereicht
-- [ ] T011 [US1] `packages/reservierung-core/src/antwort-deuten.ts` — die
+- [x] T011 [US1] `packages/reservierung-core/src/antwort-deuten.ts` — die
       objektindizierte Antwort in `Reservierung[]` überführen, Kennung
       vereinheitlichen, `type` auf `art` abbilden, Einträge ohne
       Luftfahrzeugkennzeichen verwerfen (FR-003a), alle übrigen Felder der
       Quelle fallen lassen, Zähler der verworfenen Einträge führen
-- [ ] T012 [US1] `packages/reservierung-core/src/belegung.ts` —
+- [x] T012 [US1] `packages/reservierung-core/src/belegung.ts` —
       `belegungsauskunft(stand, kennung, bezugszeitpunkt)` nach den Regeln aus
       data-model.md. Der Bezugszeitpunkt wird **übergeben**, nie geholt
-- [ ] T013 [US1] `packages/reservierung-core/src/formulieren.ts` — aus der
+- [x] T013 [US1] `packages/reservierung-core/src/formulieren.ts` — aus der
       Auskunft den deutschen Satz mit Wochentag und Uhrzeit in Ortszeit; bei
       einer Sperre **„Gesperrt bis …"** statt „Belegt bis …" (FR-007a)
-- [ ] T013a [P] [US1] Prüfungen für die Formulierung in
+- [x] T013a [P] [US1] Prüfungen für die Formulierung in
       `packages/reservierung-core/tests/formulieren.test.ts` — frei mit und
       ohne nächste Belegung, belegt, **gesperrt**, mehrtägig mit Wochentag
 
@@ -147,10 +147,10 @@ nötig (SC-001).
 **Unabhängig prüfbar**: Die Quelle künstlich unerreichbar machen; die Seite
 zeigt den letzten Stand mit sichtbarem Alter statt einer Fehlermeldung.
 
-- [ ] T021 [P] [US2] Prüfungen für Alter und Verfall in
+- [x] T021 [P] [US2] Prüfungen für Alter und Verfall in
       `packages/reservierung-core/tests/verfall.test.ts` — frisch, veraltet,
       genau an der Grenze
-- [ ] T022 [US2] Verfallsgrenze und Altersberechnung im Kern
+- [x] T022 [US2] Verfallsgrenze und Altersberechnung im Kern
       (`packages/reservierung-core/src/verfall.ts`) — der Kern gibt die Grenze
       vor, nicht die Anzeige (Prinzip IV)
 - [ ] T023 [US2] Fehlerverhalten in

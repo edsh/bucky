@@ -13,6 +13,19 @@ export default defineConfig({
       },
       {
         test: {
+          name: 'reservierung-core',
+          root: './packages/reservierung-core',
+          include: ['tests/**/*.test.ts'],
+          // Der Kern rechnet mit Zeitzonen. Damit die Prüfungen überall
+          // dasselbe ergeben — auf diesem Rechner wie in der CI, die in UTC
+          // läuft —, wird die Zeitzone hier festgenagelt statt der Umgebung
+          // überlassen. Eine Prüfung, die nur zu Hause grün ist, prüft nichts.
+          environment: 'node',
+          env: { TZ: 'UTC' }
+        }
+      },
+      {
+        test: {
           name: 'mcp',
           root: './apps/mcp',
           include: ['tests/**/*.test.ts'],

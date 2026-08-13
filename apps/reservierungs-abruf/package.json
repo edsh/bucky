@@ -1,0 +1,17 @@
+{
+  "name": "@edsh-bucky/reservierungs-abruf",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@edsh-bucky/reservierung-core": "*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260813.1",
+    "wrangler": "^4.122.0"
+  }
+}

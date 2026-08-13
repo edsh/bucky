@@ -15,6 +15,16 @@
     "binding": "ASSETS",
     "directory": ".svelte-kit/cloudflare"
   },
+  // Derselbe Namensraum, den `apps/reservierungs-abruf` beschreibt. Hier wird
+  // ausschliesslich gelesen: Die Weboberflaeche kennt die Zugangsdaten der
+  // Gegenstelle nicht und soll sie nicht kennen (research.md, E-07).
+  "kv_namespaces": [
+    {
+      "binding": "RESERVIERUNGEN",
+      // PLATZHALTER — siehe quickstart.md Schritt 1.
+      "id": "HIER_KENNUNG_EINTRAGEN"
+    }
+  ],
   // Ohne diese Adresse gaebe es keinen Ort, an dem sich der Worker pruefen
   // liesse, bevor `bucky.edsh.de` auf ihn zeigt — und genau das ist die
   // Bedingung, unter der die Umstellung ohne Ueberraschung ablaeuft.

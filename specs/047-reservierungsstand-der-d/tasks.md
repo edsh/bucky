@@ -103,15 +103,15 @@ Reservierungskalender in Vereinsflieger halten.
 
 ### Abruf
 
-- [ ] T014 [US1] Anmeldung in `apps/reservierungs-abruf/src/anmeldung.ts` —
+- [x] T014 [US1] Anmeldung in `apps/reservierungs-abruf/src/anmeldung.ts` —
       `accesstoken` holen, Kennwort per `crypto.subtle.digest('MD5', …)`
       (E-02), Zugangsschlüssel wiederverwenden und nur bei Ablehnung einmalig
       erneuern (E-04), Neuanmeldungen zählen
-- [ ] T015 [US1] `apps/reservierungs-abruf/src/index.ts` mit `scheduled()` —
+- [x] T015 [US1] `apps/reservierungs-abruf/src/index.ts` mit `scheduled()` —
       anmelden, `reservation/list/active` holen, durch den Kern schicken,
       `Abrufstand` unter dem Schlüssel `stand` ablegen. **Keine eigene
       Fachlogik** in dieser Datei
-- [ ] T016 [US1] Örtlich auslösen und belegen: `wrangler dev --test-scheduled`
+- [x] T016 [US1] Örtlich auslösen und belegen: `wrangler dev --test-scheduled`
       plus `curl "http://localhost:8787/__scheduled?cron=*/10+*+*+*+*"`, dann
       `wrangler kv key get stand --binding RESERVIERUNGEN --local`. Nur der
       Eintrag im Speicher zählt als Nachweis — Konsole **im Vordergrund**
@@ -165,7 +165,7 @@ zeigt den letzten Stand mit sichtbarem Alter statt einer Fehlermeldung.
       `apps/web/src/routes/d-eelk/reservierung/+page.svelte` — bei fehlendem
       Stand offen sagen, dass keine Auskunft möglich ist, und **nicht**
       behaupten, das Flugzeug sei frei (FR-010)
-- [ ] T026 [US2] Fehlerfall örtlich belegen: ein Geheimnis verfälschen, Cron
+- [x] T026 [US2] Fehlerfall örtlich belegen: ein Geheimnis verfälschen, Cron
       auslösen, Speicher lesen — `abgerufenAm` muss **unverändert** sein
       (quickstart.md Schritt 5), danach zurücksetzen
 - [ ] T027 [US2] Klickpfad-Prüfungen für Alter, Veraltet-Kennzeichnung und den
@@ -268,3 +268,15 @@ Alter behauptet mehr Aktualität, als sie hat.
   KV-Namensraum binden können. Sehr wahrscheinlich ja, KV ist kontoweit — aber
   unbelegt. Schlägt es fehl, ist das ein Punkt zum Innehalten, nicht zum
   Umgehen.
+- **Beim Bauen des Workers gelernt** (betrifft T015): Die Workers-Laufzeit
+  deutet **jeden benannten Export der Einstiegsdatei** als Einstiegspunkt. Eine
+  exportierte Konstante lässt den Start scheitern mit `Incorrect type for map
+  entry '…': the provided value is not of type 'function or ExportedHandler'`.
+  Deshalb trägt `src/index.ts` nur den Standard-Export; alles Übrige liegt in
+  `src/abruf.ts`.
+- **Beim Nachweisen gelernt** (betrifft T016/T026): `wrangler kv key put`
+  verlangt bei einer Bindung mit `id` **und** `preview_id` ausdrücklich
+  `--preview false` (beim `get` nicht). Für T026 genügt es nicht, das Kennwort
+  zu verfälschen — der abgelegte Zugangsschlüssel funktioniert ja weiter. Er
+  muss zusätzlich ungültig gemacht werden, sonst prüft man gar nicht den
+  Fehlerfall.

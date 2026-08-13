@@ -73,7 +73,7 @@ umfasst (E-03).
 | `abgerufenAm` | Zeitpunkt (ISO, UTC) | Wann dieser Stand erfolgreich geholt wurde. Grundlage für FR-005 und FR-009. |
 | `reservierungen` | Liste von `Reservierung` | **Alle** Flugzeuge, nicht nur die D-EELK (FR-003) |
 | `verworfeneEintraege` | Zahl | Wie viele Einträge die Prüfregeln nicht bestanden haben |
-| `neuanmeldungen` | Zahl | Wie oft in diesem Durchgang neu angemeldet werden musste — der Verbrauchszähler aus der Risikotabelle des Plans |
+| `neuanmeldungen` | Zahl | Wie oft **heute** neu angemeldet werden musste — der Verbrauchszähler aus der Risikotabelle des Plans |
 
 ### Regeln
 
@@ -81,6 +81,11 @@ umfasst (E-03).
   Versionen.
 - Geschrieben wird **nur nach einem vollständig gelungenen Durchgang** (FR-004).
 - `abgerufenAm` ist der Zeitpunkt des **Abrufs**, nicht des Schreibens.
+- `neuanmeldungen` zählt über den **Tag**, nicht über den Durchgang. Ein Wert
+  von 0 oder 1 je Durchgang verriete nichts darüber, ob der Zugangsschlüssel
+  hält; erst die Tagessumme zeigt, ob die Rechnung aus E-04 aufgeht.
+  Zurückgesetzt wird beim Tageswechsel in Ortszeit — der Tag der Gegenstelle
+  ist auch der Tag, an dem ihr Kontingent zählt.
 - Alle Flugzeuge werden gespeichert, obwohl vorerst nur eines angezeigt wird —
   die Entscheidung des Nutzers in der Vorklärung. Ein zweites Flugzeug ist
   später eine Anzeigefrage, kein neuer Abruf.

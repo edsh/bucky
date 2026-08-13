@@ -7,3 +7,7 @@ build/
 *.tsbuildinfo
 .DS_Store
 http-client.private.env.json
+# Oertliche Geheimnisse fuer `wrangler dev`. Sie stehen im Klartext darin —
+# in Betrieb kommen sie ueber `wrangler secret put`, nie aus dem Verzeichnis.
+.dev.vars
+.dev.vars.*

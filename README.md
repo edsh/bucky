@@ -343,7 +343,42 @@ Die Zugangsdaten für den örtlichen Lauf stehen in
 `apps/reservierungs-abruf/.dev.vars` — die Datei ist von der Versionsverwaltung
 ausgenommen.
 
-## Bauen und starten
+### Die erste Quelle: der Kalender-Abo-Link (seit Feature 052)
+
+Seit Feature 052 fragt die Server-Route `apps/web/src/routes/api/reservierung`
+zuerst einen öffentlichen, geheimen Kalender-Abo-Link von Vereinsflieger ab
+(`KALENDER_ABO_URL`) und deutet ihn direkt — ohne Anmeldung, ohne
+Tageskontingent, in unter zwei Sekunden. Erst wenn dieser Abruf scheitert
+(Geheimnis fehlt, Netzfehler, Zeitüberschreitung, kein gültiger Kalender),
+fällt die Route auf den KV-Namensraum des Abruf-Workers zurück — der zweite
+Worker bleibt also bestehen, ist aber nur noch die Rückfallebene, nicht mehr
+der Normalfall. Deshalb wurde sein Zeitplan von zehn auf dreißig Minuten
+verlangsamt (`apps/reservierungs-abruf/wrangler.jsonc`).
+
+Ein erfolgreicher Kalender-Abruf wird serverseitig 30 Sekunden lang
+vorgehalten (`apps/web/src/lib/server/kalender-holen.ts`) — das ist eine
+Ablage rein für diesen Netzabruf, keine Cache-Steuerung gegenüber dem Browser.
+Die Antwort an den Browser bleibt weiterhin uneingeschränkt `no-store`.
+
+Beruht eine Auskunft auf dem Rückfall statt auf dem Kalender, zeigt die Seite
+den zurückhaltenden Hinweis „Letzter bekannter Stand" — ohne Ursache, ohne
+Technik zu nennen (FR-019). Das Geheimnis wird wie die anderen einmalig von
+Hand gesetzt:
+
+```bash
+npx wrangler secret put KALENDER_ABO_URL --config apps/web/wrangler.jsonc
+```
+
+**Geändertes Zeitformat:** Seit Feature 052 tragen `Reservierung.beginn` und
+`.ende` ISO 8601 **mit** Zeitzonen-Versatz (z. B. `2026-08-13T17:00:00+02:00`)
+statt bloßer Ortszeit ohne Versatz. Grund: Der Kalender-Abo-Link liefert
+Zeitpunkte teils als Weltzeit (`Z`), teils als Ortszeit ohne Zeitzonenangabe —
+beides muss verlustfrei in dieselbe Form gebracht werden, damit Sommer- und
+Winterzeit nicht durcheinandergeraten. Ältere, im KV-Namensraum noch
+vorhandene Einträge ohne Versatz werden weiterhin gelesen (`belegung.ts`
+erkennt beide Formen).
+
+
 
 Voraussetzung ist Node 24 oder neuer — dieselbe Fassung, mit der geprüft und
 veröffentlicht wird. Bis Feature 045 liefen Prüfung und Veröffentlichung auf

@@ -239,17 +239,17 @@ Daten geprüft.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T032 [P] Überlastschutz aus T017 gegenprüfen: mehrere schnelle Aufrufe
+- [X] T032 [P] Überlastschutz aus T017 gegenprüfen: mehrere schnelle Aufrufe
       der Server-Route lösen nur einen tatsächlichen Netzabruf innerhalb von
       30 s aus (research.md E-08)
-- [ ] T033 [P] `README.md` und `AGENTS.md` um den neuen Ablauf ergänzen:
+- [X] T033 [P] `README.md` und `AGENTS.md` um den neuen Ablauf ergänzen:
       zweite Quelle, geändertes Zeitformat, neuer Takt des Abruf-Workers
-- [ ] T034 CI (`.github/workflows/ci.yml`) prüfen, ob die neue Typprüfung
+- [X] T034 CI (`.github/workflows/ci.yml`) prüfen, ob die neue Typprüfung
       (`npx tsc -p packages/reservierung-core` mit geändertem Zeitformat)
       weiterhin abgedeckt ist; keine neue Anmeldung an der
       Programmierschnittstelle in der Vorschau auslösen (unverändert aus
       Feature 047)
-- [ ] T035 Vollständigen Prüfstand fahren: `npm run lint`, `npm test`,
+- [X] T035 Vollständigen Prüfstand fahren: `npm run lint`, `npm test`,
       `npm run build`, `npm run check --workspace @edsh-bucky/web`,
       `npx tsc -p packages/reservierung-core`,
       `npx tsc -p apps/reservierungs-abruf`, Klickpfad örtlich

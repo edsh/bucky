@@ -122,27 +122,27 @@ erscheint (quickstart.md, Nachweis 7).
 - [X] T015 [US1] `kalenderDeuten` in
       `packages/reservierung-core/src/index.ts` ausführen; `Quelle`-Typ
       mit ausführen
-- [ ] T016 [US1] Netzabruf in `apps/web/src/lib/server/kalender-holen.ts`
+- [X] T016 [US1] Netzabruf in `apps/web/src/lib/server/kalender-holen.ts`
       erstellen: liest `platform.env.KALENDER_ABO_URL`, ruft mit 2 s
       Wartezeit ab (`AbortController`), reicht den rohen Text zurück oder
       wirft bei Zeitüberschreitung/Netzfehler/HTTP-Fehler — **kein**
       Fachlogik, keine Auswertung des Inhalts (research.md E-06, E-07)
-- [ ] T017 [US1] Kurzlebige Randablage des Abrufs in `kalender-holen.ts`
+- [X] T017 [US1] Kurzlebige Randablage des Abrufs in `kalender-holen.ts`
       ergänzen (30 s, research.md E-08) — betrifft **ausschließlich** diesen
       Netzabruf, nicht die Antwort der Server-Route
-- [ ] T018 [US1] `apps/web/src/routes/api/reservierung/+server.ts` umbauen:
+- [X] T018 [US1] `apps/web/src/routes/api/reservierung/+server.ts` umbauen:
       zuerst `kalenderHolen()` und `kalenderDeuten()` versuchen; bei Erfolg
       `quelle: 'kalender'`, `abgerufenAm: jetzt`; bei jedem Fehlschlag
       (Zeitüberschreitung, Netzfehler, kein gültiger Kalender) auf den
       bestehenden KV-Weg zurückfallen (contracts/api-reservierung.md)
-- [ ] T019 [US1] Sicherstellen, dass ein Fehlschlag von T018 **nicht** in den
+- [X] T019 [US1] Sicherstellen, dass ein Fehlschlag von T018 **nicht** in den
       KV-Speicher schreibt (FR-006) — Prüfung dafür in
       `apps/web/tests/` falls dort bereits ein Prüfrahmen für Server-Routen
       existiert, sonst als Vermerk in quickstart.md Nachweis 3 belassen
-- [ ] T020 [P] [US1] Antwortstruktur um `quelle` erweitern — betrifft
+- [X] T020 [P] [US1] Antwortstruktur um `quelle` erweitern — betrifft
       `apps/web/src/app.d.ts` (falls dort typisiert) und die Antwortformung
       in `+server.ts`
-- [ ] T021 [US1] `apps/web/src/routes/d-eelk/reservierung/+page.svelte`: Alter
+- [X] T021 [US1] `apps/web/src/routes/d-eelk/reservierung/+page.svelte`: Alter
       und Zustand unverändert übernehmen; `quelle` aus der Antwort auslesen
       und für T029 (User Story 2) vorbereiten, ohne dort schon den Hinweis
       auszugeben (das gehört zu US2)
@@ -178,7 +178,7 @@ Seite aufrufen — der zuletzt gespeicherte Stand muss samt Hinweis erscheinen
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Takt des bisherigen Abruf-Workers in
+- [X] T024 [US2] Takt des bisherigen Abruf-Workers in
       `apps/reservierungs-abruf/wrangler.jsonc` von `*/10 * * * *` auf
       `*/30 * * * *` umstellen (research.md E-09) — Kommentar über die
       Verfallsgrenze von 60 Minuten ergänzen

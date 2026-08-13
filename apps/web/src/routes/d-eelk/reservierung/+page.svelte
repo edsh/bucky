@@ -3,7 +3,8 @@
   import {
     alsAltersangabe,
     alsSatz,
-    type Belegungsauskunft
+    type Belegungsauskunft,
+    type Quelle
   } from '@edsh-bucky/reservierung-core';
 
   /**
@@ -18,8 +19,8 @@
    */
 
   type Antwort =
-    | ({ stand: 'vorhanden' } & Belegungsauskunft)
-    | { stand: 'fehlt' };
+    | ({ stand: 'vorhanden'; quelle: Quelle } & Belegungsauskunft)
+    | { stand: 'fehlt'; quelle: Quelle };
 
   /**
    * Der Weg von der Auskunft zur Buchung (FR-011, US3).

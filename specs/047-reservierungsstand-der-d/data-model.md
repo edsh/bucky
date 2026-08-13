@@ -30,11 +30,13 @@ Reservierung ist und beim Deuten übersprungen werden muss.
 | `kennung` | `ressource` | Text | nicht leer; wird auf Großbuchstaben ohne Leerzeichen vereinheitlicht, damit `D-EELK`, `D EELK` und `d-eelk` dasselbe Flugzeug sind |
 | `beginn` | `datefrom` | Zeitpunkt | `YYYY-MM-DD HH:MM:SS` **ohne Zeitzone**, zu deuten als Ortszeit `Europe/Berlin` (E-09) |
 | `ende` | `dateto` | Zeitpunkt | wie `beginn`; **muss** nach `beginn` liegen |
+| `art` | `type` | `reservierung` \| `sperre` | `Reservierung` → `reservierung`, `Sperre` → `sperre`; ein unbekannter Wert gilt als `reservierung` (belegt ist belegt) |
 
 ### Was ausdrücklich verworfen wird
 
-`comment`, `uid`, `user`, `uidfi`, `fi`, `prid`, `freeseats`, `type`,
-`daterange`, `duration`.
+`comment`, `uid`, `user`, `uidfi`, `fi`, `prid`, `freeseats`, `daterange`,
+`duration`, `createtime`, `modifytime`, `uidcreate`, `uidmodify`,
+`defaultairport`.
 
 **Warum das eine Regel und keine Auslassung ist**: `user` und `fi` sind
 Klarnamen. FR-006 verbietet sie nach außen. Die Struktur `Reservierung` hat
@@ -46,7 +48,8 @@ stehen könnte.
 
 Ein Eintrag wird verworfen (nicht der ganze Abruf), wenn:
 
-- `ressource` fehlt oder leer ist
+- `ressource` fehlt, leer ist oder **kein Luftfahrzeugkennzeichen** ist
+  (FR-003a) — im aufgezeichneten Abzug stehen auch `Werkstatt` und `GRILL`
 - `datefrom` oder `dateto` nicht dem erwarteten Muster entspricht
 - `dateto` nicht nach `datefrom` liegt
 
@@ -104,6 +107,7 @@ Das Ergebnis, aus dem der Satz auf der Seite entsteht.
 |---|---|---|
 | `kennung` | Text | Das Flugzeug, um das es geht |
 | `frei` | Ja/Nein | Zustand **zum übergebenen Bezugszeitpunkt** |
+| `art` | `reservierung` \| `sperre` \| nichts | Woraus die laufende Belegung stammt; leer, wenn frei |
 | `wechselAm` | Zeitpunkt oder nichts | Wann sich der Zustand ändert |
 | `wechselZu` | `frei` \| `belegt` \| nichts | Was danach gilt |
 | `standAlter` | Dauer | Wie alt der zugrunde liegende Abrufstand ist |
@@ -139,6 +143,19 @@ früheren beginnt. Ein Spalt von wenigen Minuten ist eine echte Lücke und wird
 als solche behandelt — er zu überbrücken hieße zu raten, wie kurz „zu kurz zum
 Fliegen" ist. Das ist eine Entscheidung des Piloten, nicht der App.
 
+### Sperre und Reservierung in einer Kette
+
+Für die Frage **ob** belegt ist, zählen beide Arten gleich — eine Sperre macht
+das Flugzeug ebenso unverfügbar. Ketten werden deshalb über beide Arten hinweg
+gebildet: Schließt eine Reservierung lückenlos an eine Sperre an, ist der
+Wechsel erst nach der Reservierung.
+
+Für die Frage **wie es benannt wird** zählt allein die Art der **gerade
+laufenden** Belegung. Wer am Samstag fragt, während die Sperre läuft, liest
+„Gesperrt bis …" — auch wenn danach eine gewöhnliche Reservierung folgt. Die
+Sperre ist die Nachricht, die für ihn zählt: Das Flugzeug ist nicht bloß
+vergeben, es ist womöglich zerlegt.
+
 ### Randfälle
 
 | Fall | Verhalten |
@@ -149,6 +166,8 @@ Fliegen" ist. Das ist eine Entscheidung des Piloten, nicht der App.
 | Zeitumstellung im Zeitraum | Ortszeit über `Intl`, keine eigene Rechnung |
 | Gar keine Reservierung für die Kennung | frei, kein Wechsel |
 | Leere Antwort der Quelle | gültiger Stand mit leerer Liste — **nicht** ein Fehlschlag |
+| Sperre über mehrere Tage, `00:00:00` bis `00:00:00` | gewöhnlicher Fall, kein Sonderfall — im Abzug der Regelfall bei Sperren |
+| Unbekannter `type`-Wert | als `reservierung` behandeln; belegt ist belegt |
 
 Der letzte Fall verdient die ausdrückliche Nennung: „Niemand hat reserviert" und
 „der Abruf ging schief" sind für den Piloten gegensätzliche Aussagen. Sie zu

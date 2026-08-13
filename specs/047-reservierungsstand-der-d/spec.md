@@ -109,6 +109,14 @@ landet.
   andere Ausfall zu behandeln — letzter Stand mit Alter, keine Falschauskunft.
 - **Viele Mitglieder schauen gleichzeitig**: Die Zahl der Zuschauer darf die
   Zahl der Abrufe bei der Quelle nicht beeinflussen.
+- **Das Flugzeug ist gesperrt statt reserviert**: Die Quelle unterscheidet
+  `Reservierung` und `Sperre`. Beides belegt das Flugzeug, aber aus
+  gegensätzlichem Grund — bei einer Sperre steht es meist in der Werkstatt.
+  „Belegt bis Montag" würde nahelegen, jemand fliege gerade damit, und jemanden
+  am Montag zum Platz schicken, an dem das Flugzeug noch zerlegt ist.
+- **Nicht jede Ressource ist ein Flugzeug**: Im Reservierungsbestand stehen auch
+  Werkstatt und Grillplatz. Wer alle Einträge für Luftfahrzeuge hält, zeigt
+  früher oder später den Grillplatz als Flugzeug an.
 
 ## Requirements *(mandatory)*
 
@@ -125,6 +133,8 @@ landet.
 - **FR-003**: Gespeichert werden MÜSSEN die Reservierungen **aller**
   Vereinsflugzeuge, damit ein weiteres Flugzeug später ohne neuen Abrufweg
   angezeigt werden kann.
+- **FR-003a**: Einträge, deren Ressource kein Luftfahrzeug ist (etwa Werkstatt
+  oder Grillplatz), DÜRFEN nicht als Flugzeug behandelt werden.
 - **FR-004**: Ein fehlgeschlagener oder unverständlicher Abruf DARF den zuletzt
   erfolgreich gespeicherten Stand nicht überschreiben oder löschen.
 - **FR-005**: Zu jedem gespeicherten Stand MUSS der Zeitpunkt des Abrufs
@@ -138,6 +148,9 @@ landet.
 - **FR-007**: Die Anzeige MUSS in einem Satz sagen, ob die D-EELK frei oder
   belegt ist, und dazu den nächsten Wechsel dieses Zustands mit Wochentag,
   Datum und Uhrzeit nennen.
+- **FR-007a**: Beruht die Belegung auf einer **Sperre** statt auf einer
+  Reservierung, MUSS die Anzeige das benennen („Gesperrt bis …") statt sie als
+  gewöhnliche Belegung darzustellen.
 - **FR-008**: Alle Zeitangaben MÜSSEN Ortszeit am Platz sein und über die
   Zeitumstellung hinweg richtig bleiben.
 - **FR-009**: Die Anzeige MUSS das Alter der Auskunft nennen und einen Stand,

@@ -22,7 +22,8 @@ niemals unverändert.
     {
       "kennung": "D-EELK",
       "beginn": "2026-08-15 15:00:00",  // Ortszeit Europe/Berlin
-      "ende":   "2026-08-15 19:00:00"
+      "ende":   "2026-08-15 19:00:00",
+      "art":    "reservierung"          // "reservierung" | "sperre"
     }
   ],
   "verworfeneEintraege": 0,
@@ -30,7 +31,7 @@ niemals unverändert.
 }
 ```
 
-**Erlaubte Felder je Reservierung**: genau `kennung`, `beginn`, `ende`.
+**Erlaubte Felder je Reservierung**: genau `kennung`, `beginn`, `ende`, `art`.
 Nichts sonst. Kein `comment`, kein `user`, kein `fi`, keine `prid`.
 
 Diese Aufzählung ist **abschließend** und wird beim Bauen geprüft. Der Grund ist
@@ -51,6 +52,7 @@ versehentlich mitgeschrieben werden.
   "stand": "vorhanden",
   "kennung": "D-EELK",
   "frei": true,
+  "art": null,                                // "reservierung" | "sperre" | null
   "wechselAm": "2026-08-15T13:00:00.000Z",   // ISO, UTC; null wenn keiner
   "wechselZu": "belegt",                      // "frei" | "belegt" | null
   "abgerufenAm": "2026-08-13T09:40:02.000Z",
@@ -86,12 +88,15 @@ Diese Punkte sind prüfbar und werden geprüft:
    Antwort — weder unter diesem Namen noch verschleiert (FR-006).
 2. **Kein Bemerkungstext** aus der Quelle wird durchgereicht. Bemerkungen
    enthalten erfahrungsgemäß Namen, Telefonnummern und Absichten.
-3. **Alle Zeitangaben nach außen sind ISO mit Zeitzone.** Die Quelle liefert
+3. **`art` ist entweder `reservierung` oder `sperre`** — nie der rohe Wert der
+   Quelle. Die Quelle liefert deutsche Wörter mit Großbuchstaben; sie
+   durchzureichen hieße, ihre Schreibweise zu unserem Vertrag zu machen.
+4. **Alle Zeitangaben nach außen sind ISO mit Zeitzone.** Die Quelle liefert
    Zeiten ohne Zeitzone; sie zu deuten ist Sache des Kerns, nicht des
    Empfängers (E-09).
-4. **Es wird nur gelesen.** Die Route kennt kein `POST`, kein `PUT`, kein
+5. **Es wird nur gelesen.** Die Route kennt kein `POST`, kein `PUT`, kein
    `DELETE` (FR-012).
-5. **Die Route holt nichts bei der Quelle.** Sie liest ausschließlich den
+6. **Die Route holt nichts bei der Quelle.** Sie liest ausschließlich den
    Zwischenspeicher. Ein Aufruf der Seite kostet kein Kontingent — sonst könnte
    ein einzelner Neulade-Finger den Tagesvorrat des Vereins aufbrauchen
    (SC-003).

@@ -37,13 +37,15 @@ gegen die echte Gegenstelle, nicht gegen Attrappen.
 **Sperrend für alle User Stories.** Ohne diese Grundlage kann keine Geschichte
 umgesetzt werden.
 
-- [ ] T004 Aufgezeichnete Antwort von `reservation/list/active` als Prüfstoff
+- [x] T004 Aufgezeichnete Antwort von `reservation/list/active` als Prüfstoff
       in `packages/reservierung-core/tests/beispiele/antwort-echt.json`
-      ablegen — von Hand um alle Klarnamen, Bemerkungen und Mitgliedskennungen
-      bereinigt, mit Kopfkommentar zur Herkunft
+      ablegen — bereinigt, mit Herkunftsnotiz in
+      `packages/reservierung-core/tests/beispiele/README.md`
+      ✅ **erledigt am 13.08.2026** — 19 echte Einträge, Struktur unverändert,
+      44 personenbezogene Werte durch `PLATZHALTER` ersetzt und gegengeprüft
 - [ ] T005 Typen der drei Größen in
       `packages/reservierung-core/src/typen.ts` nach data-model.md —
-      `Reservierung` (genau `kennung`, `beginn`, `ende`), `Abrufstand`,
+      `Reservierung` (genau `kennung`, `beginn`, `ende`, `art`), `Abrufstand`,
       `Belegungsauskunft`. Für `Reservierung` **kein** Feld für Personen
       vorsehen (Vertrag Abschnitt A)
 - [ ] T006 Zeitwerkzeug in `packages/reservierung-core/src/zeit.ts` —
@@ -81,16 +83,23 @@ Reservierungskalender in Vereinsflieger halten.
       Grenze genau auf `beginn` (belegt), Grenze genau auf `ende` (frei),
       **lückenlose Kette** (Wechsel erst nach der letzten Belegung),
       überlappende Belegungen, Spalt von Minuten als echte Lücke, mehrtägige
-      Belegung, keine Reservierung für die Kennung
+      Belegung, keine Reservierung für die Kennung, **Sperre belegt ebenso**,
+      **Kette aus Sperre und anschließender Reservierung**, `art` der laufenden
+      Belegung wird durchgereicht
 - [ ] T011 [US1] `packages/reservierung-core/src/antwort-deuten.ts` — die
       objektindizierte Antwort in `Reservierung[]` überführen, Kennung
-      vereinheitlichen, alle übrigen Felder der Quelle fallen lassen, Zähler
-      der verworfenen Einträge führen
+      vereinheitlichen, `type` auf `art` abbilden, Einträge ohne
+      Luftfahrzeugkennzeichen verwerfen (FR-003a), alle übrigen Felder der
+      Quelle fallen lassen, Zähler der verworfenen Einträge führen
 - [ ] T012 [US1] `packages/reservierung-core/src/belegung.ts` —
       `belegungsauskunft(stand, kennung, bezugszeitpunkt)` nach den Regeln aus
       data-model.md. Der Bezugszeitpunkt wird **übergeben**, nie geholt
 - [ ] T013 [US1] `packages/reservierung-core/src/formulieren.ts` — aus der
-      Auskunft den deutschen Satz mit Wochentag und Uhrzeit in Ortszeit
+      Auskunft den deutschen Satz mit Wochentag und Uhrzeit in Ortszeit; bei
+      einer Sperre **„Gesperrt bis …"** statt „Belegt bis …" (FR-007a)
+- [ ] T013a [P] [US1] Prüfungen für die Formulierung in
+      `packages/reservierung-core/tests/formulieren.test.ts` — frei mit und
+      ohne nächste Belegung, belegt, **gesperrt**, mehrtägig mit Wochentag
 
 ### Abruf
 
@@ -122,7 +131,8 @@ Reservierungskalender in Vereinsflieger halten.
 - [ ] T020 [US1] Klickpfad-Prüfungen in `tests/ui/klickpfad.mjs` ergänzen —
       Satz vorhanden, Zustand genannt, nächster Wechsel genannt, und
       ausdrücklich: **kein Personenname im Quelltext der Seite**, nicht nur im
-      Sichtbaren
+      Sichtbaren, und **kein `PLATZHALTER`** (der Prüfstoff macht ein
+      Durchrutschen so sofort sichtbar)
 
 **Prüfpunkt US1**: Der Klickpfad ist grün; die Aussage stimmt mit dem
 Reservierungskalender in Vereinsflieger überein (SC-002); keine Anmeldung
@@ -185,8 +195,9 @@ auskunftsfähig und die Auskunft erkennbar alt.
 - [ ] T030 [P] Vertragsprüfung in
       `packages/reservierung-core/tests/vertrag.test.ts` — die ausgelieferte
       Antwort enthält **ausschließlich** die in
-      contracts/reservierungsstand.md Abschnitt B genannten Felder. Ein neues
-      Feld muss diese Prüfung umwerfen, nicht stillschweigend durchrutschen
+      contracts/reservierungsstand.md Abschnitt B genannten Felder — geprüft
+      gegen den **echten** Prüfstoff aus T004. Ein neues Feld muss diese
+      Prüfung umwerfen, nicht stillschweigend durchrutschen
 - [ ] T031 [P] `apps/reservierungs-abruf` in `.github/workflows/ci.yml`
       aufnehmen — zweiter Veröffentlichungsschritt neben `apps/web`
 - [ ] T032 [P] `README.md` und `AGENTS.md` um den zweiten Worker, den
@@ -225,8 +236,8 @@ Weiterweg anzubieten.
 
 **In Phase 2**: T004 (Prüfstoff) und T005 (Typen) — verschiedene Dateien.
 
-**In Phase 3**: T009 und T010 (beide Prüfungen, verschiedene Dateien) vor
-T011/T012. Danach ist die Kette eng: T011 → T012 → T013 → T015 → T017 → T018,
+**In Phase 3**: T009, T010 und T013a (Prüfungen, verschiedene Dateien) vor
+T011/T012/T013. Danach ist die Kette eng: T011 → T012 → T013 → T015 → T017 → T018,
 weil jeder Schritt auf der Ausfuhr des vorigen aufsetzt.
 
 **In Phase 6**: T030, T031 und T032 berühren getrennte Dateien.
@@ -245,8 +256,14 @@ Alter behauptet mehr Aktualität, als sie hat.
   Ein Cron, der nicht läuft, sieht aus wie ein Cron, der nichts zu tun fand;
   ein Fehlerfall, der doch schreibt, fällt erst auf, wenn jemand wegen einer
   leeren Auskunft zum Platz fährt.
-- **Vom Nutzer gebraucht**: `VF_APPKEY`, `VF_USERNAME`, `VF_PASSWORD`, `VF_CID`
-  für T034 — und einmalig eine echte Antwort der Reservierungsliste für T004.
+- **Vom Nutzer gebraucht**: `VF_APPKEY`, `VF_USERNAME`, `VF_PASSWORD` für T034.
+  Sie liegen örtlich in `tools/vereinsflieger-api/http-client.private.env.json`.
+  **`VF_CID` wird nicht gebraucht** — siehe unten.
+- **Beim Erzeugen des Prüfstoffs gelernt** (betrifft T014): Der
+  `PHPSESSID`-Keks aus dem `accesstoken`-Aufruf **muss** beim `signin`
+  mitgeschickt werden, und `cid` darf **nicht** mitgeschickt werden. Sonst
+  antwortet die Anmeldung mit `403 Wrong User or wrong Password` — eine
+  Meldung, die die Suche in die falsche Richtung schickt.
 - **Offen und beim Bauen zu klären** (T001/T003): ob zwei Worker denselben
   KV-Namensraum binden können. Sehr wahrscheinlich ja, KV ist kontoweit — aber
   unbelegt. Schlägt es fehl, ist das ein Punkt zum Innehalten, nicht zum

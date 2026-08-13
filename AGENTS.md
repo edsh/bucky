@@ -44,4 +44,45 @@ ein zweiter Worker füllt, und örtlich hat jeder Worker seinen eigenen. Der
 gemeinsame Speicher kommt über `--persist-to` — Einzelheiten im Abschnitt „Der
 zweite Worker" in `README.md`.
 
+## Welches Sprachmodell für welchen Schritt
+
+Die Modelle unterscheiden sich in Preis und Urteilskraft deutlich. Beides
+durchgehend auf der teuersten Stufe zu fahren ist Verschwendung; alles auf der
+günstigsten zu fahren rächt sich dort, wo Denkfehler entstehen. Deshalb:
+
+**Das kleinere, günstigere Modell (z. B. Claude Sonnet) genügt, wenn das *Was*
+bereits entschieden ist und nur das *Wie* auszuführen bleibt:**
+
+- Aufgaben aus einer fertigen `tasks.md` abarbeiten (`/speckit-implement`)
+- Prüfungen nach vorhandenem Muster ergänzen
+- Prüfläufe fahren, Fehlermeldungen einordnen, Offensichtliches beheben
+- Commit-Botschaften, Vorschlagstexte, Doku-Pflege
+- Umbenennungen, Aufräumarbeiten, mechanische Umbauten
+
+**Das größere Modell (z. B. Claude Opus) lohnt sich, wenn das *Was* oder das
+*Warum* offen ist:**
+
+- Klärungsgespräch und Spezifikation (`/speckit-clarify`, `/speckit-specify`) —
+  hier entstehen die Denkfehler, die später teuer werden
+- Planung und Architekturentscheidungen (`/speckit-plan`)
+- Fehlersuche ohne klare Spur, besonders wenn die erste Erklärung nicht trägt
+- Alles, was Verfassungsprinzip I berührt (sicherheitskritische Berechnung)
+- Entscheidungen, bei denen eine Zusicherung aus einer früheren Spezifikation
+  brechen könnte
+
+Ein Beleg aus der Praxis: Bei der Suche nach einer angeblich falsch gecachten
+Auskunft lag die erste Erklärung („eine Regel der Cloudflare-Zone schreibt den
+Header um") daneben, und die zweite („das Bild fehlt live") ebenfalls. Erst das
+beharrliche Nachmessen brachte die Wahrheit — Cloudflare liefert *während eines
+Deploys* kurzzeitig 404, und der Jahres-Header stammte aus SvelteKits eigener
+`_headers`. Solche Sackgassen zu erkennen, statt die erste plausible Geschichte
+zu glauben, ist genau das, wofür sich das größere Modell rechnet.
+
+**Der Agent schlägt den Wechsel von sich aus vor.** Wer weiß, unter welchem
+Modell er läuft, sagt es beim Übergang zwischen den Schritten: vor dem
+Abarbeiten einer fertigen `tasks.md` das Herunterschalten, vor Klärung, Planung
+oder verworrener Fehlersuche das Heraufschalten. Der Vorschlag ist eine
+Empfehlung, keine Selbstverständlichkeit — entschieden wird er vom Menschen.
+Umgeschaltet wird in Copilot CLI mit `/model`.
+
 @.specify/memory/constitution.md

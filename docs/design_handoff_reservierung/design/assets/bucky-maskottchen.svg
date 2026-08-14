@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 348" width="320" height="348" role="img" aria-labelledby="bucky-title bucky-desc">
+  <title id="bucky-title">Bucky – Maskottchen des LSV Backnang-Heiningen</title>
+  <desc id="bucky-desc">Kleiner Pilot mit Fliegerhaube und Brille; sein Schnurrbart besteht aus den beiden Möwenschwingen des Vereinslogos, die zugleich einen Propeller mit Spinner bilden.</desc>
+
+  <defs>
+    
+    <path id="bucky-wing" d="M0,4 C22,-8 48,-20 78,-25 C96,-28 112,-25 122,-17 C104,-19 86,-14 68,-6 C46,4 24,16 6,22 Z"></path>
+    <clipPath id="bucky-head-clip"><circle cx="160" cy="148" r="86"></circle></clipPath>
+  </defs>
+
+  <g id="bucky">
+    
+    <path d="M160,232 c46,0 76,28 82,62 c2,12 -6,22 -18,22 h-128 c-12,0 -20,-10 -18,-22 c6,-34 36,-62 82,-62 Z" fill="#198DCD"></path>
+
+    
+    <path d="M206,254 q26,16 18,42" fill="none" stroke="#BBD7F1" stroke-width="16" stroke-linecap="round"></path>
+    <path d="M112,242 q48,24 96,0" fill="none" stroke="#BBD7F1" stroke-width="22" stroke-linecap="round"></path>
+
+    
+    <path d="M76,150 q-22,2 -22,26 q0,24 22,26 q8,-26 0,-52 Z" fill="#198DCD"></path>
+    <path d="M244,150 q22,2 22,26 q0,24 -22,26 q-8,-26 0,-52 Z" fill="#198DCD"></path>
+
+    
+    <circle cx="160" cy="148" r="86" fill="#FFFFFF" stroke="#198DCD" stroke-width="6"></circle>
+
+    
+    <g clip-path="url(#bucky-head-clip)">
+      <path d="M58,120 q102,-30 204,0 L262,50 L58,50 Z" fill="#198DCD"></path>
+      <path d="M58,120 q102,-30 204,0 l0,10 q-102,-30 -204,0 Z" fill="#0F6FA3"></path>
+    </g>
+
+    
+    <rect x="70" y="140" width="180" height="14" rx="7" fill="#0F6FA3"></rect>
+    <circle cx="120" cy="147" r="27" fill="#BBD7F1" stroke="#0F6FA3" stroke-width="7"></circle>
+    <circle cx="200" cy="147" r="27" fill="#BBD7F1" stroke="#0F6FA3" stroke-width="7"></circle>
+    <circle cx="112" cy="140" r="7" fill="#FFFFFF"></circle>
+    <circle cx="192" cy="140" r="7" fill="#FFFFFF"></circle>
+
+    
+    <circle cx="98" cy="178" r="10" fill="#BBD7F1"></circle>
+    <circle cx="222" cy="178" r="10" fill="#BBD7F1"></circle>
+
+    
+    <g transform="translate(160,192)">
+      <g transform="scale(0.45,-0.45)">
+        <use href="#bucky-wing" fill="#198DCD"></use>
+        <use href="#bucky-wing" fill="#198DCD" transform="scale(-1,1)"></use>
+      </g>
+      <circle cx="0" cy="0" r="11" fill="#0F6FA3"></circle>
+      <circle cx="-3" cy="-3" r="4" fill="#BBD7F1"></circle>
+    </g>
+
+    
+    <path d="M146,214 q14,13 28,0" fill="none" stroke="#0F6FA3" stroke-width="6" stroke-linecap="round"></path>
+  </g>
+</svg>

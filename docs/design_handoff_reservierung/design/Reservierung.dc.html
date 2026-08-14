@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<style>
+body{margin:0;-webkit-font-smoothing:antialiased}
+a{color:#1f4e79}a:hover{color:#16395a}
+@keyframes rein{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+@keyframes raus{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes hoch{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes einblenden{from{opacity:0}to{opacity:1}}
+@keyframes puls{0%,100%{opacity:1}50%{opacity:.35}}
+</style>
+</helmet>
+<div style="min-height:100vh;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.5;display:flex;justify-content:center;background:{{ t.aussen }};color:{{ t.text }}">
+<div style="width:100%;max-width:430px;background:{{ t.bg }};min-height:100vh;position:relative;overflow:hidden;box-shadow:0 0 0 1px rgba(127,127,127,.18)">
+
+<sc-if value="{{ istUebersicht }}" hint-placeholder-val="{{ true }}">
+<div style="animation:einblenden .25s ease">
+  <div style="position:relative">
+    <img src="assets/bucky-splash.png" alt="Bucky fragt: Hey Pilot, was darf's sein?" style="display:block;width:100%;height:auto"/>
+    <button onClick="{{ dunkelUmschalten }}" title="Ansicht wechseln" style="position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.35);color:#fff;font-size:15px;cursor:pointer;backdrop-filter:blur(4px)">{{ dunkelZeichen }}</button>
+  </div>
+
+  <div style="margin:14px 16px 0;padding-bottom:12px;border-bottom:1px solid rgba(127,127,127,.2);display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.5">Meine Lieblingsmaschinen</div>
+    <div style="font-size:11.5px;opacity:.45">{{ standText }}</div>
+  </div>
+
+  <div style="padding:16px 16px 0;display:flex;gap:18px;align-items:flex-start">
+    <sc-for list="{{ favoriten }}" as="r" hint-placeholder-count="2">
+      <button onClick="{{ r.oeffnen }}" style="flex:none;display:flex;flex-direction:column;align-items:center;gap:7px;width:118px;padding:0;border:0;background:none;cursor:pointer;color:inherit;font:inherit">
+        <div style="position:relative;width:96px;height:96px;border-radius:50%;padding:{{ r.padGross }};box-sizing:border-box;background:{{ r.ringFarbe }}">
+          <div style="width:100%;height:100%;border-radius:50%;background:{{ r.avatarGrund }};display:grid;place-items:center;overflow:hidden">
+            <sc-if value="{{ r.hatBild }}" hint-placeholder-val="{{ false }}">
+              <div role="img" style="width:74px;height:74px;image-rendering:pixelated;background:center/contain no-repeat url({{ r.bild }})"></div>
+            </sc-if>
+            <sc-if value="{{ r.ohneBild }}" hint-placeholder-val="{{ true }}">
+              <div style="width:100%;height:100%;display:grid;place-items:center">
+                <span style="font:700 18px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.02em;opacity:.6">{{ r.kurz }}</span>
+              </div>
+            </sc-if>
+          </div>
+          <sc-if value="{{ r.zeigtUhr }}" hint-placeholder-val="{{ false }}">
+            <sc-for list="{{ r.markerGross }}" as="m" hint-placeholder-count="2">
+              <span style="{{ m.stil }}"></span>
+            </sc-for>
+            <sc-for list="{{ r.schriftGross }}" as="b" hint-placeholder-count="2">
+              <span style="{{ b.stil }}">{{ b.text }}</span>
+            </sc-for>
+            <span style="{{ r.pinGross }}"></span>
+          </sc-if>
+          <sc-if value="{{ r.zeigtPunkt }}" hint-placeholder-val="{{ false }}">
+            <span style="position:absolute;right:9px;bottom:9px;width:20px;height:20px;border-radius:50%;z-index:5;background:{{ r.punktGrund }};box-shadow:0 0 0 3px {{ t.bg }}"></span>
+          </sc-if>
+        </div>
+        <span style="font:700 13.5px/1.1 system-ui,sans-serif;letter-spacing:.04em">{{ r.kennzeichen }}</span>
+        <span style="font-size:11.5px;text-align:center;text-wrap:pretty;color:{{ r.statusFarbe }};font-weight:600">{{ r.kurzsatz }}</span>
+        <sc-if value="{{ r.hatDanach }}" hint-placeholder-val="{{ false }}">
+          <span style="font-size:11px;text-align:center;text-wrap:pretty;opacity:.5;margin-top:-4px">{{ r.danach }}</span>
+        </sc-if>
+      </button>
+    </sc-for>
+    <sc-if value="{{ legendeDaneben }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:1;min-width:0;align-self:flex-end;display:flex;flex-direction:column;gap:7px;padding:10px 10px;border-radius:10px;background:rgba(127,127,127,.09)">
+        <sc-for list="{{ legende }}" as="l" hint-placeholder-count="3">
+          <span style="display:flex;align-items:center;gap:7px;font-size:11.5px;opacity:.75"><span style="width:11px;height:11px;border-radius:50%;flex:none;background:{{ l.farbe }}"></span>{{ l.text }}</span>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ legendeUnten }}" hint-placeholder-val="{{ false }}">
+    <div style="margin:18px 16px 0;padding:10px 12px;border-radius:10px;background:rgba(127,127,127,.09);display:flex;flex-wrap:wrap;gap:6px 14px">
+      <sc-for list="{{ legende }}" as="l" hint-placeholder-count="4">
+        <span style="display:flex;align-items:center;gap:6px;font-size:11.5px;opacity:.75"><span style="width:11px;height:11px;border-radius:50%;flex:none;background:{{ l.farbe }}"></span>{{ l.text }}</span>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <div style="padding:8px 16px 40px">
+    <sc-for list="{{ gruppen }}" as="g" hint-placeholder-count="3">
+      <div style="margin-top:26px">
+        <div style="display:flex;align-items:baseline;gap:8px;padding-bottom:12px;border-bottom:1px solid rgba(127,127,127,.2)">
+          <span style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.5">{{ g.titel }}</span>
+          <span style="font-size:11px;opacity:.35">{{ g.zaehler }}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:16px 14px;padding-top:16px">
+          <sc-for list="{{ g.items }}" as="r" hint-placeholder-count="3">
+            <button onClick="{{ r.oeffnen }}" style="flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;width:118px;padding:0;border:0;background:none;cursor:pointer;color:inherit;font:inherit">
+              <div style="position:relative;width:74px;height:74px;border-radius:50%;padding:{{ r.padKlein }};box-sizing:border-box;background:{{ r.ringFarbe }}">
+                <div style="width:100%;height:100%;border-radius:50%;background:{{ r.avatarGrund }};display:grid;place-items:center;overflow:hidden">
+                  <sc-if value="{{ r.hatBild }}" hint-placeholder-val="{{ false }}">
+                    <div role="img" style="width:56px;height:56px;image-rendering:pixelated;background:center/contain no-repeat url({{ r.bild }})"></div>
+                  </sc-if>
+                  <sc-if value="{{ r.ohneBild }}" hint-placeholder-val="{{ true }}">
+                    <div style="width:100%;height:100%;display:grid;place-items:center">
+                      <span style="font:700 14px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.02em;opacity:.6">{{ r.kurz }}</span>
+                    </div>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ r.zeigtUhr }}" hint-placeholder-val="{{ false }}">
+                  <sc-for list="{{ r.markerKlein }}" as="m" hint-placeholder-count="2">
+                    <span style="{{ m.stil }}"></span>
+                  </sc-for>
+                  <sc-for list="{{ r.schriftKlein }}" as="b" hint-placeholder-count="2">
+                    <span style="{{ b.stil }}">{{ b.text }}</span>
+                  </sc-for>
+                  <span style="{{ r.pinKlein }}"></span>
+                </sc-if>
+                <sc-if value="{{ r.zeigtPunkt }}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute;right:6px;bottom:6px;width:17px;height:17px;border-radius:50%;z-index:5;background:{{ r.punktGrund }};box-shadow:0 0 0 3px {{ t.bg }}"></span>
+                </sc-if>
+              </div>
+              <span style="font:700 12.5px/1.1 system-ui,sans-serif;letter-spacing:.04em">{{ r.kennzeichen }}</span>
+              <span style="font-size:11px;text-align:center;text-wrap:pretty;color:{{ r.statusFarbe }}">{{ r.kurzsatz }}</span>
+              <sc-if value="{{ r.hatDanach }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:10.5px;text-align:center;text-wrap:pretty;opacity:.5;margin-top:-3px">{{ r.danach }}</span>
+              </sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+
+    <p style="margin:30px 0 0;font-size:11.5px;line-height:1.55;opacity:.45;text-wrap:pretty">Unverbindliche Anzeige. Verbindlich ist der Reservierungskalender in Vereinsflieger.</p>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ istDetail }}" hint-placeholder-val="{{ false }}">
+<div style="animation:rein .26s cubic-bezier(.22,.7,.3,1)">
+  <div style="position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:12px;padding:12px 16px;background:{{ t.bg }};border-bottom:1px solid rgba(127,127,127,.2)">
+    <button onClick="{{ zurueck }}" style="width:34px;height:34px;flex:none;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:none;color:inherit;font-size:15px;cursor:pointer">←</button>
+    <div style="position:relative;width:40px;height:40px;flex:none;border-radius:50%;padding:{{ aktiv.padMini }};box-sizing:border-box;background:{{ aktiv.ringFarbe }}">
+      <div style="width:100%;height:100%;border-radius:50%;background:{{ aktiv.avatarGrund }};display:grid;place-items:center;overflow:hidden">
+        <sc-if value="{{ aktiv.hatBild }}" hint-placeholder-val="{{ false }}"><div role="img" style="width:30px;height:30px;image-rendering:pixelated;background:center/contain no-repeat url({{ aktiv.bild }})"></div></sc-if>
+        <sc-if value="{{ aktiv.ohneBild }}" hint-placeholder-val="{{ true }}"><span style="font:700 10.5px/1 ui-monospace,Menlo,monospace;opacity:.6">{{ aktiv.kurz }}</span></sc-if>
+      </div>
+    </div>
+    <div style="min-width:0">
+      <div style="font:700 15px/1.2 system-ui,sans-serif;letter-spacing:.05em">{{ aktiv.kennzeichen }}</div>
+      <div style="font-size:11.5px;opacity:.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ aktiv.typ }}</div>
+    </div>
+    <button onClick="{{ dunkelUmschalten }}" style="margin-left:auto;width:34px;height:34px;flex:none;border-radius:50%;border:1px solid rgba(127,127,127,.3);background:none;color:inherit;font-size:14px;cursor:pointer">{{ dunkelZeichen }}</button>
+  </div>
+
+  <div style="padding:22px 16px 0">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="width:9px;height:9px;border-radius:50%;background:{{ aktiv.statusFarbe }};animation:puls 2.4s ease-in-out infinite"></span>
+      <span style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.5">{{ aktiv.statusWort }}</span>
+    </div>
+    <p style="margin:0;font-size:27px;line-height:1.25;font-weight:650;letter-spacing:-.01em;text-wrap:balance;color:{{ aktiv.statusFarbe }}">{{ aktiv.satz }}</p>
+    <p style="margin:8px 0 0;font-size:12.5px;opacity:.5">{{ standText }}</p>
+  </div>
+
+  <div style="margin:22px 16px 0;padding:16px 14px 12px;border-radius:14px;background:rgba(127,127,127,.09)">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
+      <span style="font-size:12px;font-weight:700;letter-spacing:.06em">Heute</span>
+      <span style="font-size:11.5px;opacity:.5">{{ heuteDatum }}</span>
+    </div>
+    <div style="position:relative;height:38px;border-radius:8px;background:rgba(127,127,127,.16);overflow:hidden">
+      <sc-for list="{{ aktiv.heute }}" as="s" hint-placeholder-count="2">
+        <div style="position:absolute;top:0;bottom:0;border-radius:6px;left:{{ s.links }}%;width:{{ s.breite }}%;background:{{ s.fuellung }}"></div>
+      </sc-for>
+      <div style="position:absolute;top:-3px;bottom:-3px;width:2px;background:{{ t.text }};left:{{ aktiv.jetztPos }}%"></div>
+    </div>
+    <div style="position:relative;height:16px;margin-top:5px">
+      <sc-for list="{{ stunden }}" as="h" hint-placeholder-count="5">
+        <span style="position:absolute;transform:translateX(-50%);font:11px/1 ui-monospace,Menlo,monospace;opacity:.45;left:{{ h.pos }}%">{{ h.text }}</span>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:12px">
+      <sc-for list="{{ aktiv.heuteText }}" as="z" hint-placeholder-count="2">
+        <span style="font-size:12px;opacity:.7"><strong style="font-weight:650">{{ z.zeit }}</strong> · {{ z.wer }}</span>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="margin:24px 16px 0;display:flex;gap:4px;padding:3px;border-radius:10px;background:rgba(127,127,127,.12)">
+    <sc-for list="{{ reiter }}" as="k" hint-placeholder-count="2">
+      <button onClick="{{ k.waehlen }}" style="flex:1;padding:8px 4px;border:0;border-radius:8px;font:600 12.5px system-ui,sans-serif;cursor:pointer;color:inherit;background:{{ k.grund }};box-shadow:{{ k.schatten }}">{{ k.text }}</button>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ reiterTage }}" hint-placeholder-val="{{ true }}">
+    <div style="margin:14px 16px 0;animation:einblenden .2s">
+      <sc-for list="{{ aktiv.tage }}" as="d" hint-placeholder-count="7">
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(127,127,127,.14)">
+          <span style="flex:none;width:56px;font:12.5px/1.2 system-ui,sans-serif;opacity:.75"><strong style="font-weight:700">{{ d.tag }}</strong> {{ d.datum }}</span>
+          <div style="position:relative;flex:1;height:14px;border-radius:5px;background:rgba(127,127,127,.16);overflow:hidden">
+            <sc-for list="{{ d.segmente }}" as="s" hint-placeholder-count="1">
+              <div style="position:absolute;top:0;bottom:0;border-radius:4px;left:{{ s.links }}%;width:{{ s.breite }}%;background:{{ s.fuellung }}"></div>
+            </sc-for>
+          </div>
+          <span style="flex:none;width:112px;white-space:nowrap;text-align:right;font:11.5px/1.2 ui-monospace,Menlo,monospace;color:{{ d.farbe }}">{{ d.text }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ reiterWoche }}" hint-placeholder-val="{{ false }}">
+    <div style="margin:16px 16px 0;animation:einblenden .2s;display:flex;gap:6px">
+      <div style="flex:none;width:30px;position:relative;height:210px">
+        <sc-for list="{{ stundenSenkrecht }}" as="h" hint-placeholder-count="5">
+          <span style="position:absolute;right:0;transform:translateY(-50%);font:10.5px/1 ui-monospace,Menlo,monospace;opacity:.45;top:{{ h.pos }}%">{{ h.text }}</span>
+        </sc-for>
+      </div>
+      <sc-for list="{{ aktiv.woche }}" as="d" hint-placeholder-count="7">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px">
+          <div style="position:relative;width:100%;height:210px;border-radius:6px;background:rgba(127,127,127,.14);overflow:hidden">
+            <sc-for list="{{ d.segmente }}" as="s" hint-placeholder-count="1">
+              <div style="position:absolute;left:1px;right:1px;border-radius:4px;top:{{ s.oben }}%;height:{{ s.hoehe }}%;background:{{ s.fuellung }}"></div>
+            </sc-for>
+            <sc-if value="{{ d.istHeute }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;left:0;right:0;height:2px;background:{{ t.text }};top:{{ d.jetztPos }}%"></div>
+            </sc-if>
+          </div>
+          <span style="font:600 10.5px/1 system-ui,sans-serif;opacity:.6">{{ d.tag }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <div style="margin:26px 16px 0">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.5;padding-bottom:10px;border-bottom:1px solid rgba(127,127,127,.2)">Kommende Belegungen</div>
+    <sc-for list="{{ aktiv.kommende }}" as="k" hint-placeholder-count="4">
+      <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(127,127,127,.12)">
+        <span style="flex:none;width:4px;border-radius:2px;background:{{ k.farbe }}"></span>
+        <div style="min-width:0;flex:1">
+          <div style="font:600 13.5px/1.35 system-ui,sans-serif">{{ k.zeit }}</div>
+          <div style="font-size:12px;opacity:.55">{{ k.wer }}</div>
+        </div>
+        <span style="flex:none;align-self:center;font:11.5px/1 ui-monospace,Menlo,monospace;opacity:.45">{{ k.dauer }}</span>
+      </div>
+    </sc-for>
+    <sc-if value="{{ aktiv.keineKommenden }}" hint-placeholder-val="{{ false }}">
+      <p style="margin:14px 0 0;font-size:13px;opacity:.5">Nichts eingetragen in den nächsten sieben Tagen.</p>
+    </sc-if>
+  </div>
+
+  <div style="padding:24px 16px 120px">
+    <p style="margin:0;font-size:11.5px;line-height:1.55;opacity:.45;text-wrap:pretty">Unverbindliche Anzeige. Verbindlich ist der Reservierungskalender in Vereinsflieger. Namen erscheinen nur bei eigenen Reservierungen.</p>
+  </div>
+
+  <div style="position:sticky;bottom:0;z-index:3;padding:12px 16px 16px;background:{{ t.balken }};border-top:1px solid rgba(127,127,127,.2);backdrop-filter:blur(8px);display:flex;gap:10px">
+    <a href="{{ pohZiel }}" style="flex:none;display:grid;place-items:center;padding:0 16px;border-radius:10px;border:1px solid rgba(127,127,127,.3);color:inherit;text-decoration:none;font:600 13px system-ui,sans-serif">POH</a>
+    <button onClick="{{ sheetOeffnen }}" style="flex:1;padding:13px;border:0;border-radius:10px;background:#1f4e79;color:#fff;font:650 14.5px system-ui,sans-serif;cursor:pointer">Reservieren</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheetOffen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ sheetSchliessen }}" style="position:fixed;inset:0;z-index:8;background:rgba(0,0,0,.42);animation:einblenden .2s"></div>
+  <div style="position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;justify-content:center;pointer-events:none"><div style="width:100%;max-width:430px;pointer-events:auto;border-radius:18px 18px 0 0;background:{{ t.bg }};padding:8px 18px 22px;box-sizing:border-box;animation:hoch .3s cubic-bezier(.22,.7,.3,1);box-shadow:0 -12px 40px rgba(0,0,0,.25)">
+    <div style="width:38px;height:4px;border-radius:2px;background:rgba(127,127,127,.4);margin:0 auto 16px"></div>
+    <div style="font:650 18px/1.3 system-ui,sans-serif;margin-bottom:4px">{{ aktiv.kennzeichen }} reservieren</div>
+    <div style="font-size:12.5px;opacity:.55;margin-bottom:18px">{{ aktiv.freiHinweis }}</div>
+    <div style="display:flex;gap:10px;margin-bottom:12px">
+      <div style="flex:1;padding:11px 12px;border-radius:10px;border:1px solid rgba(127,127,127,.28)">
+        <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.45">Von</div>
+        <div style="font:600 15px/1.3 system-ui,sans-serif">{{ vorschlagVon }}</div>
+      </div>
+      <div style="flex:1;padding:11px 12px;border-radius:10px;border:1px solid rgba(127,127,127,.28)">
+        <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.45">Bis</div>
+        <div style="font:600 15px/1.3 system-ui,sans-serif">{{ vorschlagBis }}</div>
+      </div>
+    </div>
+    <a href="https://vereinsflieger.de/member/community/reservations/add?type=0&amp;inline=0" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;padding:14px;border-radius:10px;background:#1f4e79;color:#fff;text-decoration:none;font:650 14.5px system-ui,sans-serif">In Vereinsflieger reservieren ↗</a>
+    <p style="margin:12px 0 0;font-size:11.5px;line-height:1.55;opacity:.45;text-wrap:pretty">Gebucht wird dort — eine Anmeldung ist nötig. Diese Seite ändert in Vereinsflieger nichts.</p>
+  </div></div>
+</sc-if>
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;ringStil&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Voller Ring&quot;,&quot;Tagesuhr&quot;,&quot;Punkt-Abzeichen&quot;],&quot;default&quot;:&quot;Tagesuhr&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Statusdarstellung&quot;},&quot;legende&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Statusdarstellung&quot;}}">
+const FARBE = { frei: '#1f8f45', belegt: '#c0442b', sperre: '#b05c50' };
+// Absperrband: sanftes Rot auf Weiss, beide halbdurchlaessig, damit der
+// Untergrund (hell wie dunkel) durchscheint.
+const SPERRBAND = 'repeating-linear-gradient(45deg, rgba(200,80,64,.42) 0 6px, rgba(255,255,255,.5) 6px 12px)';
+const WORT = { frei: 'Frei', bald: 'Heute noch frei', belegt: 'Belegt', sperre: 'Gesperrt' };
+const TAGE = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+const TAGE_LANG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+const MONATE = ['Jan.', 'Feb.', 'M\u00e4rz', 'Apr.', 'Mai', 'Juni', 'Juli', 'Aug.', 'Sep.', 'Okt.', 'Nov.', 'Dez.'];
+const VON_H = 6, BIS_H = 22;
+const JETZT = new Date(2026, 7, 13, 11, 20);
+/** Sonnenauf-/untergang EDSH am 13. Aug., Minuten seit Mitternacht. */
+const SONNE = { auf: 6 * 60 + 5, unter: 20 * 60 + 40 };
+const NACHT_GRUND = '#454e5c';
+
+/**
+ * Tageszeit -> Winkel auf dem Ring (0 Grad = oben, im Uhrzeigersinn).
+ *
+ * Die Nacht liegt gestaucht auf dem unteren Viertel zwischen 4:30 und 7:30
+ * Uhr-Stellung (135-225 Grad), die helle Zeit bekommt die restlichen 270 Grad.
+ * Ihre Grenzen sind Sonnenaufgang und -untergang selbst: Damit sind die
+ * Kanten des grauen Bandes die Sonnenzeiten und brauchen keine eigenen
+ * Marker, die auf derselben Naht sitzen wuerden.
+ */
+const NACHT_VON = 21 * 60, NACHT_BIS = 6 * 60;
+const NACHT_LAENGE = 1440 - NACHT_VON + NACHT_BIS;
+const TAG_LAENGE = 1440 - NACHT_LAENGE;
+
+function winkelFuerZeit(minuten) {
+  const m = ((minuten % 1440) + 1440) % 1440;
+  if (m >= NACHT_BIS && m < NACHT_VON) return (225 + ((m - NACHT_BIS) / TAG_LAENGE) * 270) % 360;
+  const seitNacht = m >= NACHT_VON ? m - NACHT_VON : m + (1440 - NACHT_VON);
+  return (135 + (seitNacht / NACHT_LAENGE) * 90) % 360;
+}
+
+function zeitFuerWinkel(grad) {
+  if (grad >= 135 && grad < 225) return (NACHT_VON + ((grad - 135) / 90) * NACHT_LAENGE) % 1440;
+  const a = (grad - 225 + 360) % 360;
+  return NACHT_BIS + (a / 270) * TAG_LAENGE;
+}
+
+const FLOTTE = [
+  { id: 'd-eelk', kennzeichen: 'D-EELK', typ: 'Cessna 172N · Standardtanks', kat: 'Motorflugzeuge', favorit: true,
+    bild: 'assets/D-EELK_pixelart.gif',
+    res: [ {t:0,von:'14:00',bis:'17:30',art:'reservierung'}, {t:1,von:'09:00',bis:'12:00',art:'reservierung',ich:true}, {t:3,von:'10:00',bis:'18:15',art:'reservierung'}, {t:5,von:'08:00',bis:'11:00',art:'reservierung'} ] },
+  { id: 'd-efkb', kennzeichen: 'D-EXYZ', typ: 'Aviat A-1 Husky', kat: 'Motorflugzeuge', favorit: true,
+    bild: 'assets/husky-dexyz-pixel-art.gif',
+    res: [ {t:0,von:'09:00',bis:'13:00',art:'reservierung'}, {t:0,von:'13:00',bis:'15:30',art:'reservierung'}, {t:2,von:'12:00',bis:'16:00',art:'reservierung'} ] },
+  { id: 'd-mrxs', kennzeichen: 'D-MRXS', typ: 'Ultraleicht', kat: 'Motorflugzeuge',
+    res: [ {t:0,von:'00:00',bis:'24:00',art:'sperre'}, {t:1,von:'00:00',bis:'12:00',art:'sperre'}, {t:3,von:'13:00',bis:'17:00',art:'reservierung'} ] },
+  { id: 'd-1234', kennzeichen: 'D-1234', typ: 'Schleicher ASK 21', kat: 'Segelflugzeuge',
+    res: [ {t:2,von:'10:00',bis:'19:00',art:'reservierung'} ] },
+  { id: 'd-8842', kennzeichen: 'D-8842', typ: 'Rolladen-Schneider LS 4', kat: 'Segelflugzeuge',
+    res: [ {t:0,von:'10:00',bis:'12:30',art:'reservierung',ich:true}, {t:1,von:'11:00',bis:'17:00',art:'reservierung'} ] },
+  { id: 'd-2201', kennzeichen: 'D-2201', typ: 'Schempp-Hirth Duo Discus', kat: 'Segelflugzeuge',
+    res: [ {t:0,von:'16:00',bis:'20:00',art:'reservierung'} ] }
+];
+
+const min = (s) => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
+const zwei = (n) => String(n).padStart(2, '0');
+const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+/** Linearer Farbverlauf zwischen zwei Hex-Werten. */
+const mischen = (a, b, t) => {
+  const [r1, g1, b1] = hex(a), [r2, g2, b2] = hex(b);
+  const m = (x, y) => Math.round(x + (y - x) * Math.min(1, Math.max(0, t)));
+  return `rgb(${m(r1, r2)},${m(g1, g2)},${m(b1, b2)})`;
+};
+const uhr = (d) => `${zwei(d.getHours())}:${zwei(d.getMinutes())}`;
+const tagStart = (v) => { const d = new Date(JETZT); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + v); return d; };
+
+function absolut(r) {
+  const a = tagStart(r.t);
+  return { von: a.getTime() + min(r.von) * 60000, bis: a.getTime() + min(r.bis) * 60000, art: r.art, ich: !!r.ich };
+}
+
+/** Fuer Sperren: das Datum zaehlt, nicht die Uhrzeit — sie dauern Tage. */
+function datumWort(ms) {
+  const d = new Date(ms);
+  return `${TAGE_LANG[d.getDay()]}, ${d.getDate()}. ${MONATE[d.getMonth()]}`;
+}
+
+function zeitpunktWort(ms) {
+  const d = new Date(ms);
+  const heute = tagStart(0).getTime();
+  if (d.getTime() < heute + 86400000) return uhr(d);
+  return `${TAGE[d.getDay()]}., ${zwei(d.getDate())}.${zwei(d.getMonth() + 1)}., ${uhr(d)}`;
+}
+
+class Component extends DCLogic {
+  state = { dunkel: false, ansicht: 'uebersicht', aktivId: 'd-eelk', reiter: 'tage', sheet: false };
+
+  theme() {
+    return this.state.dunkel
+      ? { bg: '#14181d', aussen: '#0c0f12', text: '#e8ecf1', avatar: '#1d232a', balken: 'rgba(20,24,29,.92)' }
+      : { bg: '#ffffff', aussen: '#eceef1', text: '#1b2027', avatar: '#ffffff', balken: 'rgba(255,255,255,.9)' };
+  }
+
+  ringStil() { return this.props.ringStil ?? 'Voller Ring'; }
+
+  /** Der Ring als Tagesuhr: jedes Grad tragt die Farbe seiner Tageszeit. */
+  tagesuhr(alle) {
+    const t0 = tagStart(0).getTime();
+    const zellen = [];
+    for (let g = 0; g < 360; g++) {
+      const m = zeitFuerWinkel(g);
+      const ms = t0 + m * 60000;
+      const z = alle.find((x) => x.von <= ms && ms < x.bis);
+      zellen.push(
+        z ? (z.art === 'sperre' ? '#9aa0a6' : FARBE.belegt)
+          : m >= NACHT_BIS && m < NACHT_VON ? FARBE.frei : NACHT_GRUND
+      );
+    }
+    const stops = [];
+    let start = 0;
+    for (let g = 1; g <= 360; g++) {
+      if (g === 360 || zellen[g] !== zellen[start]) {
+        stops.push(`${zellen[start]} ${start}deg ${g}deg`);
+        start = g;
+      }
+    }
+    return `conic-gradient(${stops.join(',')})`;
+  }
+
+  /** Sonnenauf-/untergang als schmale Striche aussen am Ring. */
+  uhrMarker(groesse, punkt) {
+    const t = this.theme();
+    const r = groesse / 2 + punkt / 2;
+    const strich = Math.max(2, Math.round(punkt * 0.34));
+    return [
+      { w: winkelFuerZeit(SONNE.auf), c: '#d9a13c' },
+      { w: winkelFuerZeit(SONNE.unter), c: '#7b6fa6' }
+    ].map((p) => ({
+      stil: `position:absolute;left:50%;top:50%;width:${strich}px;height:${punkt + 1}px;border-radius:1px;background:${p.c};box-shadow:0 0 0 1.5px ${t.bg};z-index:1;transform:translate(-50%,-50%) rotate(${p.w.toFixed(1)}deg) translateY(-${r}px)`
+    }));
+  }
+
+  /** 6 und 21 an den Nahtstellen zwischen Tag- und Nachtbereich. */
+  uhrBeschriftung(groesse, punkt, schrift) {
+    const r = groesse / 2 + punkt + schrift * 0.6;
+    return [{ m: NACHT_BIS, text: '6' }, { m: NACHT_VON, text: '21' }].map((p) => {
+      const w = winkelFuerZeit(p.m) * Math.PI / 180;
+      return {
+        text: p.text,
+        stil: `position:absolute;left:50%;top:50%;font:600 ${schrift}px/1 ui-monospace,Menlo,monospace;opacity:.45;z-index:6;transform:translate(-50%,-50%) translate(${(Math.sin(w) * r).toFixed(1)}px,${(-Math.cos(w) * r).toFixed(1)}px)`
+      };
+    });
+  }
+
+  /** Jetzt als schmaler Strich aussen am Ring — gleiche Sprache wie die Sonnenmarker. */
+  jetztStrich(groesse, punkt) {
+    const t = this.theme();
+    const w = winkelFuerZeit(JETZT.getHours() * 60 + JETZT.getMinutes());
+    const r = groesse / 2 + punkt / 2 - 2.5;
+    const strich = Math.max(2, Math.round(punkt * 0.34));
+    return `position:absolute;left:50%;top:50%;width:${strich}px;height:${punkt + 1}px;border-radius:1px;background:${t.text};box-shadow:0 0 0 1.5px ${t.bg};z-index:4;transform:translate(-50%,-50%) rotate(${w.toFixed(1)}deg) translateY(-${r}px)`;
+  }
+
+  auswerten(f) {
+    const jetzt = JETZT.getTime();
+    const alle = f.res.map(absolut).sort((a, b) => a.von - b.von);
+    const laufIdx = alle.findIndex((z) => z.von <= jetzt && jetzt < z.bis);
+    const lauf = laufIdx >= 0 ? alle[laufIdx] : undefined;
+
+    let status, satz, wechsel = null;
+    if (lauf) {
+      let ende = lauf.bis;
+      for (const n of alle.slice(laufIdx + 1)) { if (n.von > ende) break; if (n.bis > ende) ende = n.bis; }
+      wechsel = ende;
+      status = lauf.art === 'sperre' ? 'sperre' : 'belegt';
+      satz = `${lauf.art === 'sperre' ? 'Gesperrt' : 'Belegt'} bis ${zeitpunktWort(ende)}`;
+    } else {
+      const naechst = alle.find((z) => z.von > jetzt);
+      const tagEnde = tagStart(1).getTime();
+      const heuteNoch = naechst && naechst.von < tagEnde;
+      status = heuteNoch ? 'bald' : 'frei';
+      wechsel = naechst ? naechst.von : null;
+      satz = naechst ? `Frei — nächste Belegung ab ${zeitpunktWort(naechst.von)}` : 'Frei — keine Belegung in Sicht';
+    }
+    return { alle, status, satz, wechsel };
+  }
+
+  fuellung(art) {
+    return art === 'sperre' ? SPERRBAND : FARBE.belegt;
+  }
+
+  balken(alle, tagVersatz) {
+    const a = tagStart(tagVersatz).getTime() + VON_H * 3600000;
+    const spanne = (BIS_H - VON_H) * 3600000;
+    return alle
+      .map((z) => ({ von: Math.max(z.von, a), bis: Math.min(z.bis, a + spanne), art: z.art }))
+      .filter((z) => z.bis > z.von)
+      .map((z) => ({
+        links: ((z.von - a) / spanne) * 100,
+        breite: ((z.bis - z.von) / spanne) * 100,
+        oben: ((z.von - a) / spanne) * 100,
+        hoehe: ((z.bis - z.von) / spanne) * 100,
+        fuellung: this.fuellung(z.art)
+      }));
+  }
+
+  ringFarbe(f, status) {
+    const stil = this.ringStil();
+    if (stil === 'Punkt-Abzeichen') return 'rgba(127,127,127,.32)';
+    // Die Tagesuhr faerbt Sperrzeiten selbst grau — sie kann deshalb auch bei
+    // gesperrten Maschinen zeigen, wann der Tag wieder freigibt.
+    if (stil === 'Tagesuhr') return this.tagesuhr(f.alle);
+    // Sonst bleibt der Ring grau: Ein gesperrtes Flugzeug ist kein Zustand
+    // zwischen frei und belegt, sondern gar keine Option.
+    if (status === 'sperre') return 'rgba(127,127,127,.42)';
+    if (status === 'bald') return FARBE.frei;
+    return FARBE[status];
+  }
+
+  karte(f) {
+    const a = this.auswerten(f);
+    // Ein Zustand, kein Sprung: je naeher die naechste Belegung, desto roter.
+    const farbe = a.status === 'bald'
+      ? mischen(FARBE.frei, FARBE.belegt, 1 - (a.wechsel - JETZT.getTime()) / 3600000)
+      : FARBE[a.status];
+    const kurz = { frei: 'frei den ganzen Tag ☀️', bald: `frei bis ${uhr(new Date(a.wechsel))}`, belegt: `bis ${uhr(new Date(a.wechsel))} belegt`, sperre: 'gesperrt' }[a.status];
+    // Zweite Zeile nur, wenn gerade belegt: was danach kommt, ist dann die
+    // eigentliche Frage — bis wann die Luecke reicht, die auf die Belegung folgt.
+    let danach = '';
+    if (a.status === 'sperre') {
+      danach = `bis ${datumWort(a.wechsel)}`;
+    } else if (a.status === 'belegt') {
+      const n = a.alle.find((z) => z.von >= a.wechsel);
+      // "bis Sa., 15.08., 12:00" ist richtig, aber kein Angebot. Kommt am Tag
+      // des Freiwerdens nichts mehr, ist der Rest des Tages die Nachricht.
+      const tagEnde = new Date(a.wechsel);
+      tagEnde.setHours(24, 0, 0, 0);
+      danach = !n || n.von >= tagEnde.getTime()
+        ? 'danach den ganzen Tag frei ☀️'
+        : `danach frei bis ${zeitpunktWort(n.von)}`;
+    } else if (a.status === 'bald') {
+      // Gerade frei, aber heute kommt noch jemand: dann zaehlt, wie lange die
+      // Belegung reicht — samt lueckenlos anschliessender Folgebelegung.
+      const i = a.alle.findIndex((z) => z.von === a.wechsel);
+      let ende = a.alle[i].bis;
+      for (const n of a.alle.slice(i + 1)) { if (n.von > ende) break; if (n.bis > ende) ende = n.bis; }
+      danach = `danach bis ${zeitpunktWort(ende)} belegt`;
+    }
+    return {
+      ...f, ...a,
+      hatBild: !!f.bild, ohneBild: !f.bild,
+      kurz: `D-${f.kennzeichen.slice(-2)}`,
+      statusFarbe: farbe,
+      statusWort: WORT[a.status],
+      ringFarbe: this.ringFarbe({ ...f, alle: a.alle }, a.status),
+      // Im Punkt-Stil traegt der Ring keinen Zustand mehr — dann genuegt eine
+      // Haarlinie als Abgrenzung des Bildes.
+      padGross: this.ringStil() === 'Punkt-Abzeichen' ? '1px' : '4px',
+      padKlein: this.ringStil() === 'Punkt-Abzeichen' ? '1px' : '3px',
+      padMini: this.ringStil() === 'Punkt-Abzeichen' ? '1px' : '2px',
+      zeigtUhr: this.ringStil() === 'Tagesuhr',
+      markerGross: this.uhrMarker(96, 7),
+      markerKlein: this.uhrMarker(74, 6),
+      schriftGross: this.uhrBeschriftung(96, 7, 10),
+      schriftKlein: this.uhrBeschriftung(74, 6, 9),
+      pinGross: this.jetztStrich(96, 7),
+      pinKlein: this.jetztStrich(74, 6),
+      punktGrund: a.status === 'sperre' ? '#9aa0a6' : farbe,
+      avatarGrund: a.status === 'sperre' ? `${SPERRBAND}, ${this.theme().avatar}` : this.theme().avatar,
+      zeigtPunkt: this.ringStil() !== 'Voller Ring',
+      kurzsatz: kurz,
+      danach, hatDanach: danach !== '',
+      oeffnen: () => this.setState({ ansicht: 'detail', aktivId: f.id, reiter: 'tage' })
+    };
+  }
+
+  detail(k) {
+    const heuteSeg = this.balken(k.alle, 0);
+    const spanne = (BIS_H - VON_H) * 60;
+    const jetztMin = JETZT.getHours() * 60 + JETZT.getMinutes() - VON_H * 60;
+
+    const tage = [], woche = [];
+    for (let i = 0; i < 7; i++) {
+      const d = tagStart(i);
+      const seg = this.balken(k.alle, i);
+      const desTags = k.alle.filter((z) => z.von < tagStart(i + 1).getTime() && z.bis > d.getTime());
+      const gesperrt = desTags.some((z) => z.art === 'sperre');
+      const text = desTags.length === 0 ? 'frei'
+        : gesperrt ? 'gesperrt'
+        : desTags.map((z) => `${uhr(new Date(z.von))}–${uhr(new Date(z.bis))}`).slice(0, 1).join('') + (desTags.length > 1 ? ` +${desTags.length - 1}` : '');
+      tage.push({
+        tag: i === 0 ? 'Heute' : TAGE[d.getDay()], datum: i === 0 ? '' : `${d.getDate()}.${d.getMonth() + 1}.`,
+        segmente: seg, text,
+        farbe: desTags.length === 0 ? FARBE.frei : gesperrt ? FARBE.sperre : FARBE.belegt
+      });
+      woche.push({ tag: TAGE[d.getDay()], segmente: seg, istHeute: i === 0, jetztPos: (jetztMin / spanne) * 100 });
+    }
+
+    const kommende = k.alle.filter((z) => z.bis > JETZT.getTime()).slice(0, 6).map((z) => {
+      const std = (z.bis - z.von) / 3600000;
+      // Ein Ganztags-Eintrag hat keine Uhrzeit, die etwas aussagt — er hat einen Tag.
+      const tag = new Date(z.von); tag.setHours(0, 0, 0, 0);
+      const ganzerTag = z.von === tag.getTime() && z.bis >= tag.getTime() + 86400000;
+      const tagWort = z.von < tagStart(1).getTime() ? 'Heute' : datumWort(z.von);
+      return {
+        zeit: ganzerTag ? `${tagWort} · ganztägig` : `${zeitpunktWort(z.von)} – ${uhr(new Date(z.bis))}`,
+        wer: z.art === 'sperre' ? 'Sperre · Wartung' : z.ich ? 'Deine Reservierung' : 'Reserviert',
+        dauer: ganzerTag ? '24 h' : `${String(Math.round(std * 10) / 10).replace('.', ',')} h`,
+        farbe: z.art === 'sperre' ? FARBE.sperre : z.ich ? '#1f4e79' : FARBE.belegt
+      };
+    });
+
+    const heuteText = k.alle
+      .filter((z) => z.von < tagStart(1).getTime() && z.bis > tagStart(0).getTime())
+      .map((z) => ({
+        zeit: z.art === 'sperre' ? 'ganztägig' : `${uhr(new Date(z.von))}–${uhr(new Date(z.bis))}`,
+        wer: z.art === 'sperre' ? 'Sperre · Wartung' : z.ich ? 'Du' : 'reserviert'
+      }));
+
+    return {
+      ...k, heute: heuteSeg, heuteText, tage, woche, kommende,
+      keineKommenden: kommende.length === 0,
+      jetztPos: (jetztMin / spanne) * 100,
+      freiHinweis: k.status === 'frei' || k.status === 'bald' ? `Vorschlag aus der nächsten freien Lücke — ${k.satz.toLowerCase()}` : k.satz
+    };
+  }
+
+  renderVals() {
+    const t = this.theme();
+    const karten = FLOTTE.map((f) => this.karte(f));
+    const favoritenAnzahl = karten.filter((k) => k.favorit).length;
+    const kats = ['Motorflugzeuge', 'Segelflugzeuge'];
+    const titelFuer = { Motorflugzeuge: 'Weitere Motorflugzeuge & UL', Segelflugzeuge: 'Weitere Segelflugzeuge' };
+    const aktiv = this.detail(karten.find((k) => k.id === this.state.aktivId) || karten[0]);
+    const stunden = [6, 10, 14, 18, 22].map((h) => ({ text: `${h}`, pos: ((h - VON_H) / (BIS_H - VON_H)) * 100 }));
+    const reiterAktiv = this.state.reiter;
+    const naechsteLuecke = aktiv.status === 'belegt' || aktiv.status === 'sperre' ? new Date(aktiv.wechsel) : JETZT;
+    const von = new Date(Math.ceil(naechsteLuecke.getTime() / 1800000) * 1800000);
+    const bis = new Date(von.getTime() + 7200000);
+
+    return {
+      t, aktiv, stunden,
+      stundenSenkrecht: [6, 10, 14, 18, 22].map((h) => ({ text: `${h}`, pos: ((h - VON_H) / (BIS_H - VON_H)) * 100 })),
+      istUebersicht: this.state.ansicht === 'uebersicht',
+      istDetail: this.state.ansicht === 'detail',
+      favoriten: karten.filter((k) => k.favorit),
+      gruppen: kats.map((c) => {
+        const items = karten.filter((k) => k.kat === c && !k.favorit);
+        const frei = items.filter((k) => k.status === 'frei' || k.status === 'bald').length;
+        // Alles unterhalb der Lieblinge ist die Fortsetzung der Liste, nicht ihr
+        // Anfang — deshalb durchgehend „Weitere".
+        return { titel: titelFuer[c], zaehler: `${frei}/${items.length} frei`, items };
+      }),
+      legende: [
+        { farbe: FARBE.frei, text: 'frei' },
+        { farbe: FARBE.belegt, text: 'belegt' },
+        { farbe: '#9aa0a6', text: 'gesperrt' }
+      ],
+      // Zwei Favoriten lassen rechts eine Luecke — dort steht die Legende
+      // beilaeufig; ab drei Maschinen rueckt sie unter die Reihe.
+      legendeDaneben: (this.props.legende ?? true) && favoritenAnzahl <= 2,
+      legendeUnten: (this.props.legende ?? true) && favoritenAnzahl > 2,
+      standText: 'Stand vor 3 Minuten',
+      heuteDatum: `Do., 13.08.`,
+      pohZiel: '#',
+      dunkelZeichen: this.state.dunkel ? '☀' : '☾',
+      dunkelUmschalten: () => this.setState((s) => ({ dunkel: !s.dunkel })),
+      zurueck: () => this.setState({ ansicht: 'uebersicht', sheet: false }),
+      reiter: [
+        { text: 'Nächste Tage', schluessel: 'tage' },
+        { text: 'Wochenraster', schluessel: 'woche' }
+      ].map((r) => ({
+        text: r.text,
+        grund: reiterAktiv === r.schluessel ? t.bg : 'transparent',
+        schatten: reiterAktiv === r.schluessel ? '0 1px 3px rgba(0,0,0,.16)' : 'none',
+        waehlen: () => this.setState({ reiter: r.schluessel })
+      })),
+      reiterTage: reiterAktiv === 'tage',
+      reiterWoche: reiterAktiv === 'woche',
+      sheetOffen: this.state.sheet,
+      sheetOeffnen: () => this.setState({ sheet: true }),
+      sheetSchliessen: () => this.setState({ sheet: false }),
+      vorschlagVon: `${zeitpunktWort(von.getTime())}`,
+      vorschlagBis: uhr(bis)
+    };
+  }
+}
+
+</script>
+</body>
+</html>

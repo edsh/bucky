@@ -26,7 +26,7 @@ daneben ist Referenz, **kein** Code zum Kopieren.
 
 ## Phase 1: Setup
 
-- [ ] T001 Die tatsächlichen Kennzeichen der Vereinsflotte klären (Rückfrage an
+- [X] T001 Die tatsächlichen Kennzeichen der Vereinsflotte klären (Rückfrage an
       den Auftraggeber) und als Grundlage für die Stammliste in T008 notieren.
       Der Kalenderabzug vom 13.08.2026 nennt sechs: `D-EELK`, `D-EXYZ`,
       `D-MRXS`, `D-9021`, `D-4413`, `D-3004` — ob das alle sind, ist offen
@@ -34,13 +34,13 @@ daneben ist Referenz, **kein** Code zum Kopieren.
       aus, beginnt die Stammliste mit genau diesen sechs. Sie ist bewusst eine
       gepflegte Liste (E-01) und jederzeit erweiterbar — ein fehlendes
       Kennzeichen taucht ohnehin auf, sobald es gebucht wird
-- [ ] T002 [P] Bilder aus dem Handoff nach `apps/web/static/` übernehmen:
+- [X] T002 [P] Bilder aus dem Handoff nach `apps/web/static/` übernehmen:
       `bucky-splash.png`, `D-EELK_pixelart.gif` → `d-eelk.gif`,
       `husky-dexyz-pixel-art.gif` → `d-exyz.gif`. Die unversionierten Varianten
       im Arbeitsbaum (`apps/web/static/bucky-maskottchen.svg`,
       `apps/web/static/bucky-pixel.gif`, `assets/bucky-*`, `assets/d-eelk/`)
       dabei sichten und entweder übernehmen oder entfernen — nicht liegen lassen
-- [ ] T003 [P] In `packages/reservierung-core/tests/beispiele/README.md`
+- [X] T003 [P] In `packages/reservierung-core/tests/beispiele/README.md`
       vermerken, dass der vorhandene Abzug `kalender.ics` ab jetzt auch als
       Prüfstoff für die **Flottenbildung** dient (sechs Kennzeichen, dazu die
       Nicht-Flugzeuge `GRILL`, `LANDEBAR`, `Werkstatt`) — kein neuer Abzug nötig
@@ -55,29 +55,29 @@ Beschaffungsweg der Server-Routen.
 
 ### Kern — Typen und geteilte Bausteine
 
-- [ ] T004 Neue abgeleitete Größen in
+- [X] T004 Neue abgeleitete Größen in
       `packages/reservierung-core/src/typen.ts` ergänzen: `Kategorie`,
       `Maschine`, `Statuswert`, `Maschinenzustand`, `Ringsegment`,
       `Balkensegment`, `Sonnenzeiten` (data-model.md). Bestehende Typen
       (`Reservierung`, `Abrufstand`, `Belegungsauskunft`, `Quelle`) **nicht**
       verändern — und weiterhin **kein** Feld für Personen anlegen (FR-023)
-- [ ] T005 `endeDerKette` in `packages/reservierung-core/src/belegung.ts`
+- [X] T005 `endeDerKette` in `packages/reservierung-core/src/belegung.ts`
       exportierbar machen, damit `zustand.ts` es benutzt statt es
       nachzubauen (Z-02, Prinzip IV). **Verhalten unverändert** — die
       bestehenden Prüfungen in `tests/belegung.test.ts` müssen ohne Änderung
       grün bleiben
-- [ ] T006 [P] Datums- und Wochentagsformate für FR-015 in
+- [X] T006 [P] Datums- und Wochentagsformate für FR-015 in
       `packages/reservierung-core/src/zeit.ts` ergänzen: `alsKurzdatumUhrzeit`
       (`Sa., 15.08., 12:00`), `alsTagesdatum` (`Samstag, 15. Aug.`),
       `ortstag` (`YYYY-MM-DD` in `Europe/Berlin`), `minuteDesTages`.
       Bestehende Ausgänge unverändert lassen
-- [ ] T007 [P] Prüfungen für T006 in
+- [X] T007 [P] Prüfungen für T006 in
       `packages/reservierung-core/tests/zeit.test.ts` ergänzen, einschließlich
       beider Zeitumstellungstage und eines Geräts in fremder Zeitzone (T-11)
 
 ### Kern — Flotte
 
-- [ ] T008 `packages/reservierung-core/src/flotte.ts` anlegen:
+- [X] T008 `packages/reservierung-core/src/flotte.ts` anlegen:
       `kategorieFuer(kennung)` nach der Regel aus E-02 (rein ziffriges
       Eintragungszeichen → `segelflug`, sonst `motor`), die Stammliste der
       Kennzeichen aus T001 sowie `flotteBilden(stammliste, reservierungen)`
@@ -88,77 +88,77 @@ Beschaffungsweg der Server-Routen.
       beim Verkauf einer Maschine gehört diese Liste angefasst. Ein Kommentar
       an genau der Stelle, an der jemand die Liste ändert, ist die einzige
       Erinnerung, die je gelesen wird
-- [ ] T009 Prüfungen in `packages/reservierung-core/tests/flotte.test.ts`:
+- [X] T009 Prüfungen in `packages/reservierung-core/tests/flotte.test.ts`:
       Kategorieregel für alle sechs echten Kennzeichen, Vereinigung (nur in
       der Liste / nur in den Daten / in beidem → genau einmal), Überschreibung
       der Kategorie durch die Stammliste, leere Datenlage
-- [ ] T010 `kalender-vertrag.test.ts` in
+- [X] T010 `kalender-vertrag.test.ts` in
       `packages/reservierung-core/tests/` erweitern: Der echte Abzug ergibt
       **sechs** Maschinen mit korrekter Kategorie; `GRILL`, `LANDEBAR` und
       `Werkstatt` sind **nicht** darunter (quickstart.md, Nachweis 1)
 
 ### Kern — Zustand und Sätze
 
-- [ ] T011 `packages/reservierung-core/src/zustand.ts` anlegen:
+- [X] T011 `packages/reservierung-core/src/zustand.ts` anlegen:
       `zustandFuer(reservierungen, kennung, bezugszeitpunkt)` nach
       `contracts/zustand.md` — vier Statuswerte, Kette über `endeDerKette`
       (T005), `draengen`, `naechsteLuecke`. Keine Farben, keine Sätze,
       keine Personen (Z-10)
-- [ ] T012 Prüfungen in `packages/reservierung-core/tests/zustand.test.ts`
+- [X] T012 Prüfungen in `packages/reservierung-core/tests/zustand.test.ts`
       für Z-01 bis Z-11, insbesondere: Beginn zählt mit / Ende nicht (Z-01),
       lückenlose Kette über mehrere Einträge (Z-02), Sperre gewinnt über
       Reservierung (Z-03), `bald` nur am selben Ortstag (Z-04), `draengen`
       exakt 0 bei 61 Minuten und exakt 1 im Moment des Beginns (Z-05),
       Aufrundung der Lücke auf 30 Minuten und Kappung an der Folgebelegung
       (Z-07), keine Lücke → `null` (Z-08)
-- [ ] T013 `packages/reservierung-core/src/formulieren.ts` um die Statussätze
+- [X] T013 `packages/reservierung-core/src/formulieren.ts` um die Statussätze
       und Zusatzzeilen aus `contracts/zustand.md` erweitern (Statussatz je
       Zustand, „danach …"-Zeile, Dauer mit Dezimalkomma, ganztägig „24 h").
       Sperren nennen ein **Datum**, keine Uhrzeit (FR-014). Bestehende
       Funktionen `alsSatz`, `alsAltersangabe`, `alsRueckfallHinweis`
       unverändert lassen — `/api/reservierung` benutzt sie weiter
-- [ ] T014 Prüfungen in
+- [X] T014 Prüfungen in
       `packages/reservierung-core/tests/formulieren.test.ts` ergänzen: alle
       vier Statussätze, Zusatzzeilen, „danach den ganzen Tag frei",
       Dauerformate („3,5 h", „24 h"), Sperre mit Datum statt Uhrzeit
-- [ ] T015 Neue Ausgänge in `packages/reservierung-core/src/index.ts`
+- [X] T015 Neue Ausgänge in `packages/reservierung-core/src/index.ts`
       ergänzen (`flotte`, `zustand`, neue Formate und Typen)
 
 ### Weboberfläche — gemeinsamer Beschaffungsweg und Endpunkt
 
-- [ ] T016 `apps/web/src/lib/server/stand-holen.ts` anlegen: der gemeinsame
+- [X] T016 `apps/web/src/lib/server/stand-holen.ts` anlegen: der gemeinsame
       Weg Kalender → Rückfall → „kein Stand", samt `Quelle` und
       `abgerufenAm` (E-07). Inhaltlich **wörtlich** der bestehende Ablauf aus
       `routes/api/reservierung/+server.ts` — kein Verhalten ändern, nur
       verschieben
-- [ ] T017 `apps/web/src/routes/api/reservierung/+server.ts` auf
+- [X] T017 `apps/web/src/routes/api/reservierung/+server.ts` auf
       `stand-holen.ts` umstellen. Der Vertrag aus Feature 052 bleibt Wort für
       Wort gültig, einschließlich `no-store` und der 200-Antwort bei
       fehlendem Stand
-- [ ] T018 Bestehende Prüfungen in
+- [X] T018 Bestehende Prüfungen in
       `apps/web/tests/routes/api/reservierung.test.ts` **ohne Änderung**
       laufen lassen — sie sind der Nachweis, dass T016/T017 nichts verschoben
       haben. Schlagen sie fehl, ist die Umstellung falsch, nicht die Prüfung
-- [ ] T019 `apps/web/src/routes/api/flotte/+server.ts` nach
+- [X] T019 `apps/web/src/routes/api/flotte/+server.ts` nach
       `contracts/api-flotte.md` anlegen: `prerender = false`, `stand-holen.ts`,
       `flotteBilden`, Fenster `[heute 00:00 Ortszeit, +8 Tage)` mit
       **ungekürzten** Zeitpunkten (E-06), `no-store`. Kein Zustand in der
       Antwort, keine Namen, kein Wetterdienst-Aufruf
-- [ ] T020 Prüfungen in `apps/web/tests/routes/api/flotte.test.ts` für F-01
+- [X] T020 Prüfungen in `apps/web/tests/routes/api/flotte.test.ts` für F-01
       bis F-10: Fall „vorhanden" mit beiden Quellen, Fall „fehlt" mit
       gefüllter `flotte` und **ohne** `belegungen` (F-03), `no-store` (F-04),
       keine Personenfelder (F-05), Fenstergrenzen und Ungekürztheit (F-07)
 
 ### Weboberfläche — geteilte Bausteine der Anzeige
 
-- [ ] T021 [P] `apps/web/src/lib/flotte/darstellung.ts` anlegen: Zuordnung
+- [X] T021 [P] `apps/web/src/lib/flotte/darstellung.ts` anlegen: Zuordnung
       Kennung → optionaler Typ, optionales Bild, optionaler POH-Pfad (E-03).
       Nur die D-EELK erhält `pohPfad` (FR-018); alle Angaben dürfen fehlen
-- [ ] T022 [P] `apps/web/src/lib/flotte/farben.ts` anlegen: die Statusfarben
+- [X] T022 [P] `apps/web/src/lib/flotte/farben.ts` anlegen: die Statusfarben
       und Neutraltöne aus dem Handoff sowie die lineare Interpolation
       `#1f8f45` → `#c0442b` aus `draengen` (E-05, FR-006). Hier stehen die
       Farbwerte — und **nur** hier
-- [ ] T023 `apps/web/src/lib/flotte/stand.svelte.ts` anlegen: holt
+- [X] T023 `apps/web/src/lib/flotte/stand.svelte.ts` anlegen: holt
       `/api/flotte` genau einmal (`cache: 'no-store'`), hält Belegungen,
       Flotte, Quelle und Abrufzeitpunkt, und schreibt den Bezugszeitpunkt zur
       vollen Minute fort — **ohne** neuen Abruf (E-09, FR-016). Beim

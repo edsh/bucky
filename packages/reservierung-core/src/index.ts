@@ -8,25 +8,46 @@
  */
 
 export { antwortDeuten } from './antwort-deuten.js';
-export { belegungsauskunft } from './belegung.js';
-export { alsAltersangabe, alsRueckfallHinweis, alsSatz } from './formulieren.js';
+export { belegungenImFenster, belegungsauskunft, endeDerKette, zeitraeumeFuer, type Zeitraum } from './belegung.js';
+export { flotteBilden, kategorieFuer, STAMMLISTE } from './flotte.js';
+export {
+	alsAltersangabe,
+	alsDauer,
+	alsRueckfallHinweis,
+	alsSatz,
+	alsStatussatz,
+	alsZusatzzeile
+} from './formulieren.js';
 export { kalenderDeuten } from './kalender-deuten.js';
 export { alterInWorten, alterMs, istVeraltet, VERFALLSGRENZE_MS } from './verfall.js';
 export {
 	alsIso,
 	alsIsoMitVersatz,
+	alsKurzdatumUhrzeit,
+	alsTagesdatum,
 	alsUhrzeit,
 	alsWochentagDatumUhrzeit,
 	gleicherTag,
+	minuteDesTages,
+	ortstag,
 	ortszeitZuZeitpunkt,
 	ZONE
 } from './zeit.js';
+export { zustandFuer } from './zustand.js';
 export type {
 	Abrufstand,
+	Balkensegment,
 	Belegungsart,
 	Belegungsauskunft,
 	Deutungsergebnis,
+	Kategorie,
+	Maschine,
+	Maschinenzustand,
 	Quelle,
 	Reservierung,
-	Wechselziel
+	Ringsegment,
+	Sonnenzeiten,
+	Statuswert,
+	Wechselziel,
+	Zeitfenster
 } from './typen.js';

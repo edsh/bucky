@@ -10,7 +10,15 @@ import { ortszeitZuZeitpunkt } from './zeit.js';
  * pruefen — und genau dort liegen die Fehler.
  */
 
-interface Zeitraum {
+/**
+ * Eine Belegung als reine Zahlen — Millisekunden seit der Epoche.
+ *
+ * Ab Feature 054 auch von `zustand.ts` und `tagesuhr.ts` benutzt. Sie deuten
+ * die Zeitangaben deshalb nicht selbst: Zwei Fassungen von
+ * `zeitangabeDeuten` liefen unweigerlich auseinander, und die eine wuerde die
+ * Altbestaende ohne Versatz vergessen (Prinzip IV).
+ */
+export interface Zeitraum {
 	von: number;
 	bis: number;
 	art: Belegungsart;
@@ -32,7 +40,7 @@ function zeitangabeDeuten(text: string): Date {
 	return TRAEGT_VERSATZ.test(text) ? new Date(text) : ortszeitZuZeitpunkt(text);
 }
 
-function zeitraeumeFuer(reservierungen: Reservierung[], kennung: string): Zeitraum[] {
+export function zeitraeumeFuer(reservierungen: Reservierung[], kennung: string): Zeitraum[] {
 	const gesucht = kennung.toUpperCase().replace(/\s+/g, '');
 	return reservierungen
 		.filter((r) => r.kennung === gesucht)
@@ -59,7 +67,7 @@ function zeitraeumeFuer(reservierungen: Reservierung[], kennung: string): Zeitra
  * Reservierung und Sperre bilden dabei gemeinsam eine Kette. Fuer die Frage
  * *ob* belegt ist, zaehlen beide gleich.
  */
-function endeDerKette(nachfolger: Zeitraum[], start: Zeitraum): number {
+export function endeDerKette(nachfolger: Zeitraum[], start: Zeitraum): number {
 	let ende = start.bis;
 	for (const naechster of nachfolger) {
 		// Ein Spalt von wenigen Minuten ist eine echte Luecke. Ihn zu
@@ -109,4 +117,31 @@ export function belegungsauskunft(
 		wechselAm: naechster ? new Date(naechster.von).toISOString() : null,
 		wechselZu: naechster ? 'belegt' : null
 	};
+}
+
+/**
+ * Alle Belegungen, die ein Zeitfenster beruehren — **ungekuerzt**.
+ *
+ * Beruehren heisst: Sie ueberlappen das Fenster, und sei es um eine Minute.
+ * Eine Reservierung, die gestern um 22:00 begann und heute um 02:00 endet,
+ * gehoert dazu — sonst zeigte die heutige Tagesuhr die frueheste Stunde
+ * faelschlich als frei.
+ *
+ * Und sie werden **nicht** auf das Fenster beschnitten (E-06). Das ist der
+ * springende Punkt: Wer eine Belegung auf "heute 00:00" kuerzt, versendet die
+ * Behauptung, sie habe dann begonnen. Der Ring darf am Rand abschneiden — die
+ * Daten duerfen es nicht, denn aus ihnen entsteht auch der Satz "belegt bis".
+ */
+export function belegungenImFenster(
+	reservierungen: readonly Reservierung[],
+	von: Date,
+	bis: Date
+): Reservierung[] {
+	const fensterVon = von.getTime();
+	const fensterBis = bis.getTime();
+	return reservierungen.filter((r) => {
+		const beginn = zeitangabeDeuten(r.beginn).getTime();
+		const ende = zeitangabeDeuten(r.ende).getTime();
+		return ende > fensterVon && beginn < fensterBis;
+	});
 }

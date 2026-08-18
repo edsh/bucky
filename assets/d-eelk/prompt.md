@@ -1,0 +1,1 @@
+Create an 8-bit style pixel art Cessna 172 plane in actual GIF format, red-white color scheme, from a diagonally-front POV, with a three-blade propeller. It should have a transparent background. The registration number must read "D-EELK". Make sure that the propeller really has three blades, all of them visible. The vertical stabilizer should carry a german flag

@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
 	alsIso,
 	alsIsoMitVersatz,
+	alsKurzdatumUhrzeit,
+	alsTagesdatum,
 	alsUhrzeit,
 	alsWochentagDatumUhrzeit,
 	gleicherTag,
+	minuteDesTages,
+	ortstag,
 	ortszeitZuZeitpunkt
 } from '../src/zeit.js';
 
@@ -108,5 +112,71 @@ describe('gleicherTag', () => {
 		const spaetAbends = ortszeitZuZeitpunkt('2026-08-13 23:30:00');
 		const kurzNachMitternacht = ortszeitZuZeitpunkt('2026-08-14 00:30:00');
 		expect(gleicherTag(spaetAbends, kurzNachMitternacht)).toBe(false);
+	});
+});
+
+/* -------------------------------------------------------------------------
+ * Feature 054 — die Formate der Flottenuebersicht (FR-015) und die
+ * Tagesrechnung des Rings (T-11).
+ * ---------------------------------------------------------------------- */
+
+describe('alsKurzdatumUhrzeit', () => {
+	it('schreibt Wochentag abgekuerzt, Datum ohne Jahr und die Uhrzeit', () => {
+		expect(alsKurzdatumUhrzeit(ortszeitZuZeitpunkt('2026-08-15 12:00:00'))).toBe(
+			'Sa., 15.08., 12:00'
+		);
+	});
+
+	it('bleibt auch im Winter bei der Ortszeit', () => {
+		expect(alsKurzdatumUhrzeit(ortszeitZuZeitpunkt('2026-01-15 08:05:00'))).toBe(
+			'Do., 15.01., 08:05'
+		);
+	});
+});
+
+describe('alsTagesdatum', () => {
+	it('schreibt den Wochentag aus und den Monat abgekuerzt', () => {
+		expect(alsTagesdatum(ortszeitZuZeitpunkt('2026-08-15 12:00:00'))).toBe('Samstag, 15. Aug.');
+	});
+});
+
+describe('ortstag', () => {
+	it('liefert das Datum als YYYY-MM-DD', () => {
+		expect(ortstag(ortszeitZuZeitpunkt('2026-08-15 12:00:00'))).toBe('2026-08-15');
+	});
+
+	it('richtet sich nach der Platzzone, nicht nach UTC', () => {
+		// 00:30 Ortszeit im Sommer ist 22:30 UTC am Vortag. Wer in UTC
+		// rechnet, schlaegt die Sonnenzeiten des falschen Tages nach.
+		expect(ortstag(ortszeitZuZeitpunkt('2026-08-15 00:30:00'))).toBe('2026-08-15');
+	});
+
+	it('ignoriert die Zone des Geraets (T-11)', () => {
+		// Dieselbe absolute Zeit, egal wie das Telefon eingestellt ist: Der
+		// Ring zeigt den Tag am Flugplatz.
+		const zeitpunkt = new Date('2026-08-14T22:30:00Z');
+		expect(ortstag(zeitpunkt)).toBe('2026-08-15');
+	});
+});
+
+describe('minuteDesTages', () => {
+	it('zaehlt Minuten seit Ortsmitternacht', () => {
+		expect(minuteDesTages(ortszeitZuZeitpunkt('2026-08-15 00:00:00'))).toBe(0);
+		expect(minuteDesTages(ortszeitZuZeitpunkt('2026-08-15 06:00:00'))).toBe(360);
+		expect(minuteDesTages(ortszeitZuZeitpunkt('2026-08-15 21:00:00'))).toBe(1260);
+		expect(minuteDesTages(ortszeitZuZeitpunkt('2026-08-15 23:59:00'))).toBe(1439);
+	});
+
+	it('liefert die Uhrzeit, die auf der Uhr steht — auch am Umstellungstag', () => {
+		// Der 25.10.2026 ist 25 Stunden lang. Der Ring bildet trotzdem
+		// Uhrzeiten ab, nicht verstrichene Zeit: 15:00 bleibt 15:00.
+		expect(minuteDesTages(ortszeitZuZeitpunkt('2026-10-25 15:00:00'))).toBe(900);
+		// Und am kurzen Tag im Maerz ebenso.
+		expect(minuteDesTages(ortszeitZuZeitpunkt('2026-03-29 15:00:00'))).toBe(900);
+	});
+
+	it('richtet sich nach der Platzzone, nicht nach dem Geraet', () => {
+		expect(minuteDesTages(new Date('2026-08-15T10:00:00Z'))).toBe(12 * 60);
+		expect(minuteDesTages(new Date('2026-01-15T10:00:00Z'))).toBe(11 * 60);
 	});
 });

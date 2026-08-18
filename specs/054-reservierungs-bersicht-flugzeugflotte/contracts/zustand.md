@@ -35,14 +35,15 @@ zustandFuer(reservierungen, kennung, bezugszeitpunkt) →
 | Z-09 | Der Bezugszeitpunkt wird übergeben, nie geholt. |
 | Z-10 | Das Modul kennt **keine** Farben, **keine** Sätze und **keine** Personen. Sätze bildet `formulieren.ts`, Farben die Oberfläche. |
 | Z-11 | Eine leere Reservierungsliste ergibt `'frei'` mit `wechselAm: null`. Das ist **nicht** dasselbe wie „kein Stand vorhanden" — diesen Fall trifft die Route, nicht der Kern (FR-022). |
+| Z-12 | `danachAm` ist der **übernächste** Wechsel: bei laufender Belegung der Beginn der folgenden, bei `'bald'` das **Ende der Kette**, die dann beginnt. `null`, wenn danach nichts mehr absehbar ist. Ohne dieses Feld ließen sich die Zusatzzeilen unten nicht bilden, ohne die Kettenlogik ein zweites Mal zu schreiben. |
 
 ## Sätze (`formulieren.ts`, erweitert)
 
 | Status | Satz | Zusatzzeile |
 |---|---|---|
 | `sperre` | „Gesperrt bis {Wochentag, Datum}" | „bis {Datum}" |
-| `belegt` | „Belegt bis {Uhrzeit}" | „danach frei bis {Zeitpunkt}" bzw. „danach den ganzen Tag frei" |
-| `bald` | „Frei bis {Uhrzeit}" | „danach bis {Zeitpunkt} belegt" |
+| `belegt` | „Belegt bis {Uhrzeit}" | „danach frei bis {`danachAm`}" bzw. „danach den ganzen Tag frei", wenn `danachAm === null` |
+| `bald` | „Frei bis {Uhrzeit}" | „danach bis {`danachAm`} belegt" |
 | `frei` | „Frei" / Kurzsatz „frei den ganzen Tag" | — |
 
 Zeitformate (FR-015): heute `HH:MM`, später `Sa., 15.08., 12:00`, Sperren und

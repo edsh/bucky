@@ -183,3 +183,73 @@ export function alsUhrzeit(zeitpunkt: Date): string {
 export function gleicherTag(a: Date, b: Date): boolean {
 	return NUR_TAG.format(a) === NUR_TAG.format(b);
 }
+
+/* -------------------------------------------------------------------------
+ * Feature 054 — Formate und Tagesrechnung fuer die Flottenuebersicht.
+ * ---------------------------------------------------------------------- */
+
+const KURZDATUM_UHRZEIT = new Intl.DateTimeFormat('de-DE', {
+	timeZone: ZONE,
+	weekday: 'short',
+	day: '2-digit',
+	month: '2-digit',
+	hour: '2-digit',
+	minute: '2-digit'
+});
+
+const TAGESDATUM = new Intl.DateTimeFormat('de-DE', {
+	timeZone: ZONE,
+	weekday: 'long',
+	day: 'numeric',
+	month: 'short'
+});
+
+const ORTSTAG = new Intl.DateTimeFormat('en-CA', {
+	timeZone: ZONE,
+	year: 'numeric',
+	month: '2-digit',
+	day: '2-digit'
+});
+
+const NUR_STUNDE_MINUTE = new Intl.DateTimeFormat('en-GB', {
+	timeZone: ZONE,
+	hour: '2-digit',
+	minute: '2-digit',
+	hourCycle: 'h23'
+});
+
+/** `Sa., 15.08., 12:00` — knapp, fuer Listen (FR-015). */
+export function alsKurzdatumUhrzeit(zeitpunkt: Date): string {
+	return KURZDATUM_UHRZEIT.format(zeitpunkt);
+}
+
+/** `Samstag, 15. Aug.` — die Ueberschrift eines Tages in der Wochenliste. */
+export function alsTagesdatum(zeitpunkt: Date): string {
+	return TAGESDATUM.format(zeitpunkt);
+}
+
+/**
+ * Der Ortstag als `YYYY-MM-DD` — der Schluessel, unter dem Tage verglichen und
+ * Sonnenzeiten nachgeschlagen werden.
+ *
+ * `en-CA` liefert genau diese Reihenfolge; das ist kein Zufallsfund, sondern
+ * die uebliche Abkuerzung fuer ein ISO-Datum aus `Intl`. Entscheidend ist die
+ * Zone: Ein Telefon in Neuseeland darf nicht einen Tag weiter sein als der
+ * Flugplatz (T-11).
+ */
+export function ortstag(zeitpunkt: Date): string {
+	return ORTSTAG.format(zeitpunkt);
+}
+
+/**
+ * Minuten seit Ortsmitternacht (0 … 1439) — die Eingangsgroesse des
+ * Tagesuhr-Rings.
+ *
+ * An den Umstellungstagen ist der Tag 23 bzw. 25 Stunden lang. Diese Funktion
+ * liefert trotzdem die Uhrzeit, die auf der Uhr steht, denn genau die steht
+ * auch auf dem Ring. Der Ring bildet Uhrzeiten ab, nicht verstrichene Zeit.
+ */
+export function minuteDesTages(zeitpunkt: Date): number {
+	const teile = NUR_STUNDE_MINUTE.format(zeitpunkt).split(':');
+	return Number(teile[0]) * 60 + Number(teile[1]);
+}

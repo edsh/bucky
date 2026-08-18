@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { flotteBilden } from '../src/flotte.js';
 import { kalenderDeuten } from '../src/kalender-deuten.js';
 
 /**
@@ -60,5 +61,55 @@ describe('kalenderDeuten — gegen den echten Abzug', () => {
 			kalenderDeuten(roh).reservierungen.filter((r) => r.kennung === 'D-EELK' && r.art === 'sperre')
 				.length
 		);
+	});
+});
+
+describe('flotteBilden — gegen den echten Abzug (Feature 054, Nachweis 1)', () => {
+	it('findet genau die sechs bekannten Maschinen', () => {
+		const { reservierungen } = kalenderDeuten(roh);
+		const flotte = flotteBilden([], reservierungen);
+		expect(flotte.map((m) => m.kennung)).toEqual([
+			'D-EELK',
+			'D-EXYZ',
+			'D-MRXS',
+			'D-3004',
+			'D-4413',
+			'D-9021'
+		]);
+	});
+
+	it('ordnet alle sechs richtig ein — sechs Treffer von sechs (E-02)', () => {
+		const { reservierungen } = kalenderDeuten(roh);
+		const flotte = flotteBilden([], reservierungen);
+		const nachKategorie = Object.fromEntries(flotte.map((m) => [m.kennung, m.kategorie]));
+		expect(nachKategorie).toEqual({
+			'D-EELK': 'motor',
+			'D-EXYZ': 'motor',
+			'D-MRXS': 'motor',
+			'D-3004': 'segelflug',
+			'D-4413': 'segelflug',
+			'D-9021': 'segelflug'
+		});
+	});
+
+	it('nimmt GRILL, LANDEBAR und Werkstatt nicht in die Flotte auf', () => {
+		// Sie fallen schon beim Deuten heraus. Diese Prüfung sichert, dass
+		// die Flottenbildung sie nicht auf einem zweiten Weg wieder
+		// hereinholt — der Grillplatz ist kein Luftfahrzeug.
+		const { reservierungen } = kalenderDeuten(roh);
+		const kennungen = flotteBilden([], reservierungen).map((m) => m.kennung);
+		for (const raum of ['GRILL', 'LANDEBAR', 'WERKSTATT']) {
+			expect(kennungen).not.toContain(raum);
+		}
+	});
+
+	it('verlöre drei Maschinen, wenn nur Reservierungen zählten', () => {
+		// D-MRXS, D-9021 und D-4413 stehen im Abzug ausschließlich in
+		// Sperren. Wer die Flotte aus Reservierungen bildet, verliert die
+		// halbe Flotte — und zwar unbemerkt.
+		const { reservierungen } = kalenderDeuten(roh);
+		const nurReservierungen = reservierungen.filter((r) => r.art === 'reservierung');
+		expect(flotteBilden([], nurReservierungen)).toHaveLength(3);
+		expect(flotteBilden([], reservierungen)).toHaveLength(6);
 	});
 });

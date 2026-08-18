@@ -71,6 +71,8 @@ interface Maschinenzustand {
   /** Wann sich der Zustand ändert; null, wenn kein Wechsel absehbar. ISO mit Versatz. */
   wechselAm: string | null;
   wechselZu: Wechselziel | null;
+  /** Der übernächste Wechsel — was nach `wechselAm` kommt (Z-12). Trägt die Zusatzzeilen. */
+  danachAm: string | null;
   /**
    * 0 … 1 — Dringlichkeit vor der nächsten Belegung (FR-006).
    * 0 außerhalb der letzten Stunde, 1 im Moment des Beginns.
@@ -93,7 +95,12 @@ interface Maschinenzustand {
   nächste Belegung am selben Ortstag beginnt.
 - `naechsteLuecke.von` ist auf die nächsten vollen 30 Minuten aufgerundet;
   `bis` liegt zwei Stunden später, aber nie nach dem Beginn der nächsten
-  Belegung (FR-011).
+  Belegung (FR-011). Das Suchfenster läuft ab **jetzt**, nicht ab dem Ende
+  der laufenden Belegung — sonst schöbe eine Monatssperre den Vorschlag um
+  einen Monat weiter.
+- `danachAm` trägt den übernächsten Wechsel und damit die Zusatzzeilen
+  („danach frei bis 18:00"). Beide Male entsteht er über `endeDerKette`,
+  nicht über eine zweite Auslegung von „lückenlos" (Z-12).
 
 ### `Ringsegment` und `Markerwinkel`
 

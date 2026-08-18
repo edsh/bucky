@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { alsAltersangabe, alsRueckfallHinweis, alsSatz } from '../src/formulieren.js';
-import type { Belegungsauskunft } from '../src/typen.js';
+import {
+	alsAltersangabe,
+	alsDauer,
+	alsRueckfallHinweis,
+	alsSatz,
+	alsStatussatz,
+	alsZusatzzeile
+} from '../src/formulieren.js';
+import type { Belegungsauskunft, Maschinenzustand } from '../src/typen.js';
 
 const JETZT = new Date('2026-08-13T10:00:00.000Z'); // 12:00 Ortszeit
 
@@ -114,5 +121,144 @@ describe('alsRueckfallHinweis (FR-019, Feature 052)', () => {
 		for (const verbotenesWort of ['Fehler', 'Ausfall', 'Kalender', 'Netzwerk', 'Vereinsflieger']) {
 			expect(hinweis).not.toContain(verbotenesWort);
 		}
+	});
+});
+
+/* -------------------------------------------------------------------------
+ * Feature 054 — Statussätze und Zusatzzeilen (contracts/zustand.md).
+ * ---------------------------------------------------------------------- */
+
+describe('alsStatussatz', () => {
+	const bezug = new Date('2026-08-15T11:00:00+02:00');
+
+	function zustand(teil: Partial<Maschinenzustand>): Maschinenzustand {
+		return {
+			kennung: 'D-EELK',
+			status: 'frei',
+			wechselAm: null,
+			wechselZu: null,
+			danachAm: null,
+			draengen: 0,
+			naechsteLuecke: null,
+			...teil
+		};
+	}
+
+	it('nennt bei einer Sperre ein Datum, keine Uhrzeit (FR-014)', () => {
+		// "Gesperrt bis Freitag, 16:00" verspricht eine Genauigkeit, die
+		// eine Wartung nicht hat.
+		const satz = alsStatussatz(
+			zustand({ status: 'sperre', wechselAm: '2026-08-21T16:00:00+02:00' }),
+			bezug
+		);
+		expect(satz).toBe('Gesperrt bis Freitag, 21. Aug.');
+		expect(satz).not.toMatch(/\d{2}:\d{2}/);
+	});
+
+	it('nennt bei einer laufenden Belegung die Uhrzeit', () => {
+		expect(
+			alsStatussatz(zustand({ status: 'belegt', wechselAm: '2026-08-15T14:00:00+02:00' }), bezug)
+		).toBe('Belegt bis 14:00');
+	});
+
+	it('schreibt bei einer Belegung über den Tag hinaus das Datum dazu', () => {
+		expect(
+			alsStatussatz(zustand({ status: 'belegt', wechselAm: '2026-08-16T14:00:00+02:00' }), bezug)
+		).toBe('Belegt bis So., 16.08., 14:00');
+	});
+
+	it('sagt bei bald, bis wann noch frei ist', () => {
+		expect(
+			alsStatussatz(zustand({ status: 'bald', wechselAm: '2026-08-15T18:00:00+02:00' }), bezug)
+		).toBe('Frei bis 18:00');
+	});
+
+	it('sagt bei frei ohne jede Aussicht auf Belegung den ganzen Tag zu', () => {
+		expect(alsStatussatz(zustand({ status: 'frei' }), bezug)).toBe('Frei den ganzen Tag');
+	});
+
+	it('sagt bei frei mit späterer Belegung schlicht frei', () => {
+		expect(
+			alsStatussatz(zustand({ status: 'frei', wechselAm: '2026-08-17T08:00:00+02:00' }), bezug)
+		).toBe('Frei');
+	});
+});
+
+describe('alsZusatzzeile', () => {
+	const bezug = new Date('2026-08-15T11:00:00+02:00');
+
+	function zustand(teil: Partial<Maschinenzustand>): Maschinenzustand {
+		return {
+			kennung: 'D-EELK',
+			status: 'frei',
+			wechselAm: null,
+			wechselZu: null,
+			danachAm: null,
+			draengen: 0,
+			naechsteLuecke: null,
+			...teil
+		};
+	}
+
+	it('sagt bei einer Belegung, bis wann es danach frei ist', () => {
+		expect(
+			alsZusatzzeile(
+				zustand({
+					status: 'belegt',
+					wechselAm: '2026-08-15T14:00:00+02:00',
+					danachAm: '2026-08-15T18:00:00+02:00'
+				}),
+				bezug
+			)
+		).toBe('danach frei bis 18:00');
+	});
+
+	it('sagt "danach den ganzen Tag frei", wenn nichts mehr folgt', () => {
+		expect(
+			alsZusatzzeile(zustand({ status: 'belegt', wechselAm: '2026-08-15T14:00:00+02:00' }), bezug)
+		).toBe('danach den ganzen Tag frei');
+	});
+
+	it('sagt bei bald, bis wann die kommende Belegung dauert', () => {
+		expect(
+			alsZusatzzeile(
+				zustand({
+					status: 'bald',
+					wechselAm: '2026-08-15T18:00:00+02:00',
+					danachAm: '2026-08-15T20:00:00+02:00'
+				}),
+				bezug
+			)
+		).toBe('danach bis 20:00 belegt');
+	});
+
+	it('wiederholt bei einer Sperre das Datum', () => {
+		expect(
+			alsZusatzzeile(zustand({ status: 'sperre', wechselAm: '2026-08-21T16:00:00+02:00' }), bezug)
+		).toBe('bis Freitag, 21. Aug.');
+	});
+
+	it('schweigt, wenn es nichts zu sagen gibt', () => {
+		expect(alsZusatzzeile(zustand({ status: 'frei' }), bezug)).toBeNull();
+	});
+});
+
+describe('alsDauer', () => {
+	it('schreibt halbe Stunden mit Dezimalkomma', () => {
+		expect(alsDauer('2026-08-15T10:00:00+02:00', '2026-08-15T13:30:00+02:00')).toBe('3,5 h');
+	});
+
+	it('schreibt ganze Stunden ohne Nachkommastelle', () => {
+		expect(alsDauer('2026-08-15T10:00:00+02:00', '2026-08-15T12:00:00+02:00')).toBe('2 h');
+	});
+
+	it('schreibt einen ganztägigen Eintrag als 24 h', () => {
+		expect(alsDauer('2026-08-15T00:00:00+02:00', '2026-08-16T00:00:00+02:00')).toBe('24 h');
+	});
+
+	it('rechnet über die Zeitumstellung in echten Stunden', () => {
+		// Der 25.10. ist 25 Stunden lang — ein ganztägiger Eintrag dauert
+		// dann tatsächlich 25 h. Das ist keine Panne, sondern die Wahrheit.
+		expect(alsDauer('2026-10-25T00:00:00+02:00', '2026-10-26T00:00:00+01:00')).toBe('25 h');
 	});
 });

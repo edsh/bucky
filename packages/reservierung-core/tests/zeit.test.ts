@@ -180,3 +180,26 @@ describe('minuteDesTages', () => {
 		expect(minuteDesTages(new Date('2026-01-15T10:00:00Z'))).toBe(11 * 60);
 	});
 });
+
+describe('alsIsoMitVersatz — Millisekunden', () => {
+	it('gibt auch bei einem Zeitpunkt mit Millisekunden einen ganzen Versatz aus', () => {
+		// Der Fehler, den diese Prüfung festhält: Ohne die Millisekunden in
+		// der Differenz kam „+01:59.992216666666664" heraus. `new Date(...)`
+		// darauf ergibt „Invalid Date" — und die ganze Kachel blieb leer.
+		const mitMillisekunden = new Date('2026-08-18T14:00:00.437+02:00');
+		expect(alsIsoMitVersatz(mitMillisekunden)).toBe('2026-08-18T14:00:00+02:00');
+	});
+
+	it('bleibt im Winter bei +01:00', () => {
+		expect(alsIsoMitVersatz(new Date('2026-12-21T14:00:00.789+01:00'))).toBe(
+			'2026-12-21T14:00:00+01:00'
+		);
+	});
+
+	it('liefert stets eine Angabe, die sich wieder einlesen lässt', () => {
+		for (const ms of [0, 1, 437, 999]) {
+			const zeitpunkt = new Date(Date.UTC(2026, 7, 18, 12, 0, 0, ms));
+			expect(Number.isNaN(new Date(alsIsoMitVersatz(zeitpunkt)).getTime())).toBe(false);
+		}
+	});
+});

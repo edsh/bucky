@@ -2156,6 +2156,144 @@ pruefe(
   ohneLager ? 'saubere Adresse' : '(Cache-Buster in der Adresse)'
 );
 
+// ---------------------------------------------------------------------------
+// Feature 054 — Die Uebersicht ueber die ganze Flotte
+// ---------------------------------------------------------------------------
+
+const UEBERSICHT = `${BASE}/reservierung/`;
+
+// Ein Stand, der beide Faelle traegt: eine laufende Belegung, eine Sperre und
+// eine Maschine ohne jeden Eintrag. Fest verdrahtete Zeiten waeren am naechsten
+// Morgen falsch, deshalb relativ zu jetzt.
+const jetztMs = Date.now();
+const inStunden = (h) => new Date(jetztMs + h * 3600 * 1000).toISOString();
+
+const flottenstand = {
+  stand: 'vorhanden',
+  quelle: 'kalender',
+  abgerufenAm: new Date(jetztMs).toISOString(),
+  veraltet: false,
+  flotte: [
+    { kennung: 'D-EELK', kategorie: 'motor' },
+    { kennung: 'D-EXYZ', kategorie: 'motor' },
+    { kennung: 'D-MRXS', kategorie: 'motor' },
+    { kennung: 'D-3004', kategorie: 'segelflug' },
+    { kennung: 'D-4413', kategorie: 'segelflug' },
+    { kennung: 'D-9021', kategorie: 'segelflug' }
+  ],
+  belegungen: [
+    { kennung: 'D-EELK', beginn: inStunden(-1), ende: inStunden(2), art: 'reservierung' },
+    { kennung: 'D-MRXS', beginn: inStunden(-24), ende: inStunden(72), art: 'sperre' }
+  ]
+};
+
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({ contentType: 'application/json', body: JSON.stringify(flottenstand) })
+);
+
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+
+// 120: Die ganze Flotte erscheint — und jede Maschine genau einmal. Der Fehler,
+// vor dem das schuetzt, ist eine halbe Flotte: Drei der sechs Maschinen tauchen
+// im echten Abzug ausschliesslich als Sperre auf.
+const kacheltexte = await page.locator('.kennzeichen').allInnerTexts();
+const gesehen = kacheltexte.map((t) => t.trim());
+const erwartet = flottenstand.flotte.map((m) => m.kennung);
+pruefe(
+  120,
+  'jede Maschine der Flotte erscheint genau einmal',
+  erwartet.every((k) => gesehen.filter((g) => g === k).length === 1) &&
+    gesehen.length === erwartet.length,
+  gesehen.join(', ')
+);
+
+// 121: Jede Kachel sagt ihren Zustand auch in Worten. Wer Rot und Gruen nicht
+// unterscheidet, liest sonst gar nichts (FR-005, SC-005).
+const saetze = (await page.locator('.satz').allInnerTexts()).map((t) => t.trim());
+pruefe(
+  121,
+  'jede Kachel traegt einen Kurztext, nicht nur eine Farbe',
+  saetze.length === erwartet.length && saetze.every((s) => s.length > 0),
+  saetze.join(' | ')
+);
+
+// 122: Die belegte Maschine sagt es, die ungebuchte auch — und zwar
+// verschieden. Waeren beide Texte gleich, traege der Text nichts bei.
+const flottenText = await page.locator('main').innerText();
+pruefe(
+  122,
+  'eine laufende Belegung wird als belegt benannt',
+  /Belegt bis/.test(flottenText),
+  flottenText.split('\n').find((z) => /Belegt bis/.test(z)) ?? '(nicht gefunden)'
+);
+
+pruefe(
+  123,
+  'eine gesperrte Maschine wird als gesperrt benannt, nicht als belegt',
+  /Gesperrt bis/.test(flottenText),
+  flottenText.split('\n').find((z) => /Gesperrt/.test(z)) ?? '(nicht gefunden)'
+);
+
+// 124: Der Datenstand steht da und altert sichtbar mit (FR-019).
+pruefe(
+  124,
+  'der Datenstand wird genannt',
+  /Stand\s+\w/.test(flottenText),
+  flottenText.split('\n').find((z) => /^Stand/.test(z.trim())) ?? '(nicht gefunden)'
+);
+
+// 125: Kein Personenname verlaesst den Server — und keiner steht auf der Seite.
+pruefe(
+  125,
+  'die Uebersicht nennt keine Personen',
+  !/Pilot|Fluglehrer|reserviert von/i.test(flottenText),
+  ''
+);
+
+await page.unroute('**/api/flotte*');
+
+// 126: Der Fall „kein Stand". Hier entscheidet sich, ob die Anzeige ehrlich
+// ist: Sie muss die Flotte zeigen und trotzdem fuer keine einzige Maschine
+// „frei" behaupten (FR-022, SC-003). Eine stumme Seite saehe aus wie
+// „alles frei" — genau die Verwechslung, um die es geht.
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      stand: 'fehlt',
+      quelle: 'rueckfall',
+      flotte: flottenstand.flotte
+    })
+  })
+);
+
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+const ohneStandText = await page.locator('main').innerText();
+
+pruefe(
+  126,
+  'ohne Stand erscheint die Flotte trotzdem',
+  erwartet.every((k) => ohneStandText.includes(k)),
+  ''
+);
+
+pruefe(
+  127,
+  'ohne Stand behauptet keine Maschine, frei zu sein',
+  !/\bFrei\b/.test(ohneStandText) && /keine Auskunft/i.test(ohneStandText),
+  ohneStandText.split('\n').find((z) => /Auskunft/.test(z)) ?? '(kein Hinweis gefunden)'
+);
+
+// 128: Und kein Statuspunkt taeuscht einen Zustand vor, den es nicht gibt.
+pruefe(
+  128,
+  'ohne Stand traegt keine Kachel einen Statuspunkt',
+  (await page.locator('.punkt').count()) === 4, // nur die vier Legendenpunkte
+  `${await page.locator('.punkt').count()} Punkte`
+);
+
+await page.unroute('**/api/flotte*');
+
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 
 await browser.close();

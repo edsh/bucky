@@ -85,9 +85,16 @@ describe('darstellungFuer (E-03, FR-018)', () => {
 });
 
 describe('kurzkennung', () => {
-	it('lässt das Landeszeichen weg — es unterscheidet nichts', () => {
+	it('lässt bei Motorflugzeugen das Landeszeichen weg — es unterscheidet nichts', () => {
 		expect(kurzkennung('D-EELK')).toBe('EELK');
-		expect(kurzkennung('D-3004')).toBe('3004');
+		expect(kurzkennung('D-MRXS')).toBe('MRXS');
+	});
+
+	it('lässt Segelflugzeugen ihr ganzes Kennzeichen', () => {
+		// „04" ließe sich von einer D-9004 nicht unterscheiden, und eine
+		// gebräuchliche Kurzform gibt es für sie ohnehin nicht.
+		expect(kurzkennung('D-3004')).toBe('D-3004');
+		expect(kurzkennung('D-9021')).toBe('D-9021');
 	});
 
 	it('gibt eine Kennung ohne Bindestrich unverändert zurück', () => {

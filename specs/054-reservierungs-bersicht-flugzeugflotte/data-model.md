@@ -175,8 +175,15 @@ interface Darstellung {
 ```
 
 Eine Zuordnung Kennung → `Darstellung`. Jede Angabe fehlen zu dürfen ist der
-Normalfall, kein Fehlzustand: Ohne Bild erscheint das Kurzkennzeichen (`D-` +
-letzte zwei Zeichen, FR-020), ohne `pohPfad` kein POH-Knopf.
+Normalfall, kein Fehlzustand: Ohne Bild erscheint das Kurzkennzeichen
+(FR-020), ohne `pohPfad` kein POH-Knopf.
+
+**Kurzkennzeichen** (Entscheidung des Auftraggebers, 18.08.2026): Bei
+Motorflugzeugen entfällt das Landeszeichen (`D-EELK` → `EELK`);
+Segelflugzeuge behalten ihr ganzes Kennzeichen (`D-3004`), weil es für sie
+keine gebräuchliche Kurzform gibt. Der Handoff schrieb „`D-` + letzte zwei
+Zeichen" vor — das ergäbe `D-04` und wäre von einer D-9004 nicht zu
+unterscheiden.
 
 ### `Favoriten` (`lib/flotte/favoriten.ts`)
 

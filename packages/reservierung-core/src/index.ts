@@ -33,6 +33,13 @@ export {
 	ortszeitZuZeitpunkt,
 	ZONE
 } from './zeit.js';
+export {
+	markerwinkel,
+	minuteFuerWinkel,
+	ringsegmente,
+	winkelFuerMinute,
+	type Markerwinkel
+} from './tagesuhr.js';
 export { zustandFuer } from './zustand.js';
 export type {
 	Abrufstand,

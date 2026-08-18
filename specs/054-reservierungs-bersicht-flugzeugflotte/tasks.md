@@ -181,7 +181,7 @@ Maschine, Maschine ohne Bild, kein Stand verfügbar.
 
 ### Kern — Tagesuhr
 
-- [ ] T024 [US1] `packages/reservierung-core/src/tagesuhr.ts` anlegen:
+- [X] T024 [US1] `packages/reservierung-core/src/tagesuhr.ts` anlegen:
       `winkelFuerMinute`, `minuteFuerWinkel`, Ringsegmente aus 1°-Zellen mit
       Zusammenfassung gleichfarbiger Nachbarn, Markerwinkel für Sonnenaufgang,
       Sonnenuntergang und „jetzt" — alles nach `contracts/tagesuhr.md`. Liefert
@@ -193,7 +193,7 @@ Maschine, Maschine ohne Bild, kein Stand verfügbar.
       nach 21:00/06:00 (T-06, T-06a).
       Im selben Zug in `packages/reservierung-core/src/index.ts` ausgeben —
       T026 importiert das Modul unmittelbar danach
-- [ ] T025 [US1] Prüfungen in
+- [X] T025 [US1] Prüfungen in
       `packages/reservierung-core/tests/tagesuhr.test.ts` für T-01 bis T-12,
       insbesondere `winkelFuerMinute(1260) === 135`,
       `winkelFuerMinute(360) === 225`, `winkelFuerMinute(0) === 165` (T-02),
@@ -209,7 +209,7 @@ Maschine, Maschine ohne Bild, kein Stand verfügbar.
 
 ### Oberfläche
 
-- [ ] T026 [US1] `apps/web/src/lib/components/TagesuhrAvatar.svelte` anlegen:
+- [X] T026 [US1] `apps/web/src/lib/components/TagesuhrAvatar.svelte` anlegen:
       Ring als `conic-gradient` aus den Segmenten von T024, Avatar als runder
       Innenkreis, drei Marker mit Halo, Zahlen „6"/„21" außen an den
       Nahtstellen, Statuspunkt unten rechts, Absperrband bei Sperre (FR-014),
@@ -219,39 +219,55 @@ Maschine, Maschine ohne Bild, kein Stand verfügbar.
       Ringbreiten (7 px bei 96er, 6 px bei 74er, 40er im Header) exakt nach
       Handoff. Die Zahlen „6"/„21" bezeichnen die **Skalennaht**, nicht den
       Sonnenstand — sie wandern nie mit
-- [ ] T027 [US1] `apps/web/src/lib/components/Maschinenkachel.svelte` anlegen:
+- [X] T027 [US1] `apps/web/src/lib/components/Maschinenkachel.svelte` anlegen:
       Avatar, Kennzeichen, Kurzsatz in Statusfarbe, optionale zweite Zeile
       „danach …" — in beiden Größen (118 px Favoritenspalte, 118 px Grid mit
       74er Avatar)
-- [ ] T028 [US1] `apps/web/src/routes/reservierung/+page.svelte` anlegen:
+- [X] T028 [US1] `apps/web/src/routes/reservierung/+page.svelte` anlegen:
       Splash-Bild, Sektionskopf „MEINE LIEBLINGSMASCHINEN" mit Stand-Text
       rechts, Kategoriegruppen „Weitere Motorflugzeuge & UL" / „Weitere
       Segelflugzeuge" mit Zähler, Legende, Fußnote. Einspaltig,
       `max-width: 430px` (FR-017)
-- [ ] T029 [US1] Statuspunkt, Kurztext und Farbe je Kachel aus `zustandFuer`
+- [X] T029 [US1] Statuspunkt, Kurztext und Farbe je Kachel aus `zustandFuer`
       und `farben.ts` speisen — Zustand nie ausschließlich über Farbe
       (FR-005, SC-005): Punkt **und** Text tragen ihn mit
-- [ ] T030 [US1] Hell-/Dunkel-Umschalter als 34-px-Kreisbutton oben rechts im
+- [X] T030 [US1] Hell-/Dunkel-Umschalter als 34-px-Kreisbutton oben rechts im
       Splash (FR-013), Wahl im `localStorage` sichern, Vorbelegung aus
       `prefers-color-scheme`
-- [ ] T031 [US1] Stand-Text nach FR-019 anzeigen („Stand Do., 13.08., 11:20")
+- [X] T031 [US1] Stand-Text nach FR-019 anzeigen („Stand Do., 13.08., 11:20")
       und erkennbar machen, ob er aus dem Kalender-Abruf oder dem Rückfall
       stammt (`alsRueckfallHinweis`)
-- [ ] T032 [US1] Fall „kein Stand" gestalten: Die Flotte erscheint, aber
+- [X] T032 [US1] Fall „kein Stand" gestalten: Die Flotte erscheint, aber
       **ohne** Verfügbarkeitsaussage, mit offenem Hinweis statt eines
       geratenen Zustands (FR-022, SC-003). Für keine Maschine darf hier Grün
       erscheinen
-- [ ] T033 [US1] Minütliches Nachziehen anschließen: Jetzt-Marker,
+- [X] T033 [US1] Minütliches Nachziehen anschließen: Jetzt-Marker,
       Statusfarbe und Kurztext folgen dem Bezugszeitpunkt aus T023, ohne
       Neuladen und ohne neuen Abruf (FR-016)
-- [ ] T034 [US1] `apps/web/src/routes/+page.svelte` um einen Verweis auf die
+- [X] T034 [US1] `apps/web/src/routes/+page.svelte` um einen Verweis auf die
       Übersicht ergänzen
-- [ ] T035 [US1] `tests/ui/klickpfad.mjs` erweitern: Übersicht lädt, jede
+- [X] T035 [US1] `tests/ui/klickpfad.mjs` erweitern: Übersicht lädt, jede
       Maschine der Flotte erscheint genau einmal, Kurztexte sind vorhanden,
       der Fall „kein Stand" sagt es offen
-- [ ] T036 [US1] Nachweise 1, 3 und 4 aus `quickstart.md` durchführen und das
+- [X] T036 [US1] Nachweise 1, 3 und 4 aus `quickstart.md` durchführen und das
       Ergebnis festhalten (Flotte vollständig, ungebuchte Maschine erscheint,
       kein Stand heißt kein „frei")
+
+**Ergebnis T036** (18.08., gegen `wrangler dev` auf Port 8787):
+
+- *Nachweis 1* — `npx vitest run --project reservierung-core`: 191 Prüfungen
+  grün. Die Kategorieregel aus E-02 ordnet alle sechs Kennzeichen allein aus
+  dem Kennzeichen zu; `GRILL`, `LANDEBAR` und `Werkstatt` fallen heraus. E-02
+  steht damit, eine gepflegte Spalte ist nicht nötig.
+- *Nachweis 3* — Maschinen ohne jede Reservierung erscheinen: `D-EXYZ`,
+  `D-3004`, `D-4413`, `D-9021` stehen in der Übersicht mit „Frei den ganzen
+  Tag", jede genau einmal (Klickpfad 120/121). Die fest verdrahtete Stammliste
+  aus D1 trägt also das, was „Flotte aus den Daten ableiten" nicht getragen
+  hätte.
+- *Nachweis 4* — ohne Kalender-Abo antwortet `/api/flotte` mit
+  `"stand":"fehlt"`, ohne Feld `belegungen`, aber mit vollständiger `flotte`.
+  Die Oberfläche sagt es offen und zeigt **keinen** Statuspunkt und keinen
+  grünen Ring (Klickpfad 126–128). SC-003 ist damit belegt.
 
 **Checkpoint**: Die Übersicht ist für sich nutzbar und liefert den eigentlichen
 Mehrwert gegenüber Feature 052. Ab hier wäre eine Veröffentlichung sinnvoll.

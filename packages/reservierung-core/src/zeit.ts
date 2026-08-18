@@ -43,7 +43,14 @@ function zonenversatz(zeitpunkt: Date): number {
 		lies('day'),
 		lies('hour'),
 		lies('minute'),
-		lies('second')
+		lies('second'),
+		// Die Millisekunden muessen mit: Ohne sie ist die Differenz um bis zu
+		// 999 ms zu klein, und der Versatz kommt als "+01:59.99" statt
+		// "+02:00" heraus — eine Zeitangabe, die kein Leser mehr deutet.
+		// Aufgefallen ist das erst, als ein Zeitstempel aus `new Date()` (mit
+		// Millisekunden) durch diese Funktion lief; Kalenderzeiten stehen
+		// stets auf der vollen Sekunde und trafen den Fehler nie.
+		zeitpunkt.getUTCMilliseconds()
 	);
 	return alsUtc - zeitpunkt.getTime();
 }

@@ -220,9 +220,24 @@
       </li>
     {/each}
   </ul>
+
+  <!--
+    Der Weg zur ganzen Flotte. Er steht unter der Auswahl und nicht darueber:
+    Wer die Seite oeffnet, hat meist ein bestimmtes Flugzeug im Sinn — wer
+    erst schauen will, was ueberhaupt frei ist, findet den Verweis hier.
+  -->
+  <p class="flotte">
+    <a href="{base}/reservierung/">Alle Flugzeuge und ihre Reservierungen</a>
+  </p>
 </main>
 
 <style>
+  .flotte {
+    text-align: center;
+    margin: 2rem 0 0;
+    font-size: 0.95rem;
+  }
+
   main {
     max-width: 48rem;
     margin: 0 auto;

@@ -42,14 +42,21 @@ export function darstellungFuer(kennung: string): Darstellung {
 }
 
 /**
- * Die Ersatzform fuer eine fehlende Bilddatei: der Teil des Kennzeichens
- * hinter dem Bindestrich, also „EELK" oder „3004".
+ * Die Ersatzform fuer eine fehlende Bilddatei.
  *
- * Das Landeszeichen wegzulassen ist keine Sparsamkeit, sondern Lesbarkeit: In
- * einer Flotte, in der jede Kennung mit „D-" beginnt, traegt dieser Teil keine
- * Unterscheidung.
+ * Bei Motorflugzeugen faellt das Landeszeichen weg: In einer Flotte, in der
+ * jede Kennung mit „D-E" beginnt, traegt dieser Teil keine Unterscheidung —
+ * „EELK" liest sich schneller und ist trotzdem eindeutig.
+ *
+ * Segelflugzeuge behalten ihr **ganzes** Kennzeichen. Fuer sie ist die
+ * Kurzform nicht gebraeuchlich (Auskunft des Auftraggebers, 18.08.2026), und
+ * eine erfundene waere schlimmer als keine: „04" liesse sich von einer
+ * D-9004 nicht unterscheiden.
  */
 export function kurzkennung(kennung: string): string {
-	const teil = /-(.+)$/.exec(kennung.toUpperCase());
-	return teil ? teil[1] : kennung.toUpperCase();
+	const gross = kennung.toUpperCase();
+	if (/^D-\d/.test(gross)) return gross;
+
+	const teil = /-(.+)$/.exec(gross);
+	return teil ? teil[1] : gross;
 }

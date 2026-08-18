@@ -14,7 +14,7 @@
   let { groesse = 74 }: { groesse?: number } = $props();
 </script>
 
-<div class="kachel" style:width="118px" aria-hidden="true">
+<div class="kachel" aria-hidden="true">
   <div class="ring puls" style:width="{groesse}px" style:height="{groesse}px"></div>
   <div class="balken puls" style:width="58px"></div>
   <div class="balken puls schmal" style:width="82px"></div>
@@ -22,6 +22,7 @@
 
 <style>
   .kachel {
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -33,6 +34,7 @@
   }
 
   .balken {
+    max-width: 100%;
     height: 9px;
     border-radius: 5px;
   }

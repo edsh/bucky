@@ -2198,7 +2198,10 @@ const flottenstand = {
   ],
   belegungen: [
     { kennung: 'D-EELK', beginn: inStunden(-1), ende: inStunden(2), art: 'reservierung' },
-    { kennung: 'D-MRXS', beginn: inStunden(-24), ende: inStunden(72), art: 'sperre' }
+    { kennung: 'D-MRXS', beginn: inStunden(-24), ende: inStunden(72), art: 'sperre' },
+    // Der Abendfall: heute nichts mehr, uebermorgen wieder. Genau hier stand
+    // frueher nur „Frei" — richtig, aber nutzlos.
+    { kennung: 'D-4413', beginn: inStunden(48), ende: inStunden(51), art: 'reservierung' }
   ]
 };
 
@@ -2383,6 +2386,40 @@ pruefe(
   new URL(page.url()).pathname.replace(/\/$/, '') === new URL(BASE).pathname.replace(/\/$/, ''),
   page.url()
 );
+
+// 134: Drei Maschinen je Reihe. Das ist keine Geschmacksfrage: Bei zwei
+// Kacheln je Reihe reicht die Flotte nicht mehr auf einen Bildschirm, und die
+// Uebersicht ist keine mehr. Geprueft wird an der Oberkante, nicht am Stil --
+// so faellt auch ein Umbruch auf, den eine Randbreite verursacht.
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({ contentType: 'application/json', body: JSON.stringify(flottenstand) })
+);
+await page.setViewportSize({ width: 390, height: 844 });
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.tastenkachel').first().waitFor({ timeout: 5000 });
+const reihen = await page.locator('.halter').evaluateAll((halter) =>
+  halter.slice(0, 3).map((h) => Math.round(h.getBoundingClientRect().top))
+);
+pruefe(
+  134,
+  'drei Maschinen stehen nebeneinander, statt in die naechste Reihe zu brechen',
+  reihen.length === 3 && new Set(reihen).size === 1,
+  reihen.join(' / ')
+);
+
+// 135: Und der Abendfall sagt, ab wann es vorbei ist. „Frei" allein ist um
+// 22 Uhr eine seltsame Auskunft: Frei ist die Maschine dann immer.
+const abendText = await page
+  .locator('.halter', { has: page.locator('.kennzeichen', { hasText: 'D-4413' }) })
+  .innerText();
+pruefe(
+  135,
+  'eine heute freie Maschine nennt ihre naechste Reservierung mit Tag und Uhrzeit',
+  /nächste Reservierung \w+\., \d{2}\.\d{2}\., \d{2}:\d{2}/.test(abendText),
+  abendText.replace(/\n/g, ' | ')
+);
+
+await page.unroute('**/api/flotte*');
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 

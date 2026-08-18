@@ -301,6 +301,27 @@ Papier nicht zu sehen waren. Sie stehen hier als eigene Aufgaben, damit die
       Kachel umgestellt, neue Prüfungen 129–133 für Platzhalter, Legende,
       Direktsprung und Rückweg
 
+### Nachbesserungen nach der zweiten Vorschau (18.08. abends)
+
+- [X] T036f [US1] Das Kachelraster auf **drei feste Spalten** stellen
+      (`grid-template-columns: repeat(3, 1fr)`), Kachelbreiten auf `100 %`.
+      Mit festen 118 px und Umbruch entschied die Rechnung
+      3 × 118 px + 2 × 14 px gegen den verfügbaren Platz — sie ging knapp auf,
+      bis die Schaltfläche ringsum Luft bekam, und dann brach die dritte
+      Kachel um. Klickpfad-Prüfung 134 hält das fest, und zwar an der
+      Oberkante der Kacheln statt am Stil
+- [X] T036g [US1] Bei Status `frei` eine **Zusatzzeile** bilden: „nächste
+      Reservierung {Tag}, {Uhrzeit}" (`formulieren.ts`, Vertrag in
+      `contracts/zustand.md` nachgezogen). „Frei" allein ist um 22 Uhr eine
+      seltsame Auskunft — frei ist die Maschine dann immer, die Frage ist, ab
+      wann sie es nicht mehr ist. Die Zeitangabe trägt hier immer den Tag:
+      Bei `frei` liegt die nächste Reservierung ausdrücklich nicht heute
+      (Z-04), „14:30" allein läse sich als heute. Klickpfad-Prüfung 135
+- [X] T036h `.github/workflows/ci.yml` bekommt `timeout-minutes` (15 für den
+      Durchgang, 8 für den Browser-Download). Ohne Grenze hing der Lauf am
+      18.08. vier Stunden im Download fest, ohne je etwas zu melden — ein
+      Ablauf, der nicht endet, meldet auch keinen Fehler
+
 **Checkpoint**: Die Übersicht ist für sich nutzbar und liefert den eigentlichen
 Mehrwert gegenüber Feature 052. Ab hier wäre eine Veröffentlichung sinnvoll.
 

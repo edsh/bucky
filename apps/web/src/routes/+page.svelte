@@ -335,15 +335,24 @@
     letter-spacing: 0;
   }
 
+  /*
+    Drei Maschinen je Reihe, und zwar unabhaengig von der Fensterbreite. Mit
+    festen Kachelbreiten und Umbruch entschied darueber die Rechnung
+    3 x 118 px + 2 x 14 px Abstand gegen den verfuegbaren Platz -- die ging
+    knapp auf, bis die Schaltflaeche ringsum Luft bekam, und dann brach die
+    dritte Kachel um. Ein Raster mit drei gleichen Spalten teilt den Platz,
+    statt ihn zu beanspruchen.
+  */
   .raster {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px 14px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px 6px;
     padding-top: 16px;
   }
 
   .halter {
     position: relative;
+    min-width: 0;
   }
 
   /*
@@ -353,7 +362,8 @@
   */
   .tastenkachel {
     display: block;
-    padding: 4px;
+    width: 100%;
+    padding: 6px 2px;
     border: none;
     border-radius: 12px;
     background: none;

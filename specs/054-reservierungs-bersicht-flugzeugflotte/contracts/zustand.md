@@ -44,7 +44,13 @@ zustandFuer(reservierungen, kennung, bezugszeitpunkt) →
 | `sperre` | „Gesperrt bis {Wochentag, Datum}" | „bis {Datum}" |
 | `belegt` | „Belegt bis {Uhrzeit}" | „danach frei bis {`danachAm`}" bzw. „danach den ganzen Tag frei", wenn `danachAm === null` |
 | `bald` | „Frei bis {Uhrzeit}" | „danach bis {`danachAm`} belegt" |
-| `frei` | „Frei" / Kurzsatz „frei den ganzen Tag" | — |
+| `frei` | „Frei" / Kurzsatz „frei den ganzen Tag" | „nächste Reservierung {`wechselAm`}" bzw. — , wenn `wechselAm === null` |
+
+**Warum „frei" eine Zusatzzeile braucht.** „Frei" allein ist um 22 Uhr eine
+seltsame Auskunft: Frei ist die Maschine dann immer, die Frage ist, ab wann
+sie es nicht mehr ist. Bei `frei` liegt die nächste Reservierung
+ausdrücklich **nicht** am selben Ortstag (Z-04), deshalb trägt die Zeitangabe
+hier immer den Tag mit — „14:30" allein läse sich als heute.
 
 Zeitformate (FR-015): heute `HH:MM`, später `Sa., 15.08., 12:00`, Sperren und
 Tagesbezüge `Samstag, 15. Aug.`, Dauern mit Dezimalkomma („3,5 h"),

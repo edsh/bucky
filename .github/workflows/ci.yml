@@ -9,6 +9,11 @@ jobs:
   pruefen:
     name: Lint, Typen, Tests, Bau
     runs-on: ubuntu-latest
+    # Der ganze Durchgang braucht knapp drei Minuten. Fuenfzehn sind deshalb
+    # kein Korsett, sondern eine Notbremse: Ohne Grenze haengte der Lauf am
+    # 18.08. vier Stunden im Browser-Download fest, ohne je etwas zu melden.
+    # Ein Ablauf, der nicht endet, meldet auch keinen Fehler.
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v6
@@ -58,6 +63,9 @@ jobs:
       # bedient. Bis Feature 045 lief er nur auf dem Rechner des Entwicklers —
       # ein Fehler, den nur dort jemand findet, haelt nichts auf.
       - name: Browser fuer den Klickpfad
+        # Eigene, engere Grenze: Genau hier hing der Lauf, und ein Download,
+        # der nach acht Minuten nicht fertig ist, wird es auch nicht mehr.
+        timeout-minutes: 8
         run: |
           npm install --no-save playwright
           npx playwright install --with-deps chromium

@@ -56,7 +56,7 @@
   const typ = $derived(darstellungFuer(kennung).typ);
 </script>
 
-<div class="kachel" style:width="118px">
+<div class="kachel">
   <TagesuhrAvatar
     {kennung}
     {belegungen}
@@ -81,6 +81,11 @@
 
 <style>
   .kachel {
+    /* Die Breite gibt das Raster vor, nicht die Kachel. Solange sie 118 px
+       fest beanspruchte, passten drei Stueck plus Abstaende nicht mehr in
+       eine Reihe, sobald die Schaltflaeche ringsum Luft bekam — und die
+       dritte Kachel brach um. */
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;

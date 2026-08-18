@@ -241,6 +241,28 @@ describe('alsZusatzzeile', () => {
 	it('schweigt, wenn es nichts zu sagen gibt', () => {
 		expect(alsZusatzzeile(zustand({ status: 'frei' }), bezug)).toBeNull();
 	});
+
+	it('nennt bei „frei" die nächste Reservierung mit Tag und Uhrzeit', () => {
+		// Der Abendfall: „Frei" allein ist um 22 Uhr eine seltsame Auskunft.
+		// Frei ist die Maschine da immer — die Frage ist, ab wann nicht mehr.
+		expect(
+			alsZusatzzeile(
+				zustand({ status: 'frei', wechselAm: '2026-08-20T14:30:00+02:00', wechselZu: 'belegt' }),
+				bezug
+			)
+		).toBe('nächste Reservierung Do., 20.08., 14:30');
+	});
+
+	it('nennt bei „frei" auch dann den Tag, wenn die Uhrzeit allein reichte', () => {
+		// Ein Status `frei` mit einem Wechsel *heute* kommt nicht vor — dann
+		// wäre es `bald` (Z-04). Die Zeitangabe muss den Tag deshalb immer
+		// tragen: „14:30" allein läse sich als heute.
+		const zeile = alsZusatzzeile(
+			zustand({ status: 'frei', wechselAm: '2026-08-16T09:00:00+02:00', wechselZu: 'belegt' }),
+			bezug
+		);
+		expect(zeile).toBe('nächste Reservierung So., 16.08., 09:00');
+	});
 });
 
 describe('alsDauer', () => {

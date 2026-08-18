@@ -144,6 +144,15 @@ export function alsZusatzzeile(zustand: Maschinenzustand, bezugszeitpunkt: Date)
 		return `danach bis ${zeitangabe054(zustand.danachAm, bezugszeitpunkt)} belegt`;
 	}
 
+	if (zustand.status === 'frei' && zustand.wechselAm) {
+		// Der Abendfall. „Frei" allein ist um 22 Uhr eine seltsame Auskunft:
+		// Frei ist die Maschine da immer, die Frage ist, ab wann sie es
+		// nicht mehr ist. Bei `frei` liegt die naechste Reservierung
+		// ausdruecklich **nicht** heute (Z-04) — der Tag gehoert deshalb
+		// dazu, sonst waere „14:30" das heutige.
+		return `nächste Reservierung ${zeitangabe054(zustand.wechselAm, bezugszeitpunkt)}`;
+	}
+
 	return null;
 }
 

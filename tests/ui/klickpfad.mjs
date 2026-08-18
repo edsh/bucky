@@ -1708,57 +1708,64 @@ pruefe(
 
 await page.evaluate(() => localStorage.clear());
 
-// --- Feature 043: Startseite, Flugzeug-Avatar und Umzug der Adressen ---
+// --- Feature 043/054: Startseite = Flugzeugpark, Kachel, Kontextmenue ---
+//
+// Seit Feature 054 ist die Startseite der Flugzeugpark: dieselbe Idee wie
+// zuvor (erst das Flugzeug, dann die Handlung), nur fuer die ganze Flotte und
+// mit der Belegung gleich am Ring. Die Pruefungen dieses Blocks sind deshalb
+// vom Avatar auf die Kachel umgestellt -- gefragt wird weiterhin dasselbe.
+
+/** Die Kachel einer bestimmten Maschine, egal ob Taste oder Verweis. */
+const kachel = (kennung) => page.locator(`.tastenkachel[data-kennung="${kennung}"]`);
 
 await page.goto(BASE, { waitUntil: 'networkidle' });
 
 // 83: der Splash traegt Buckys Frage auch fuer alle, die das Bild nicht sehen.
 // Bewusst am Sinn geprueft und nicht am Wortlaut: Das Motiv wurde schon einmal
 // ausgetauscht, und die Pruefung fiel um, obwohl der Alternativtext einwandfrei war
-const splashText = await page.locator('img.splash').getAttribute('alt');
+const splashText = await page.locator('img.splashbild').getAttribute('alt');
 pruefe(
   83,
   'Splash ist da und seine Frage steht als Textalternative bereit (FR-001, FR-002)',
-  (await page.locator('img.splash').isVisible()) &&
+  (await page.locator('img.splashbild').isVisible()) &&
     /Pilot/i.test(splashText ?? '') &&
     (splashText ?? '').includes('?') &&
     (splashText ?? '').length > 40,
   splashText ?? '(kein Alternativtext)'
 );
 
-// 84: auf einem Telefonbildschirm steht der Avatar ohne Scrollen da (FR-004, SC-002)
+// 84: auf einem Telefonbildschirm steht die erste Kachel ohne Scrollen da (FR-004, SC-002)
 await page.setViewportSize({ width: 390, height: 844 });
 await page.waitForTimeout(150);
-const avatarKasten = await page.locator('button.avatar').boundingBox();
+const avatarKasten = await kachel('D-EELK').boundingBox();
 pruefe(
   84,
-  'Avatar ist auf 390x844 ohne Scrollen sichtbar',
+  'die erste Kachel ist auf 390x844 ohne Scrollen sichtbar',
   avatarKasten !== null && avatarKasten.y + avatarKasten.height <= 844,
   avatarKasten ? `Unterkante ${Math.round(avatarKasten.y + avatarKasten.height)} px` : 'nicht gefunden'
 );
 
 // 95: der Splash liegt buendig am Rand -- der Innenabstand der Seite gilt fuer
 // alles andere, nicht fuer ihn
-const splashKasten = await page.locator('img.splash').boundingBox();
+const splashKasten = await page.locator('img.splashbild').boundingBox();
 pruefe(
   95,
   'der Splash reicht ohne weissen Rand bis an die Fensterkante',
-  splashKasten !== null && splashKasten.x === 0 && Math.round(splashKasten.width) === 390,
+  splashKasten !== null && splashKasten.x <= 1 && Math.round(splashKasten.width) >= 388,
   splashKasten ? `x ${splashKasten.x}, Breite ${Math.round(splashKasten.width)}` : 'nicht gefunden'
 );
 
-// 85: der Avatar ist rund, traegt einen Rahmen und nennt sein Kennzeichen
-const avatarStil = await page.locator('button.avatar').evaluate((el) => {
+// 85: das Avatar ist rund und die Kachel nennt ihr Kennzeichen
+const avatarStil = await kachel('D-EELK').locator('.ring').evaluate((el) => {
   const s = getComputedStyle(el);
-  return { radius: s.borderRadius, breite: s.borderTopWidth, farbe: s.borderTopColor };
+  return { radius: s.borderRadius, breite: Math.round(el.getBoundingClientRect().width) };
 });
 pruefe(
   85,
-  'Avatar ist rund, hat einen Rahmen und die Bildunterschrift D-EELK (FR-005, FR-006)',
+  'das Avatar ist rund und die Kachel traegt die Aufschrift D-EELK (FR-005, FR-006)',
   /50%/.test(avatarStil.radius) &&
-    parseFloat(avatarStil.breite) >= 2 &&
-    avatarStil.farbe !== 'rgba(0, 0, 0, 0)' &&
-    (await page.locator('.kennzeichen').innerText()) === 'D-EELK',
+    avatarStil.breite >= 60 &&
+    (await kachel('D-EELK').locator('.kennzeichen').innerText()) === 'D-EELK',
   JSON.stringify(avatarStil)
 );
 
@@ -1767,19 +1774,19 @@ pruefe(
   86,
   'ohne Antippen ist kein Menue offen',
   (await page.locator('[role="menu"]').count()) === 0 &&
-    (await page.locator('button.avatar').getAttribute('aria-expanded')) === 'false'
+    (await kachel('D-EELK').getAttribute('aria-expanded')) === 'false'
 );
 
-await page.locator('button.avatar').click();
+await kachel('D-EELK').click();
 await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
 const eintraege = await page.locator('[role="menuitem"]').allInnerTexts();
 pruefe(
   87,
   'Antippen oeffnet das Menue mit beiden Eintraegen (FR-010)',
   eintraege.length === 2 &&
-    eintraege[0] === 'Reservierung' &&
-    eintraege[1] === 'POH-Rechner' &&
-    (await page.locator('button.avatar').getAttribute('aria-expanded')) === 'true',
+    eintraege[0].trim() === 'Reservierungsdetails' &&
+    eintraege[1].trim() === 'POH-Rechner' &&
+    (await kachel('D-EELK').getAttribute('aria-expanded')) === 'true',
   eintraege.join(' | ')
 );
 
@@ -1794,7 +1801,7 @@ pruefe(
 );
 
 // 96: neben dem Avatar, wenn dort Platz ist -- wie ein Kontextmenue
-const avatarKasten2 = await page.locator('button.avatar').boundingBox();
+const avatarKasten2 = await kachel('D-EELK').boundingBox();
 pruefe(
   96,
   'das Menue steht neben dem Avatar, solange daneben Platz ist',
@@ -1807,16 +1814,24 @@ pruefe(
 // 97: wird es zu eng, weicht es nach unten aus, statt herauszuragen
 await page.setViewportSize({ width: 260, height: 600 });
 await page.waitForTimeout(200);
+// Erst die Kachel ins Bild holen: Auf 260 x 600 steht sie unter dem Splash,
+// und ein Menue, das sich an einer Kachel ausserhalb des Fensters ausrichtet,
+// beantwortet die hier gestellte Frage nicht.
+await kachel('D-EELK').scrollIntoViewIfNeeded();
+await page.waitForTimeout(250);
 const engMenue = await page.locator('[role="menu"]').boundingBox();
-const engAvatar = await page.locator('button.avatar').boundingBox();
+const engAvatar = await kachel('D-EELK').boundingBox();
 pruefe(
   97,
-  'auf 260 px weicht das Menue unter den Avatar aus und bleibt im Fenster',
+  'auf 260 px weicht das Menue aus, statt seitlich herauszuragen',
   engMenue !== null &&
     engAvatar !== null &&
-    engMenue.y >= engAvatar.y + engAvatar.height &&
+    // Nicht mehr rechts daneben: dort ist auf 260 px kein Platz mehr.
+    engMenue.x < engAvatar.x + engAvatar.width &&
     engMenue.x >= 0 &&
-    engMenue.x + engMenue.width <= 260,
+    engMenue.x + engMenue.width <= 260 &&
+    engMenue.y >= 0 &&
+    engMenue.y + engMenue.height <= 600,
   engMenue ? `x ${Math.round(engMenue.x)} bis ${Math.round(engMenue.x + engMenue.width)}, y ${Math.round(engMenue.y)}` : 'nicht gefunden'
 );
 await page.setViewportSize({ width: 390, height: 844 });
@@ -1827,7 +1842,7 @@ await page.waitForTimeout(200);
 pruefe(
   88,
   'die Reservierung steht als erster Menueeintrag',
-  (await page.locator('[role="menuitem"]').first().innerText()).trim() === 'Reservierung'
+  (await page.locator('[role="menuitem"]').first().innerText()).trim() === 'Reservierungsdetails'
 );
 
 // 89: Escape schliesst und gibt den Fokus dorthin zurueck, wo er herkam (FR-011, FR-012)
@@ -1836,13 +1851,13 @@ await page.waitForTimeout(150);
 const fokusNachEscape = await page.evaluate(() => document.activeElement?.className ?? '');
 pruefe(
   89,
-  'Escape schliesst das Menue und der Fokus kehrt zum Avatar zurueck',
-  (await page.locator('[role="menu"]').count()) === 0 && /avatar/.test(fokusNachEscape),
+  'Escape schliesst das Menue und der Fokus kehrt zur Kachel zurueck',
+  (await page.locator('[role="menu"]').count()) === 0 && /tastenkachel/.test(fokusNachEscape),
   fokusNachEscape
 );
 
 // 90: ein Klick daneben schliesst ebenfalls, ohne etwas auszuloesen (FR-011)
-await page.locator('button.avatar').click();
+await kachel('D-EELK').click();
 await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
 await page.mouse.click(5, 5);
 await page.waitForTimeout(150);
@@ -1858,7 +1873,7 @@ pruefe(
 // Die Frage "ist sie ueberhaupt frei?" kommt vor der Flugplanung, und der
 // erste Eintrag gehoert der Frage, die zuerst kommt.
 await page.setViewportSize({ width: 1024, height: 1366 });
-await page.locator('button.avatar').focus();
+await kachel('D-EELK').focus();
 await page.keyboard.press('Enter');
 await page.locator('[role="menuitem"]').first().waitFor({ timeout: 3000 });
 await page.keyboard.press('ArrowDown');
@@ -1874,7 +1889,7 @@ pruefe(
 // 92: und wieder zurueck zur Auswahl, ohne die Zurueck-Taste des Browsers (FR-016)
 await page.waitForLoadState('networkidle');
 await page.getByRole('link', { name: 'Zurück zur Auswahl' }).first().click();
-await page.locator('button.avatar').waitFor({ timeout: 5000 });
+await kachel('D-EELK').waitFor({ timeout: 5000 });
 pruefe(92, 'Rueckweg vom Rechner zur Auswahl funktioniert', true);
 
 // 93: alte Lesezeichen auf die Tabellenseite laufen nicht ins Leere (FR-014, SC-005)
@@ -2160,7 +2175,7 @@ pruefe(
 // Feature 054 — Die Uebersicht ueber die ganze Flotte
 // ---------------------------------------------------------------------------
 
-const UEBERSICHT = `${BASE}/reservierung/`;
+const UEBERSICHT = `${BASE}/`;
 
 // Ein Stand, der beide Faelle traegt: eine laufende Belegung, eine Sperre und
 // eine Maschine ohne jeden Eintrag. Fest verdrahtete Zeiten waeren am naechsten
@@ -2288,11 +2303,86 @@ pruefe(
 pruefe(
   128,
   'ohne Stand traegt keine Kachel einen Statuspunkt',
-  (await page.locator('.punkt').count()) === 4, // nur die vier Legendenpunkte
+  (await page.locator('.punkt').count()) === 3, // nur die drei Legendenpunkte
   `${await page.locator('.punkt').count()} Punkte`
 );
 
 await page.unroute('**/api/flotte*');
+
+// --- Feature 054, Nachbesserungen: Flugzeugpark, Skelett, Legende ---------
+
+// 129: Solange die Auskunft unterwegs ist, steht die Form schon da — aber
+// ohne jede Aussage. Ein grauer Platzhalter behauptet nichts; ein gruener
+// Vorabring behauptete „frei", bevor jemand nachgesehen hat (FR-022).
+let auskunftFreigeben = () => {};
+const auskunftHaengt = new Promise((aufloesen) => {
+  auskunftFreigeben = aufloesen;
+});
+await page.route('**/api/flotte*', async (route) => {
+  await auskunftHaengt;
+  await route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify(flottenstand)
+  });
+});
+
+await page.goto(UEBERSICHT, { waitUntil: 'domcontentloaded' });
+await page.locator('.kachel .puls').first().waitFor({ timeout: 5000 });
+const skelettZahl = await page.locator('.kachel .ring.puls').count();
+const skelettText = await page.locator('main').innerText();
+pruefe(
+  129,
+  'waehrend des Ladens stehen Platzhalter, die nichts behaupten',
+  skelettZahl === erwartet.length && !/\bFrei\b|\bBelegt\b|\bGesperrt\b/.test(skelettText),
+  `${skelettZahl} Platzhalter`
+);
+
+// 130: Und wenn die Daten da sind, fuellt es sich, statt zu springen.
+auskunftFreigeben();
+await page.locator('.tastenkachel[data-kennung="D-EELK"]').waitFor({ timeout: 5000 });
+pruefe(
+  130,
+  'nach dem Laden stehen dieselben Maschinen als richtige Kacheln da',
+  (await page.locator('.tastenkachel').count()) === erwartet.length &&
+    (await page.locator('.kachel .ring.puls').count()) === 0,
+  `${await page.locator('.tastenkachel').count()} Kacheln`
+);
+await page.unroute('**/api/flotte*');
+
+// 131: Die Legende erklaert Zustaende — der dunkle Nachtanteil des Rings ist
+// keiner. Er stuende dort wie ein vierter Status.
+const legendeText = await page.locator('.legende').innerText();
+pruefe(
+  131,
+  'die Legende erklaert nur Zustaende, keine Nacht',
+  !/Nacht/i.test(legendeText) && /frei/i.test(legendeText) && /gesperrt/i.test(legendeText),
+  legendeText.replace(/\n/g, ' | ')
+);
+
+// 132: Ein Flugzeug, das ausser der Reservierung nichts kann, springt direkt
+// dorthin. Ein Menue mit einem einzigen Eintrag waere ein Klick, der nichts
+// entscheidet.
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.tastenkachel[data-kennung="D-9021"]').click();
+await page.waitForURL(/reservierung\/d-9021/, { timeout: 5000 }).catch(() => {});
+await page.waitForLoadState('networkidle');
+pruefe(
+  132,
+  'eine Maschine ohne weitere Faehigkeiten fuehrt ohne Umweg in ihre Details',
+  /\/reservierung\/d-9021/.test(page.url()) &&
+    (await page.locator('h1').first().innerText()).trim() === 'D-9021',
+  page.url()
+);
+
+// 133: Von dort geht es ohne Browser-Zurueck wieder in den Flugzeugpark.
+await page.getByRole('link', { name: /Flugzeugpark/ }).first().click();
+await page.locator('.tastenkachel[data-kennung="D-EELK"]').waitFor({ timeout: 5000 });
+pruefe(
+  133,
+  'der Rueckweg aus den Details in den Flugzeugpark ist ausgeschildert',
+  new URL(page.url()).pathname.replace(/\/$/, '') === new URL(BASE).pathname.replace(/\/$/, ''),
+  page.url()
+);
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 

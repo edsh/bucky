@@ -231,9 +231,8 @@ apps/web/
 │   │   │   ├── flotte/+server.ts        # NEU — contracts/api-flotte.md
 │   │   │   └── reservierung/+server.ts  # GEÄNDERT — nutzt stand-holen.ts, Vertrag bleibt
 │   │   ├── reservierung/
-│   │   │   ├── +page.svelte             # NEU — Übersicht
 │   │   │   └── [kennung]/+page.svelte   # NEU — Detailansicht
-│   │   ├── +page.svelte                 # GEÄNDERT — Verweis auf die Übersicht
+│   │   ├── +page.svelte                 # GEÄNDERT — der Flugzeugpark selbst
 │   │   └── d-eelk/reservierung/         # unverändert
 │   └── static/
 │       ├── bucky-splash.png             # NEU — aus dem Handoff
@@ -261,6 +260,21 @@ die Weboberfläche (Prinzip V), sondern in den Abruf-Worker, der ohnehin der
 einzige zeitgesteuerte Zugang zu fremden Diensten ist. Der neue Ordner
 `lib/flotte/` bündelt, was allein diesen Zugangsweg betrifft: Bilder, Pfade,
 Farben, Favoriten.
+
+**Nachgetragene Entscheidung (18.08., während der Umsetzung):** Die Übersicht
+liegt nicht unter `/reservierung/`, sondern **ist die Startseite**. Sie ist
+damit zuerst ein *Flugzeugpark* und erst in zweiter Linie eine
+Reservierungsübersicht: Wer die App öffnet, hat ein Flugzeug im Sinn. Ein Tipp
+auf eine Kachel öffnet deshalb das Kontextmenü aus Feature 043 mit dem, was
+diese Maschine hergibt (`lib/flotte/handlungen.ts`); nur wo es genau eine
+Fähigkeit gibt, springt er direkt dorthin. Die bisherige Startseite mit dem
+einzelnen D-EELK-Avatar entfällt — sie war der Sonderfall einer Flotte aus
+einem Flugzeug.
+
+Das ist mehr als ein Umzug: Es hält die Seite offen für Fähigkeiten, die noch
+kommen. Wäre der Einstieg die Reservierungsübersicht, müsste jede neue
+Funktion einen eigenen Einstieg bekommen; so wächst sie in das Menü der
+betroffenen Maschine hinein.
 
 ## Ablauf einer Anfrage
 

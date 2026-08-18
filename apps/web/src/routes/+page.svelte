@@ -1,249 +1,383 @@
 <script lang="ts">
-  import { base } from '$app/paths';
+  import { onMount } from 'svelte';
+  import {
+    alsKurzdatumUhrzeit,
+    alsRueckfallHinweis,
+    kategorieFuer,
+    STAMMLISTE
+  } from '@edsh-bucky/reservierung-core';
+  import Flugzeugmenue from '$lib/components/Flugzeugmenue.svelte';
+  import Maschinenkachel from '$lib/components/Maschinenkachel.svelte';
+  import Skelettkachel from '$lib/components/Skelettkachel.svelte';
+  import { FARBEN } from '$lib/flotte/farben.js';
+  import { handlungenFuer } from '$lib/flotte/handlungen.js';
+  import { Flottenstand } from '$lib/flotte/stand.svelte.js';
 
   /**
-   * Startseite von Bucky. Sie rechnet nichts — sie fragt nur, worum es geht.
+   * Der Flugzeugpark — die Startseite.
    *
-   * Der Einstieg läuft bewusst über das **Flugzeug** und nicht über eine Liste
-   * von Funktionen: Wer die App öffnet, hat in aller Regel eine bestimmte
-   * Maschine im Sinn und sucht erst dann, was er mit ihr tun will. Deshalb
-   * steht hier ein runder Avatar wie bei Personen in sozialen Netzen, und die
-   * möglichen Handlungen erscheinen erst beim Antippen (Feature 043).
+   * Sie ist zuerst eine Übersicht über die **Flugzeuge**, nicht über die
+   * Reservierungen: Wer die App öffnet, hat in aller Regel eine bestimmte
+   * Maschine im Sinn und entscheidet erst danach, was er mit ihr tun will.
+   * Dass die Belegung am Ring gleich mit ablesbar ist, ist die angenehme
+   * Nebenwirkung — deshalb führt ein Tipp auf eine Maschine nicht zwingend
+   * in die Reservierung, sondern zu dem, was diese Maschine hergibt
+   * (`handlungenFuer`). Heute ist das nur bei der D-EELK mehr als eines;
+   * künftige Fähigkeiten kommen dort dazu, ohne diese Seite anzufassen.
+   *
+   * Sie holt ihre Daten genau einmal und rechnet danach minütlich neu (E-09).
+   * Was hier steht, ist deshalb immer aktuell in Bezug auf die Uhr — und
+   * sichtbar alt in Bezug auf den Datenstand. Genau diese Trennung ist
+   * beabsichtigt: „Stand Do., 13.08., 11:20" altert vor den Augen des
+   * Lesers, statt Frische vorzutäuschen (FR-019).
+   *
+   * Der Fall „kein Stand" zeigt die Flotte, aber für keine einzige Maschine
+   * eine Verfügbarkeitsaussage — kein Grün, kein „frei" (FR-022, SC-003). Wer
+   * zum Platz fährt, weil eine Anzeige geraten hat, hat einen Vormittag
+   * verloren; wer liest „gerade keine Auskunft möglich", schaut vorher in
+   * Vereinsflieger nach.
    */
+  const stand = new Flottenstand();
 
-  /**
-   * Vorerst genau ein Flugzeug. Die Liste ist trotzdem eine Liste: Ein
-   * zweites Flugzeug ist absehbar, und ein direkter Sprung wäre dann wieder
-   * auszubauen (FR-008, FR-009).
-   */
-  const flugzeuge = [
-    {
-      kennzeichen: 'D-EELK',
-      bild: `${base}/d-eelk.gif`,
-      handlungen: [
-        // Reservierung zuerst: Sie beantwortet die Frage, die vor allen
-        // anderen kommt — kann ich überhaupt hin? Die Flugplanung folgt
-        // danach (Feature 047).
-        { name: 'Reservierung', ziel: `${base}/d-eelk/reservierung` },
-        { name: 'POH-Rechner', ziel: `${base}/d-eelk/poh-rechner` }
-      ]
-    }
-  ];
+  let dunkel = $state(false);
 
   /** Kennzeichen des Flugzeugs, dessen Menü offen steht — oder nichts. */
   let offen = $state<string | undefined>(undefined);
 
   /**
-   * Die Auslöser, um den Fokus beim Schließen dorthin zurückzugeben, wo er
-   * herkam. Ohne das landet ein Tastaturnutzer nach Escape am Seitenanfang.
+   * Die Kacheln als Anker: Das Menü richtet sich an ihnen aus, und beim
+   * Schließen bekommt der Fokus den Weg zurück. Ohne das landet ein
+   * Tastaturnutzer nach Escape am Seitenanfang.
    */
-  const auslöser: Record<string, HTMLButtonElement | undefined> = {};
+  const kacheln: Record<string, HTMLButtonElement | undefined> = {};
 
-  function umschalten(kennzeichen: string) {
-    offen = offen === kennzeichen ? undefined : kennzeichen;
+  function umschalten(kennung: string) {
+    offen = offen === kennung ? undefined : kennung;
   }
 
-  function schliessen(zurueckZum?: string) {
+  function schliessen(zurueckZu?: string) {
     offen = undefined;
-    if (zurueckZum) auslöser[zurueckZum]?.focus();
-  }
-
-  /**
-   * Setzt den Fokus auf den ersten Eintrag, sobald das Menü erscheint. Ohne das
-   * bliebe er auf dem Avatar stehen, und der nächste Tastendruck schlösse das
-   * eben geöffnete Menü wieder (FR-012).
-   */
-  function anfangsfokus(element: HTMLElement, ist: boolean) {
-    if (ist) element.focus();
-  }
-
-  /**
-   * Stellt das Menü dorthin, wo es hinpasst — wie ein Kontextmenü. Bevorzugt
-   * rechts neben den Avatar, sonst links daneben, sonst darunter; in jedem
-   * Fall innerhalb des Fensters. Eine feste Seite geht nicht: Der erste Avatar
-   * steht am linken Rand, auf einem Telefon ist rechts von ihm womöglich kein
-   * Platz mehr (FR-020).
-   */
-  function platzieren(menue: HTMLElement) {
-    const luecke = 8;
-    const rand = 8;
-
-    function stellen() {
-      const halter = menue.parentElement;
-      const avatar = halter?.querySelector('.avatar');
-      if (!halter || !avatar) return;
-
-      // Erst zuruecksetzen, sonst misst der Browser die alte Stellung mit.
-      menue.style.left = '0px';
-      menue.style.top = '0px';
-
-      const h = halter.getBoundingClientRect();
-      const a = avatar.getBoundingClientRect();
-      const m = menue.getBoundingClientRect();
-      const breite = window.innerWidth;
-      const hoehe = window.innerHeight;
-
-      let x = a.right + luecke;
-      let y = a.top;
-
-      if (x + m.width > breite - rand) {
-        // Rechts ist kein Platz: links daneben versuchen.
-        x = a.left - luecke - m.width;
-      }
-      if (x < rand) {
-        // Auch links nicht: darunter, am Avatar ausgerichtet und ins Fenster geklemmt.
-        x = Math.min(Math.max(a.left, rand), Math.max(breite - rand - m.width, rand));
-        y = a.bottom + luecke;
-      }
-
-      // Senkrecht nur so weit verschieben, dass nichts unten heraushaengt.
-      y = Math.min(y, Math.max(hoehe - rand - m.height, rand));
-
-      menue.style.left = `${x - h.left}px`;
-      menue.style.top = `${y - h.top}px`;
-    }
-
-    stellen();
-    window.addEventListener('resize', stellen);
-    return { destroy: () => window.removeEventListener('resize', stellen) };
+    if (zurueckZu) kacheln[zurueckZu]?.focus();
   }
 
   function beiTaste(ereignis: KeyboardEvent) {
-    if (ereignis.key === 'Escape' && offen) {
-      const war = offen;
-      schliessen(war);
-    }
+    if (ereignis.key === 'Escape' && offen) schliessen(offen);
+  }
+
+  onMount(() => {
+    const gespeichert = localStorage.getItem('bucky.farbschema');
+    dunkel =
+      gespeichert === 'dunkel' ||
+      (gespeichert === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    void stand.starten();
+    return () => stand.beenden();
+  });
+
+  function schemaUmschalten() {
+    dunkel = !dunkel;
+    localStorage.setItem('bucky.farbschema', dunkel ? 'dunkel' : 'hell');
   }
 
   /**
-   * Pfeiltasten im Menü.
-   *
-   * Ein `role="menu"` verspricht diese Steuerung — wer sie erwartet und nur
-   * Tab vorfindet, verlässt das Menü, statt sich darin zu bewegen. Solange es
-   * nur einen Eintrag gab, fiel das nicht auf; mit dem zweiten (Feature 047)
-   * wird es sichtbar.
-   *
-   * Das Menü trägt dafür `tabindex="-1"`: nicht in der Tab-Reihenfolge, aber
-   * fokussierbar — was Tastendrücke verarbeitet, muss den Fokus halten können.
+   * Solange noch nichts da ist, steht die Struktur trotzdem: Die Stammliste
+   * kommt aus dem Kern und ist auch die Grundlage der Antwort von
+   * `/api/flotte` — dieselbe Wahrheit, nur eine Millisekunde früher. Dadurch
+   * springt beim Eintreffen der Daten nichts, es füllt sich nur.
    */
-  function beiMenuetaste(ereignis: KeyboardEvent) {
-    const tasten = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
-    if (!tasten.includes(ereignis.key)) return;
+  const skelett = STAMMLISTE.map((kennung) => ({ kennung, kategorie: kategorieFuer(kennung) }));
 
-    const menue = ereignis.currentTarget as HTMLElement;
-    const eintraege = [...menue.querySelectorAll<HTMLElement>('[role="menuitem"]')];
-    if (eintraege.length === 0) return;
+  const maschinen = $derived(stand.flotte.length > 0 ? stand.flotte : skelett);
 
-    const jetzt = eintraege.indexOf(document.activeElement as HTMLElement);
-    // Umlaufend: Am letzten Eintrag nach unten landet man wieder oben. Das
-    // ist bei einem kurzen Menü der kürzere Weg zurück.
-    const ziel =
-      ereignis.key === 'Home'
-        ? 0
-        : ereignis.key === 'End'
-          ? eintraege.length - 1
-          : ereignis.key === 'ArrowDown'
-            ? (jetzt + 1) % eintraege.length
-            : (jetzt - 1 + eintraege.length) % eintraege.length;
+  const laedtNoch = $derived(stand.laedt && stand.abgerufenAm === null);
 
-    ereignis.preventDefault();
-    eintraege[ziel]?.focus();
-  }
+  const gruppen = $derived([
+    { titel: 'Motorflugzeuge & UL', maschinen: maschinen.filter((m) => m.kategorie === 'motor') },
+    { titel: 'Segelflugzeuge', maschinen: maschinen.filter((m) => m.kategorie === 'segelflug') }
+  ]);
+
+  const standText = $derived(
+    stand.abgerufenAm === null
+      ? null
+      : `Stand ${alsKurzdatumUhrzeit(new Date(stand.abgerufenAm))}`
+  );
+
+  const rueckfallHinweis = $derived(
+    stand.quelle === null ? null : alsRueckfallHinweis(stand.quelle)
+  );
+
+  /**
+   * Die drei Zustände, die eine Aussage treffen. Der dunkle Nachtanteil des
+   * Rings steht bewusst **nicht** dabei: Er ist keine Verfügbarkeitsaussage,
+   * sondern Beiwerk zur Orientierung auf der Uhr — und in einer Legende, die
+   * sonst nur Status erklärt, sähe er wie ein vierter Status aus.
+   */
+  const legende = [
+    { farbe: FARBEN.frei, text: 'frei' },
+    { farbe: FARBEN.belegt, text: 'belegt' },
+    { farbe: FARBEN.sperreFlaeche, text: 'gesperrt' }
+  ];
 </script>
 
 <svelte:head>
   <title>Bucky Highfly</title>
+  <meta
+    name="description"
+    content="Der Flugzeugpark des Luftsportvereins auf einen Blick — mit der Belegung gleich dazu."
+  />
 </svelte:head>
 
 <svelte:window onkeydown={beiTaste} />
 
-<main>
-  <!--
-    Der Splash traegt die Frage, auf die alles darunter die Antwort ist. Er
-    steht auf derselben Seite wie die Auswahl: Ein vorgeschalteter Bildschirm,
-    den man wegklicken muss, kostet einen Klick ohne Gegenwert (FR-003).
-  -->
-  <h1 class="unsichtbar">Bucky Highfly</h1>
-  <img
-    class="splash"
-    src="{base}/bucky-splash.png"
-    alt="Bucky steht auf dem Vereinsgelände vor dem Vereinsheim des Luftsportvereins Backnang-Heiningen und fragt: „Hey Pilot, was darf’s sein?“"
-  />
+<div class="aussen" class:dunkel>
+  <main>
+    <h1 class="unsichtbar">Bucky Highfly</h1>
+    <div class="splash">
+      <img
+        class="splashbild"
+        src="/bucky-splash.png"
+        alt="Bucky steht auf dem Vereinsgelände vor dem Vereinsheim des Luftsportvereins Backnang-Heiningen und fragt: „Hey Pilot, was darf’s sein?“"
+      />
+      <button
+        class="schema"
+        type="button"
+        onclick={schemaUmschalten}
+        aria-label={dunkel ? 'Helle Darstellung' : 'Dunkle Darstellung'}
+      >
+        {dunkel ? '☀' : '☾'}
+      </button>
+    </div>
 
-  <!--
-    Ein Klick neben ein offenes Menue schliesst es. Das Feld liegt nur dann
-    ueber der Seite, wenn ueberhaupt etwas offen ist.
-  -->
-  {#if offen}
-    <div
-      class="schliessfeld"
-      role="presentation"
-      onclick={() => schliessen()}
-      onkeydown={() => {}}
-    ></div>
-  {/if}
+    <!--
+      Ein Tipp neben ein offenes Menue schliesst es. Das Feld liegt nur dann
+      ueber der Seite, wenn ueberhaupt etwas offen ist.
+    -->
+    {#if offen}
+      <div
+        class="schliessfeld"
+        role="presentation"
+        onclick={() => schliessen()}
+        onkeydown={() => {}}
+      ></div>
+    {/if}
 
-  <ul class="flugzeuge">
-    {#each flugzeuge as flugzeug (flugzeug.kennzeichen)}
-      <li>
-        <div class="flugzeug">
-          <button
-            class="avatar"
-            class:offen={offen === flugzeug.kennzeichen}
-            bind:this={auslöser[flugzeug.kennzeichen]}
-            aria-haspopup="menu"
-            aria-expanded={offen === flugzeug.kennzeichen}
-            aria-label="{flugzeug.kennzeichen} — Auswahl öffnen"
-            onclick={() => umschalten(flugzeug.kennzeichen)}
-          >
-            <img src={flugzeug.bild} alt="" />
-          </button>
-          <span class="kennzeichen">{flugzeug.kennzeichen}</span>
+    {#if stand.belegungen === null && !stand.laedt}
+      <!-- Offen sagen, statt zu raten: Eine stumme Anzeige sähe aus wie „alles
+           frei" und wäre genau die Verwechslung, die FR-022 ausschließt. -->
+      <p class="kein-stand" role="status">
+        Gerade ist keine Auskunft über den Reservierungsstand möglich. Die Maschinen stehen unten,
+        aber ohne Verfügbarkeit — bitte im Reservierungskalender in Vereinsflieger nachsehen.
+      </p>
+    {/if}
 
-          {#if offen === flugzeug.kennzeichen}
-            <div
-              class="menue"
-              role="menu"
-              aria-label="Was mit {flugzeug.kennzeichen} tun?"
-              tabindex="-1"
-              onkeydown={beiMenuetaste}
-              use:platzieren
-            >
-              {#each flugzeug.handlungen as handlung, i (handlung.ziel)}
-                <a role="menuitem" href={handlung.ziel} use:anfangsfokus={i === 0}>
-                  {handlung.name}
-                </a>
-              {/each}
-            </div>
-          {/if}
-        </div>
-      </li>
+    {#each gruppen as gruppe (gruppe.titel)}
+      {#if gruppe.maschinen.length > 0}
+        <section>
+          <h2>
+            <span>{gruppe.titel}</span>
+            <span class="zaehler">{gruppe.maschinen.length}</span>
+          </h2>
+
+          <div class="raster">
+            {#each gruppe.maschinen as maschine (maschine.kennung)}
+              {@const handlungen = handlungenFuer(maschine.kennung)}
+              <div class="halter">
+                {#if laedtNoch}
+                  <Skelettkachel groesse={74} />
+                {:else if handlungen.length === 1}
+                  <!-- Genau eine Fähigkeit: Ein Menü mit einem Eintrag wäre ein
+                       Klick, der nichts entscheidet — also direkt dorthin. -->
+                  <a
+                    class="tastenkachel"
+                    data-kennung={maschine.kennung}
+                    href={handlungen[0]?.ziel}
+                  >
+                    <Maschinenkachel
+                      kennung={maschine.kennung}
+                      belegungen={stand.belegungen}
+                      jetzt={stand.jetzt}
+                      avatargroesse={74}
+                    />
+                  </a>
+                {:else}
+                  <button
+                    class="tastenkachel"
+                    type="button"
+                    data-kennung={maschine.kennung}
+                    bind:this={kacheln[maschine.kennung]}
+                    aria-haspopup="menu"
+                    aria-expanded={offen === maschine.kennung}
+                    aria-label="{maschine.kennung} — Auswahl öffnen"
+                    onclick={() => umschalten(maschine.kennung)}
+                  >
+                    <Maschinenkachel
+                      kennung={maschine.kennung}
+                      belegungen={stand.belegungen}
+                      jetzt={stand.jetzt}
+                      avatargroesse={74}
+                    />
+                  </button>
+
+                  {#if offen === maschine.kennung}
+                    <Flugzeugmenue
+                      kennung={maschine.kennung}
+                      {handlungen}
+                      anker={kacheln[maschine.kennung]}
+                      schliessen={() => schliessen()}
+                    />
+                  {/if}
+                {/if}
+              </div>
+            {/each}
+          </div>
+        </section>
+      {/if}
     {/each}
-  </ul>
 
-  <!--
-    Der Weg zur ganzen Flotte. Er steht unter der Auswahl und nicht darueber:
-    Wer die Seite oeffnet, hat meist ein bestimmtes Flugzeug im Sinn — wer
-    erst schauen will, was ueberhaupt frei ist, findet den Verweis hier.
-  -->
-  <p class="flotte">
-    <a href="{base}/reservierung/">Alle Flugzeuge und ihre Reservierungen</a>
-  </p>
-</main>
+    {#if standText}
+      <p class="stand">
+        {standText}{#if rueckfallHinweis}<span class="rueckfall"> · {rueckfallHinweis}</span>{/if}
+      </p>
+    {/if}
+
+    <div class="legende">
+      {#each legende as eintrag (eintrag.text)}
+        <span class="eintrag">
+          <span class="punkt" style:background={eintrag.farbe}></span>
+          {eintrag.text}
+        </span>
+      {/each}
+    </div>
+
+    <p class="fussnote">
+      Unverbindliche Anzeige. Verbindlich ist der Reservierungskalender in Vereinsflieger.
+    </p>
+  </main>
+</div>
 
 <style>
-  .flotte {
-    text-align: center;
-    margin: 2rem 0 0;
-    font-size: 0.95rem;
+  .aussen {
+    --bg: #ffffff;
+    --aussen: #eceef1;
+    --text: #1b2027;
+    --avatarflaeche: #ffffff;
+
+    background: var(--aussen);
+    color: var(--text);
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .aussen.dunkel {
+    --bg: #14181d;
+    --aussen: #0c0f12;
+    --text: #e8ecf1;
+    --avatarflaeche: #1d232a;
   }
 
   main {
-    max-width: 48rem;
+    max-width: 430px;
     margin: 0 auto;
-    padding: 1rem;
-    font-family: system-ui, sans-serif;
-    line-height: 1.5;
+    background: var(--bg);
+    border-left: 1px solid rgba(127, 127, 127, 0.18);
+    border-right: 1px solid rgba(127, 127, 127, 0.18);
+    min-height: 100vh;
+    padding-bottom: 24px;
+  }
+
+  .splash {
+    position: relative;
+  }
+
+  .splash img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .schema {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(4px);
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  section {
+    padding: 16px 16px 0;
+  }
+
+  h2 {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin: 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(127, 127, 127, 0.2);
+  }
+
+  .zaehler {
+    font-size: 11px;
+    opacity: 0.35;
+    letter-spacing: 0;
+  }
+
+  .raster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 14px;
+    padding-top: 16px;
+  }
+
+  .halter {
+    position: relative;
+  }
+
+  /*
+    Die Kachel ist die Schaltflaeche — Ring, Kennzeichen und Satz gehoeren
+    zusammen und sind gemeinsam das Ziel. Ein Tippziel von 118 x 130 Pixeln
+    trifft auch, wer im Stehen am Flugplatz auf sein Telefon schaut.
+  */
+  .tastenkachel {
+    display: block;
+    padding: 4px;
+    border: none;
+    border-radius: 12px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .tastenkachel:hover {
+    background: rgba(127, 127, 127, 0.1);
+  }
+
+  .tastenkachel:focus-visible {
+    outline: 3px solid #06c;
+    outline-offset: 1px;
+  }
+
+  .schliessfeld {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
   }
 
   /*
@@ -261,121 +395,55 @@
     white-space: nowrap;
   }
 
-  /*
-    Der Splash zieht sich ueber den Innenabstand der Seite hinweg bis an den
-    Rand: Ein weisser Streifen ringsum liesse ihn wie ein eingefuegtes Bild
-    aussehen statt wie den Kopf der Seite. Der Abstand gilt weiter fuer alles
-    andere, deshalb wird er hier nur oertlich zurueckgenommen.
-  */
-  .splash {
-    display: block;
-    width: calc(100% + 2rem);
-    height: auto;
-    margin: -1rem -1rem 0;
+  .stand {
+    padding: 16px 16px 0;
+    margin: 0;
+    font-size: 11.5px;
+    opacity: 0.45;
+    text-align: right;
   }
 
-  .flugzeuge {
+  .rueckfall {
+    font-style: italic;
+  }
+
+  .kein-stand {
+    margin: 16px 16px 0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(127, 127, 127, 0.09);
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  .legende {
     display: flex;
     flex-wrap: wrap;
-    gap: 1.5rem;
-    margin: 1.25rem 0 0;
-    padding: 0;
-    list-style: none;
+    gap: 6px 14px;
+    margin: 16px 16px 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(127, 127, 127, 0.09);
   }
 
-  .flugzeug {
-    position: relative;
-    display: flex;
-    flex-direction: column;
+  .eintrag {
+    display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 6px;
+    font-size: 11.5px;
+    opacity: 0.75;
   }
 
-  /*
-    Rund mit umlaufendem Rahmen wie ein Personenbild in sozialen Netzen. Der
-    Rahmen ist heute neutral und bedeutet nichts; er ist als eigene Groesse
-    angelegt, damit er spaeter einen Zustand tragen kann (FR-006).
-  */
-  .avatar {
-    --rahmen: #b8c4d0;
-
-    display: grid;
-    place-items: center;
-    width: 6rem;
-    height: 6rem;
-    padding: 0;
-    border: 3px solid var(--rahmen);
+  .punkt {
+    width: 11px;
+    height: 11px;
     border-radius: 50%;
-    background: #fff;
-    cursor: pointer;
   }
 
-  .avatar:hover {
-    --rahmen: #7a8ea3;
-  }
-
-  .avatar.offen {
-    --rahmen: #06c;
-  }
-
-  .avatar:focus-visible {
-    outline: 3px solid #06c;
-    outline-offset: 2px;
-  }
-
-  /*
-    Das Flugzeug ist breit und flach: `contain` statt `cover`, sonst schnitte
-    der Kreis Nase und Leitwerk ab. Ohne Weichzeichnen, damit die Pixelgrafik
-    beim Vergroessern scharf bleibt.
-  */
-  .avatar img {
-    width: 4.75rem;
-    height: 4.75rem;
-    object-fit: contain;
-    image-rendering: pixelated;
-  }
-
-  .kennzeichen {
-    font-weight: 700;
-    letter-spacing: 0.03em;
-  }
-
-  /*
-    Die Stellung rechnet `platzieren` aus; hier stehen nur Aussehen und der
-    Ausgangspunkt. `overflow: hidden` haelt den hellen Grund eines
-    angesteuerten Eintrags innerhalb der abgerundeten Ecken -- ohne das brachen
-    die Ecken sichtbar aus dem Rahmen aus.
-  */
-  .menue {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 2;
-    display: flex;
-    overflow: hidden;
-    flex-direction: column;
-    min-width: 11rem;
-    border: 1px solid #ccc;
-    border-radius: 0.5rem;
-    background: #fff;
-    box-shadow: 0 6px 18px rgb(0 0 0 / 18%);
-  }
-
-  .menue a {
-    padding: 0.6rem 1rem;
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .menue a:hover,
-  .menue a:focus-visible {
-    background: #eef4fb;
-    outline: none;
-  }
-
-  .schliessfeld {
-    position: fixed;
-    inset: 0;
-    z-index: 1;
+  .fussnote {
+    margin: 16px 16px 0;
+    font-size: 11.5px;
+    line-height: 1.55;
+    opacity: 0.45;
   }
 </style>

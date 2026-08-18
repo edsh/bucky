@@ -16,23 +16,33 @@ ergänzt dessen Funktionsumfang, statt ihn zu ersetzen.
 
 ## Aufbau: Bucky als Kompagnon
 
-Die Startseite ist die Auswahl, nicht der Rechner. Bucky begrüßt dort mit „Hi
-Pilot, was darf's sein?", und darunter steht — vorerst allein — die **D-EELK**
-als runder Avatar mit Bildunterschrift. Ein Tippen darauf öffnet, was sich mit
-dieser Maschine tun lässt: der Reservierungsstand und der POH-Rechner.
+Die Startseite ist der **Flugzeugpark**, nicht der Rechner. Bucky begrüßt dort
+mit „Hi Pilot, was darf's sein?", und darunter steht die ganze Vereinsflotte:
+je Maschine ein runder Avatar, dessen Ring als Tagesuhr zeigt, wann sie heute
+belegt ist, dazu ein Statuspunkt und ein Kurzsatz in Worten. Ein Tippen öffnet,
+was sich mit dieser Maschine tun lässt — bei der D-EELK Reservierungsdetails
+und POH-Rechner, bei den übrigen führt der Tipp ohne Umweg in die
+Reservierungsdetails, weil ein Menü mit einem einzigen Eintrag ein Klick wäre,
+der nichts entscheidet.
 
 Der Einstieg läuft bewusst über das Flugzeug und nicht über eine Liste von
 Funktionen: Wer die App öffnet, hat in aller Regel eine bestimmte Maschine im
-Sinn und sucht erst dann, was er mit ihr tun will. Der Rahmen um den Avatar ist
-heute neutral und bedeutet nichts — er ist so angelegt, dass er später einen
-Zustand tragen kann.
+Sinn und sucht erst dann, was er mit ihr tun will. Dass die Belegung dabei
+schon am Ring ablesbar ist, ist die angenehme Nebenwirkung — nicht der Zweck
+der Seite. Kommen später weitere Fähigkeiten je Flugzeug hinzu, wachsen sie in
+dieses Menü hinein, ohne dass sich der Einstieg ändert.
+
+Solange die Auskunft unterwegs ist, stehen graue Platzhalter in der Form der
+Kacheln. Sie behaupten nichts: Ein vorab grün gezeichneter Ring hieße „frei",
+bevor irgendjemand nachgesehen hat.
 
 Daraus folgt die Gliederung der Adressen: Was zu einem Flugzeug gehört, liegt
 unter ihm.
 
 | Adresse | Inhalt |
 |---|---|
-| `/` | Auswahl |
+| `/` | Der Flugzeugpark — die ganze Flotte mit ihrer Belegung |
+| `/reservierung/<kennung>/` | Details zu einer Maschine |
 | `/d-eelk/reservierung/` | Ist sie gerade frei? |
 | `/d-eelk/poh-rechner/` | Der Rechner |
 | `/d-eelk/poh-rechner/tabellen/` | Die digitalisierten Tabellen |

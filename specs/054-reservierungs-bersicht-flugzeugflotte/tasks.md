@@ -244,8 +244,9 @@ Maschine, Maschine ohne Bild, kein Stand verfügbar.
 - [X] T033 [US1] Minütliches Nachziehen anschließen: Jetzt-Marker,
       Statusfarbe und Kurztext folgen dem Bezugszeitpunkt aus T023, ohne
       Neuladen und ohne neuen Abruf (FR-016)
-- [X] T034 [US1] `apps/web/src/routes/+page.svelte` um einen Verweis auf die
-      Übersicht ergänzen
+- [X] T034 [US1] ~~`apps/web/src/routes/+page.svelte` um einen Verweis auf die
+      Übersicht ergänzen~~ — **überholt durch T036a**: Die Übersicht *ist*
+      die Startseite, ein Verweis auf sie selbst wäre sinnlos
 - [X] T035 [US1] `tests/ui/klickpfad.mjs` erweitern: Übersicht lädt, jede
       Maschine der Flotte erscheint genau einmal, Kurztexte sind vorhanden,
       der Fall „kein Stand" sagt es offen
@@ -268,6 +269,37 @@ Maschine, Maschine ohne Bild, kein Stand verfügbar.
   `"stand":"fehlt"`, ohne Feld `belegungen`, aber mit vollständiger `flotte`.
   Die Oberfläche sagt es offen und zeigt **keinen** Statuspunkt und keinen
   grünen Ring (Klickpfad 126–128). SC-003 ist damit belegt.
+
+### Nachbesserungen nach der ersten Vorschau (18.08.)
+
+Der erste Blick auf die gebaute Seite hat drei Dinge klargestellt, die auf dem
+Papier nicht zu sehen waren. Sie stehen hier als eigene Aufgaben, damit die
+Änderung nachvollziehbar bleibt und nicht stillschweigend in T028 verschwindet.
+
+- [X] T036a [US1] Die Übersicht wird zur **Startseite** und damit zum
+      Flugzeugpark: `routes/reservierung/+page.svelte` zieht nach
+      `routes/+page.svelte`, die bisherige Startseite mit dem einzelnen
+      D-EELK-Avatar entfällt. Ein Tipp auf eine Kachel öffnet das Kontextmenü
+      aus Feature 043 (`lib/components/Flugzeugmenue.svelte`, aus der alten
+      Startseite herausgelöst) mit dem, was diese Maschine hergibt
+      (`lib/flotte/handlungen.ts`); bei genau einer Fähigkeit springt er
+      direkt dorthin. Begründung im Structure-Decision-Abschnitt von `plan.md`
+- [X] T036b [US1] Ladeverhalten mit Platzhaltern
+      (`lib/components/Skelettkachel.svelte`): Solange die Auskunft unterwegs
+      ist, steht die Form der Kacheln bereits da — in der Anzahl der
+      Stammliste, damit beim Eintreffen nichts springt — aber ohne Farbe und
+      ohne Text. Ein vorab grün gezeichneter Ring hieße „frei", bevor jemand
+      nachgesehen hat (FR-022)
+- [X] T036c [US1] „Nacht" aus der Legende nehmen: Die Legende erklärt
+      Zustände; der dunkle Nachtanteil des Rings ist keiner und stünde dort
+      wie ein vierter Status
+- [X] T036d [US1] `routes/reservierung/[kennung]/+page.svelte` als knappe
+      Vorstufe anlegen (Avatar, Statuswort, Rückweg) samt `+page.ts` mit den
+      Prerender-Einträgen aus der Stammliste, damit die Kacheln nicht ins
+      Leere führen. Der Ausbau bleibt T040 ff.
+- [X] T036e [US1] `tests/ui/klickpfad.mjs`: Prüfungen 83–97 vom Avatar auf die
+      Kachel umgestellt, neue Prüfungen 129–133 für Platzhalter, Legende,
+      Direktsprung und Rückweg
 
 **Checkpoint**: Die Übersicht ist für sich nutzbar und liefert den eigentlichen
 Mehrwert gegenüber Feature 052. Ab hier wäre eine Veröffentlichung sinnvoll.

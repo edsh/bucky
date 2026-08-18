@@ -17,13 +17,15 @@ Einzelmaschinen-Anzeige (Feature 047/052, nur D-EELK) auf die gesamte Flotte.
 Aus dem Design bereits entschieden (nicht erneut zu klären):
 
 - Buchen findet **nicht** in dieser Anwendung statt; die Reservierungsabsicht
-  wird mit vorbelegtem Zeitfenster nach Vereinsflieger verlinkt.
+  wird zu Vereinsflieger verlinkt, das vorgeschlagene Zeitfenster dabei
+  genannt, nicht übertragen (E-13).
 - Ringdarstellung ist die **Tagesuhr** (24-h-Ring), nicht Vollring oder
   Punkt-Abzeichen — diese sind Entwurfsalternativen und nicht umzusetzen.
 - Es gibt **keinen** eigenen Zustand „bald belegt" — nur einen stufenlosen
   Farbverlauf in der letzten Stunde vor einer Belegung.
-- Namen anderer Mitglieder werden nicht angezeigt („Reserviert"); nur eigene
-  Reservierungen werden als solche benannt.
+- Namen anderer Mitglieder werden nicht angezeigt („Reserviert"). *(Der
+  Zusatz „nur eigene Reservierungen werden als solche benannt" ist mit der
+  Clarification vom 2026-08-18 entfallen — siehe unten.)*
 
 Vor dieser Spezifikation geklärt (Rückfragen dieser Runde):
 
@@ -50,6 +52,39 @@ Vor dieser Spezifikation geklärt (Rückfragen dieser Runde):
   (auf den bestehenden POH-Rechner, Feature-025-Reihe). Alle anderen Maschinen
   der Flotte zeigen vorerst **keinen** POH-Link — sie sind in Bucky (noch)
   nicht digitalisiert.
+
+Während der Planung geklärt (2026-08-18, siehe `research.md`):
+
+- **Eigene Reservierungen werden zurückgestellt** (E-11): Bucky kennt keine
+  Anmeldung und keine Nutzeridentität, und FR-023 verlangt, personenbezogene
+  Angaben so früh wie möglich zu verwerfen — die Frage „ist das meine
+  Buchung?" ist damit technisch nicht entscheidbar. In diesem Feature erscheint
+  **jeder** Eintrag als „Reserviert"; die Kennzeichnung „Deine Reservierung"
+  und der Farbstreifen `#1f4e79` entfallen. FR-009 wird insoweit nicht
+  erfüllt, US2-Szenario 3 entfällt, und die Kennzeichnung wird als eigenes
+  späteres Feature geführt.
+- **Die Flotte braucht eine schmale Stammliste von Kennzeichen** (E-01): Die
+  Annahme unten unter „Assumptions", die Flotte lasse sich vollständig aus den
+  Datenquellen ableiten, trägt nicht — beide Quellen kennen ein Flugzeug nur
+  über seine Buchungen, eine ungebuchte Maschine verschwände also genau dann,
+  wenn sie frei ist. Die angezeigte Flotte ist deshalb die Vereinigung aus
+  einer gepflegten Kennzeichenliste und dem, was in den Daten steht. Die
+  Kategorie wird weiterhin nicht gepflegt, sondern aus dem Kennzeichen
+  abgeleitet (E-02).
+- **Ringgeometrie fix, Ringfarbe echt** (E-15): Der Design-Handoff ließ die
+  Stauchungsgrenze und die Hell/Dunkel-Grenze auf derselben Kante liegen
+  (21:00/06:00). Das stimmte nur im August, in dem der Prototyp entstand; im
+  Dezember hätte der Ring über fünf Stunden Tageslicht behauptet, die es nicht
+  gibt. FR-004 trennt beides nun: Die Zeitskala bleibt fix und damit über die
+  Jahreszeiten lernbar, die Einfärbung folgt den echten Sonnenzeiten. Die
+  Sonnenmarker bleiben — sie benennen jetzt eine echte Farbkante.
+- **Kein vorbelegtes Zeitfenster an Vereinsflieger** (E-13): Ob der
+  Reservierungslink Zeitparameter entgegennimmt, ist weder dokumentiert noch
+  zugesichert. Ein geratener Parameter, der stillschweigend ignoriert wird,
+  ist schlimmer als gar keiner — das Mitglied glaubt dann, das Fenster sei
+  gesetzt, und bucht daneben. FR-011 verlangt deshalb nur noch, den Vorschlag
+  **anzuzeigen**. Sobald die Schnittstelle belegt ist, lässt sich die
+  Vorbelegung ohne Änderung an der Oberfläche nachziehen.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -93,8 +128,8 @@ den tatsächlichen Reservierungsstand aus Vereinsflieger zum Ladezeitpunkt.
    Kreis statt eines fehlenden Bildes.
 6. **Given** es ist ein beliebiger Zeitpunkt, **When** der Ring gerendert wird,
    **Then** sitzt der Jetzt-Strich auf der zu dieser Uhrzeit gehörenden
-   Ringposition und die Sonnenmarker auf den Kanten des fixen Nachtbandes
-   (21:00–06:00).
+   Ringposition, und die Sonnenmarker sitzen auf den tatsächlichen
+   Sonnenzeiten des Tages — dort, wo der Ring von hell auf dunkel wechselt.
 7. **Given** eine Maschine hat keine einzige Reservierung im sichtbaren
    Zeitraum, **When** der Ring gerendert wird, **Then** ist er durchgehend im
    Frei-Farbton (tags) bzw. Nachtfarbton (nachts) ohne Belegungssegmente.
@@ -115,8 +150,7 @@ Belegungen).
 **Independent Test**: Eine Maschine mit bekannten künftigen Reservierungen
 öffnen und prüfen, ob die 7-Tage-Liste, das Wochenraster und die Liste der
 kommenden Belegungen exakt mit dem hinterlegten Reservierungsstand
-übereinstimmen, einschließlich der Unterscheidung eigener und fremder
-Einträge.
+übereinstimmen.
 
 **Acceptance Scenarios**:
 
@@ -126,10 +160,10 @@ Einträge.
 2. **Given** in den nächsten sieben Tagen existiert keine Belegung, **When**
    die Detailansicht rendert, **Then** erscheint ein Leertext statt einer
    leeren Liste.
-3. **Given** eine Reservierung gehört dem anfragenden Mitglied, **When** sie in
-   der Liste der kommenden Belegungen erscheint, **Then** ist sie als eigene
-   Reservierung erkennbar; fremde Reservierungen zeigen ausschließlich
-   „Reserviert" ohne Namen.
+3. **Given** eine Reservierung liegt in den nächsten sieben Tagen, **When** sie
+   in der Liste der kommenden Belegungen erscheint, **Then** zeigt sie
+   ausschließlich „Reserviert" ohne Namen — für eigene wie fremde Einträge
+   gleichermaßen (Clarification vom 2026-08-18).
 4. **Given** eine Reservierung reicht über Mitternacht hinweg, **When** der
    Tagesbalken gerendert wird, **Then** wird sie pro Tag geschnitten
    dargestellt.
@@ -212,8 +246,10 @@ Anwendung selbst etwas bucht.
   das Alter der Daten kenntlich machen bzw. offen sagen, dass keine Auskunft
   vorliegt (bekräftigt FR-010 aus Feature 047 und FR-008/FR-019 aus
   Feature 052, jetzt für die gesamte Flotte statt nur D-EELK).
-- Sommer-/Winterzeit und lange Sommernächte verschieben die Sonnenzeiten; die
-  Nachtzone des Rings bleibt fix 21:00–06:00.
+- Sommer-/Winterzeit und lange Sommernächte verschieben die Sonnenzeiten: Die
+  **Zeitskala** des Rings bleibt fix (21:00–06:00 gestaucht), die
+  **Einfärbung** wandert mit. Im Juni liegt die Farbgrenze innerhalb der
+  gestauchten Zone, im Dezember innerhalb der gedehnten.
 - Tageswechsel während geöffneter Seite: Anzeige muss nachziehen (mindestens
   minütliche Aktualisierung von Jetzt-Marker, Statusfarbe und Statussatz).
 - Sonnenzeiten-Abruf schlägt fehl: Ring zeigt weiterhin Tag-/Nacht-Segmente
@@ -237,7 +273,10 @@ Anwendung selbst etwas bucht.
 - **FR-003**: Das System MUSS lückenlos aneinandergrenzende Reservierungen
   derselben Maschine als einen zusammenhängenden Belegungsblock behandeln.
 - **FR-004**: Das System MUSS für jede Maschine den Tagesverlauf 00–24 h als
-  Ring darstellen, mit fixer Nachtzone 21:00–06:00 und Markern für
+  Ring darstellen. Die **Zeitskala** ist fix und über alle Jahreszeiten
+  unverändert (21:00–06:00 gestaucht, 06:00–21:00 gedehnt), damit dieselbe
+  Uhrzeit stets an derselben Stelle liegt. Die **Einfärbung** hell/dunkel
+  folgt dagegen den tatsächlichen Sonnenzeiten des Tages. Dazu Marker für
   Sonnenaufgang, Sonnenuntergang und „jetzt".
 - **FR-005**: Das System MUSS den Zustand zusätzlich als Punkt-Abzeichen und
   als Kurztext in Klartext-Deutsch anzeigen (Zustand nie ausschließlich über
@@ -268,20 +307,23 @@ Anwendung selbst etwas bucht.
   Statussatz, Tagesbalken inklusive Stundenachse, 7-Tage-Liste und
   Wochenraster (umschaltbar).
 - **FR-009**: Das System MUSS die nächsten bis zu sechs Belegungen mit
-  Zeitraum, Art und Dauer auflisten und eigene Reservierungen als solche
-  kennzeichnen.
-- **FR-010**: Das System MUSS Namen anderer Mitglieder verbergen und fremde
-  Einträge ausschließlich als „Reserviert" ausgeben (bekräftigt FR-006 aus
-  Feature 047 / FR-013 aus Feature 052).
+  Zeitraum, Art und Dauer auflisten. Die Kennzeichnung eigener Reservierungen
+  ist zurückgestellt (Clarification vom 2026-08-18, `research.md` E-11) — sie
+  setzt eine Nutzeridentität voraus, die es in Bucky nicht gibt.
+- **FR-010**: Das System MUSS Namen von Mitgliedern verbergen und **jeden**
+  fremden wie eigenen Eintrag ausschließlich als „Reserviert" ausgeben
+  (bekräftigt FR-006 aus Feature 047 / FR-013 aus Feature 052).
 - **FR-018**: Das System MUSS pro Maschine, für die ein POH-Rechner in Bucky
   existiert, einen Link darauf anzeigen. Maschinen ohne digitalisiertes POH
   zeigen keinen POH-Link.
 
 #### Reservieren-Absicht
 
-- **FR-011**: Das System MUSS eine Reservierungsabsicht mit vorbelegtem
-  Zeitfenster aus der nächsten freien Lücke (auf 30 Minuten aufgerundet, 2
-  Stunden Dauer) an Vereinsflieger übergeben, ohne selbst zu buchen.
+- **FR-011**: Das System MUSS die nächste freie Lücke als Reservierungs­vorschlag
+  anzeigen (auf 30 Minuten aufgerundet, 2 Stunden Dauer) und von dort auf den
+  Reservierungskalender in Vereinsflieger führen. Das Zeitfenster wird dem
+  Mitglied **genannt**, nicht übertragen — Bucky bucht nicht und füllt kein
+  fremdes Formular vor.
 
 #### Darstellung & Zeit
 
@@ -318,15 +360,18 @@ Anwendung selbst etwas bucht.
 
 ### Key Entities *(include if feature involves data)*
 
-- **Maschine (Resource)**: Kennzeichen, Typ, Kategorie (Motorflugzeuge & UL /
-  Segelflugzeuge), optionales Bild, optionaler POH-Link. Die Flotte wird aus
-  den bestehenden Datenquellen abgeleitet (jedes eindeutige Luftfahrzeug-
-  kennzeichen, das dort auftaucht), nicht separat gepflegt.
+- **Maschine (Resource)**: Kennzeichen, optionaler Typ, Kategorie
+  (Motorflugzeuge & UL / Segelflugzeuge), optionales Bild, optionaler
+  POH-Link. Die Flotte ist die Vereinigung aus einer gepflegten
+  Kennzeichenliste und den in den Datenquellen auftauchenden Kennzeichen
+  (Clarification vom 2026-08-18, `research.md` E-01).
 - **Reservierung**: Maschine, Startzeitpunkt, Endzeitpunkt, Art (Reservierung
-  | Sperre), Kennzeichnung „eigene" — unverändert aus Feature 047/052, jetzt
-  für alle Maschinen statt nur D-EELK ausgewertet.
-- **Tageskontext**: Datum, Sonnenaufgang, Sonnenuntergang, Nachtzone (fix
-  21:00–06:00). Sonnenzeiten kommen von einem Online-Wetterdienst.
+  | Sperre) — unverändert aus Feature 047/052, jetzt für alle Maschinen statt
+  nur D-EELK ausgewertet. Ohne Personenbezug und ohne Kennzeichnung „eigene"
+  (Clarification vom 2026-08-18).
+- **Tageskontext**: Datum, Sonnenaufgang, Sonnenuntergang. Die Sonnenzeiten
+  bestimmen die Einfärbung des Rings, nicht seine Skala (FR-004); sie kommen
+  von einem Online-Wetterdienst.
 - **Zustand (abgeleitet)**: Statuswert, Wechselzeitpunkt, Statussatz,
   Statusfarbe, Ringsegmente, Balkensegmente — pro Maschine aus Reservierung und
   Tageskontext berechnet, nicht gespeichert.
@@ -352,17 +397,16 @@ Anwendung selbst etwas bucht.
   — Text und Position tragen sie in jedem Fall mit (für sehbehinderte oder
   farbenblinde Mitglieder).
 - **SC-006**: Zu keinem Zeitpunkt sind Namen von Mitgliedern über die Anzeige
-  oder die von ihr genutzte Auskunft abrufbar, außer für die eigene
-  Reservierung des anfragenden Mitglieds.
+  oder die von ihr genutzte Auskunft abrufbar.
 
 ## Assumptions
 
-- Die Flotte selbst ändert sich selten; sie wird aus den in den Datenquellen
-  auftauchenden Luftfahrzeugkennzeichen abgeleitet, nicht als separate
-  Vereinskonfiguration gepflegt. Kategorie (Motorflugzeuge & UL / Segelflug)
-  und Typbezeichnung müssen dafür pro Kennzeichen bekannt sein — vermutlich als
-  kleine, im Code gepflegte Zuordnungstabelle (Klärung technischer Details
-  bleibt `/speckit-plan` vorbehalten).
+- Die Flotte selbst ändert sich selten. Sie ergibt sich aus einer schmalen,
+  gepflegten Liste von Luftfahrzeugkennzeichen, vereinigt mit den Kennzeichen,
+  die in den Datenquellen auftauchen (Clarification vom 2026-08-18,
+  `research.md` E-01). Die Kategorie (Motorflugzeuge & UL / Segelflug) wird
+  nicht gepflegt, sondern aus dem Kennzeichen abgeleitet (E-02); die
+  Typbezeichnung ist optional und rein beschriftend.
 - Die Ring-Darstellung, Statuslogik und Zeitformate sind im Design-Handoff
   (`docs/design_handoff_reservierung/README.md`) pixelgenau spezifiziert und
   gelten als verbindliche visuelle Quelle für dieses Feature.

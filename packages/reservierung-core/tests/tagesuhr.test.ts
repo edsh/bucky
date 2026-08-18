@@ -101,7 +101,7 @@ describe('ringsegmente — Abdeckung (T-05, T-09)', () => {
 
 		// Und zwar in einer Kette: Jedes Segment beginnt, wo das vorige endet.
 		for (let i = 1; i < segmente.length; i++) {
-			expect(segmente[i].vonGrad).toBe(segmente[i - 1].bisGrad);
+			expect(segmente[i]?.vonGrad).toBe(segmente[i - 1]?.bisGrad);
 		}
 	});
 

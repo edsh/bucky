@@ -9,7 +9,7 @@
     zeitpunktFuerMinute,
     type Reservierung
   } from '@edsh-bucky/reservierung-core';
-  import { FARBEN } from '$lib/flotte/farben.js';
+  import { flaecheFuer } from '$lib/flotte/farben.js';
 
   /**
    * Sieben Tage nebeneinander, die Zeit läuft nach unten.
@@ -47,9 +47,6 @@
     return (stunde * 60 - BALKEN_VON) / (BALKEN_BIS - BALKEN_VON);
   }
 
-  function farbeFuer(art: 'reservierung' | 'sperre'): string {
-    return art === 'sperre' ? FARBEN.sperreFlaeche : FARBEN.belegt;
-  }
 
   function alsProzent(anteil: number): string {
     return `${anteil * 100}%`;
@@ -73,7 +70,7 @@
               class="segment"
               style:top={alsProzent(segment.von)}
               style:height={alsProzent(segment.bis - segment.von)}
-              style:background={farbeFuer(segment.art)}
+              style:background={flaecheFuer(segment.art)}
             ></span>
           {/each}
 

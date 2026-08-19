@@ -9,7 +9,7 @@
     tagesbelegungen,
     type Reservierung
   } from '@edsh-bucky/reservierung-core';
-  import { FARBEN } from '$lib/flotte/farben.js';
+  import { flaecheFuer } from '$lib/flotte/farben.js';
 
   /**
    * Die Karte „Heute": ein maßstabsgetreuer Balken von 06:00 bis 22:00.
@@ -49,9 +49,6 @@
    */
   const achse = [6, 10, 14, 18, 22];
 
-  function farbeFuer(art: 'reservierung' | 'sperre'): string {
-    return art === 'sperre' ? FARBEN.sperreFlaeche : FARBEN.belegt;
-  }
 
   function alsProzent(anteil: number): string {
     return `${anteil * 100}%`;
@@ -70,7 +67,7 @@
         class="segment"
         style:left={alsProzent(segment.von)}
         style:width={alsProzent(segment.bis - segment.von)}
-        style:background={farbeFuer(segment.art)}
+        style:background={flaecheFuer(segment.art)}
       ></span>
     {/each}
 

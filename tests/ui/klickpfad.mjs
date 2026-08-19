@@ -2552,6 +2552,39 @@ pruefe(
   page.url()
 );
 
+// 148: Eine Sperre traegt auf dem Balken dasselbe Absperrband wie auf dem
+// Avatar. Glattes Grau war hier vorher keine Aussage, sondern die Farbe, die
+// uebrig bleibt -- man sieht ihr nicht an, dass sie etwas bedeutet. Geprueft
+// wird der gerechnete Stil, nicht die Klasse: Eine Klasse kann dastehen,
+// ohne dass eine Regel greift.
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-mrxs/`, { waitUntil: 'networkidle' });
+await page.locator('.balken .segment').first().waitFor({ timeout: 5000 });
+const sperrflaeche = await page
+  .locator('.balken .segment')
+  .first()
+  .evaluate((s) => getComputedStyle(s).backgroundImage);
+pruefe(
+  148,
+  'eine Sperre erscheint als Absperrband, nicht als glattes Grau',
+  /repeating-linear-gradient/.test(sperrflaeche),
+  sperrflaeche.slice(0, 90)
+);
+
+// 149: Und eine Reservierung gerade nicht — sonst waeren beide Zustaende
+// wieder ununterscheidbar, nur andersherum.
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
+await page.locator('.balken .segment').first().waitFor({ timeout: 5000 });
+const belegtflaeche = await page
+  .locator('.balken .segment')
+  .first()
+  .evaluate((s) => getComputedStyle(s).backgroundImage);
+pruefe(
+  149,
+  'eine Reservierung bleibt eine glatte Flaeche',
+  belegtflaeche === 'none',
+  belegtflaeche.slice(0, 90)
+);
+
 await page.unroute('**/api/flotte*');
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));

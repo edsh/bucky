@@ -23,7 +23,7 @@
   import TagesuhrAvatar from '$lib/components/TagesuhrAvatar.svelte';
   import Tagesbalken from '$lib/components/Tagesbalken.svelte';
   import Wochenraster from '$lib/components/Wochenraster.svelte';
-  import { FARBEN, statusfarbe } from '$lib/flotte/farben.js';
+  import { FARBEN, flaecheFuer, statusfarbe } from '$lib/flotte/farben.js';
   import { darstellungFuer } from '$lib/flotte/darstellung.js';
   import { farbschema } from '$lib/farbschema.svelte.js';
   import { Flottenstand } from '$lib/flotte/stand.svelte.js';
@@ -120,8 +120,17 @@
     stand.belegungen === null ? [] : kommendeBelegungen(stand.belegungen, kennung, stand.jetzt)
   );
 
-  function farbeFuer(art: 'reservierung' | 'sperre'): string {
-    return art === 'sperre' ? FARBEN.sperreFlaeche : FARBEN.belegt;
+
+  /**
+   * Der vier Pixel schmale Farbstreifen links am Eintrag.
+   *
+   * Hier steht bewusst eine glatte Farbe statt des Absperrbands: Ein
+   * Diagonalmuster mit zwölf Pixeln Wiederholung ergibt auf vier Pixeln
+   * Breite kein erkennbares Muster, sondern Grieß. Der Handoff nennt für
+   * diesen Streifen ohnehin einen eigenen Ton.
+   */
+  function streifenfarbe(art: 'reservierung' | 'sperre'): string {
+    return art === 'sperre' ? FARBEN.sperreText : FARBEN.belegt;
   }
 
   function textfarbeFuer(text: string): string | undefined {
@@ -237,7 +246,7 @@
                       class="segment"
                       style:left={alsProzent(segment.von)}
                       style:width={alsProzent(segment.bis - segment.von)}
-                      style:background={farbeFuer(segment.art)}
+                      style:background={flaecheFuer(segment.art)}
                     ></span>
                   {/each}
                 </span>
@@ -260,7 +269,7 @@
           <ul>
             {#each kommend as eintrag (eintrag.vonIso + eintrag.art)}
               <li>
-                <span class="streifen" style:background={farbeFuer(eintrag.art)}></span>
+                <span class="streifen" style:background={streifenfarbe(eintrag.art)}></span>
                 <span class="wann">
                   <span class="spanne"
                     >{eintragszeile(

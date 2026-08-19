@@ -412,6 +412,16 @@ einschließlich einer Belegung über Mitternacht und eines Ganztagseintrags.
       19.08.2026). Der Überhang in den Folgetag braucht kein Zeichen — eine
       durchlaufende Belegung endet in dieser Spalte auf `24:00`, und das ist
       deutlicher
+- [X] T049c [US2] Sperren tragen auf jedem Balken dasselbe rot-graue
+      Absperrband wie der Avatar einer gesperrten Maschine (`flaecheFuer` in
+      `apps/web/src/lib/flotte/farben.ts`, angewandt in `Tagesbalken.svelte`,
+      `Wochenraster.svelte` und der Sieben-Tage-Liste). Glattes Grau war
+      keine Aussage, sondern die Farbe, die übrig bleibt — ihr sieht man
+      nicht an, dass sie etwas bedeutet, und ein Muster, das der Nutzer auf
+      der Startseite schon gelernt hat, muss auf der Detailseite dasselbe
+      heißen. Nur der 4 px schmale Streifen unter „Kommende Belegungen"
+      behält eine glatte Farbe: Ein 12-px-Muster auf 4 px Breite ergibt
+      Grieß, kein Band
 
 **Checkpoint**: US1 und US2 sind beide unabhängig nutzbar. Das Feature erfüllt
 seinen Kernzweck.

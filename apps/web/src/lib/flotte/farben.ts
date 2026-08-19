@@ -27,6 +27,30 @@ export const FARBEN = {
 } as const;
 
 /**
+ * Der Hintergrund einer belegten Fläche — Balken, Segment, Farbstreifen.
+ *
+ * Eine Sperre bekommt hier **dasselbe Absperrband** wie der Avatar einer
+ * gesperrten Maschine: rot-graue Diagonalstreifen. Vorher war sie schlicht
+ * grau, und grau ist auf einem Balken keine Aussage, sondern die Farbe, die
+ * übrig bleibt — man sieht ihr nicht an, dass sie etwas bedeutet. Das
+ * Streifenmuster erkennt dagegen jeder wieder, der es einmal auf einer
+ * Kachel gesehen hat, und es liest sich auch dann noch als „hier nicht",
+ * wenn jemand Rot und Grün nicht unterscheiden kann.
+ *
+ * Der Winkel und die Streifenbreite stimmen mit `TagesuhrAvatar.svelte`
+ * überein — dieselbe Sache muss gleich aussehen, sonst wirkt sie wie zwei.
+ */
+export function flaecheFuer(art: 'reservierung' | 'sperre'): string {
+	if (art !== 'sperre') return FARBEN.belegt;
+
+	return (
+		'repeating-linear-gradient(45deg, ' +
+		'rgba(200, 80, 64, 0.55) 0 6px, rgba(255, 255, 255, 0) 6px 12px)' +
+		`, ${FARBEN.sperreFlaeche}`
+	);
+}
+
+/**
  * Die Statusfarbe einer Maschine.
  *
  * Der Sonderfall ist `bald`: Dafuer gibt es **keine** eigene Farbe, sondern

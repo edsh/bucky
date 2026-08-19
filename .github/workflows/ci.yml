@@ -68,7 +68,13 @@ jobs:
         timeout-minutes: 8
         run: |
           npm install --no-save playwright
-          npx playwright install --with-deps chromium
+          # Ohne `--with-deps`: Das rief `apt-get update` auf, und der
+          # Ubuntu-Spiegel des Laufers haengt regelmaessig minutenlang, bis die
+          # Zeitgrenze reisst -- zweimal in Folge am 19.08.2026. Die
+          # Systembibliotheken, die Chromium braucht, bringt das Runner-Abbild
+          # ohnehin mit; faellt eine doch, scheitert der naechste Schritt mit
+          # klarer Meldung statt an einer Paketquelle.
+          npx playwright install chromium
 
       - name: Klickpfad
         env:

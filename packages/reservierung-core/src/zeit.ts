@@ -225,6 +225,17 @@ const NUR_STUNDE_MINUTE = new Intl.DateTimeFormat('en-GB', {
 	hourCycle: 'h23'
 });
 
+/**
+ * `15:00` — ohne „Uhr", fuer Balken, Chips und schmale Spalten.
+ *
+ * Getrennt von `alsUhrzeit`, das „15:00 Uhr" liefert: In einem Fliesstext ist
+ * das „Uhr" richtig, in einer Spanne wie `14:00–17:30` waere es doppelt und
+ * in 112 Pixeln Spaltenbreite schlicht zu lang.
+ */
+export function alsUhrzeitKurz(zeitpunkt: Date): string {
+	return NUR_STUNDE_MINUTE.format(zeitpunkt);
+}
+
 /** `Sa., 15.08., 12:00` — knapp, fuer Listen (FR-015). */
 export function alsKurzdatumUhrzeit(zeitpunkt: Date): string {
 	return KURZDATUM_UHRZEIT.format(zeitpunkt);
@@ -233,6 +244,32 @@ export function alsKurzdatumUhrzeit(zeitpunkt: Date): string {
 /** `Samstag, 15. Aug.` — die Ueberschrift eines Tages in der Wochenliste. */
 export function alsTagesdatum(zeitpunkt: Date): string {
 	return TAGESDATUM.format(zeitpunkt);
+}
+
+const WOCHENTAG_KURZ = new Intl.DateTimeFormat('de-DE', {
+	timeZone: ZONE,
+	weekday: 'short'
+});
+
+const TAG_UND_MONAT = new Intl.DateTimeFormat('de-DE', {
+	timeZone: ZONE,
+	day: '2-digit',
+	month: '2-digit'
+});
+
+/**
+ * `Sa` — der Wochentag in zwei Buchstaben, fuer Spaltenkoepfe.
+ *
+ * `Intl` liefert `Sa.` mit Punkt; unter einer 40 Pixel breiten Rasterspalte
+ * ist der Punkt ein Zeichen, das keine Information traegt, aber Platz nimmt.
+ */
+export function alsWochentagKurz(zeitpunkt: Date): string {
+	return WOCHENTAG_KURZ.format(zeitpunkt).replace(/\.$/, '');
+}
+
+/** `15.08.` — Tag und Monat ohne Jahr, fuer die linke Spalte der Wochenliste. */
+export function alsTagUndMonat(zeitpunkt: Date): string {
+	return TAG_UND_MONAT.format(zeitpunkt);
 }
 
 /**
@@ -259,4 +296,41 @@ export function ortstag(zeitpunkt: Date): string {
 export function minuteDesTages(zeitpunkt: Date): number {
 	const teile = NUR_STUNDE_MINUTE.format(zeitpunkt).split(':');
 	return Number(teile[0]) * 60 + Number(teile[1]);
+}
+
+/**
+ * Der Zeitpunkt zu einem Ortstag und einer Minute seit Ortsmitternacht;
+ * Bruchteile einer Minute sind erlaubt und werden auf Sekunden gerundet.
+ *
+ * Bewusst ueber die Ortszeit-Deutung und nicht ueber `new Date(jahr, monat,
+ * …)`: Letzteres naehme die Zone des Geraets — und ein Telefon in Spanien
+ * zeigte einen anderen Ring und andere Balken (T-11).
+ *
+ * Minuten jenseits von 1440 sind zugelassen und laufen in den Folgetag: Ein
+ * Fensterende „24:00" ist die uebliche Schreibweise fuer Mitternacht und
+ * waere als 0:00 desselben Tages das Gegenteil dessen, was gemeint ist.
+ */
+export function zeitpunktFuerMinute(tag: string, minute: number): Date {
+	const gesamtSekunden = Math.round(minute * 60);
+	const stunde = Math.trunc(gesamtSekunden / 3600);
+	const rest = gesamtSekunden - stunde * 3600;
+	const zweistellig = (n: number) => String(n).padStart(2, '0');
+	const uhrzeit = `${zweistellig(stunde)}:${zweistellig(Math.trunc(rest / 60))}:${zweistellig(rest % 60)}`;
+	return ortszeitZuZeitpunkt(`${tag} ${uhrzeit}`);
+}
+
+/**
+ * Der Ortstag nach diesem — als `YYYY-MM-DD`.
+ *
+ * Gerechnet wird ab **Mittag**, nicht ab Mitternacht. An den beiden
+ * Umstellungstagen ist der Ortstag 23 bzw. 25 Stunden lang; wer schlicht
+ * 24 Stunden auf Mitternacht addiert, landet im Maerz um 01:00 des Folgetags
+ * (richtig, aber knapp) und im Oktober um 23:00 **desselben** Tages — der
+ * Wochenblick zeigte denselben Tag zweimal und den letzten gar nicht.
+ * Von der Tagesmitte aus ist der Abstand zur naechsten Mitternacht in beiden
+ * Richtungen so gross, dass eine Stunde nichts verschiebt.
+ */
+export function naechsterTag(tag: string): string {
+	const mittag = zeitpunktFuerMinute(tag, 12 * 60);
+	return ortstag(new Date(mittag.getTime() + 24 * 60 * 60 * 1000));
 }

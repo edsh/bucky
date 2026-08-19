@@ -1,4 +1,5 @@
-import type { Belegungsauskunft, Maschinenzustand, Quelle } from './typen.js';
+import type { Belegungsart, Belegungsauskunft, Maschinenzustand, Quelle } from './typen.js';
+import type { Tagesbelegung } from './segmente.js';
 import { alterInWorten } from './verfall.js';
 import {
 	alsKurzdatumUhrzeit,
@@ -176,3 +177,47 @@ const NUR_UHRZEIT_KURZ = new Intl.DateTimeFormat('de-DE', {
 	hour: '2-digit',
 	minute: '2-digit'
 });
+
+/**
+ * Die rechte Textspalte einer Zeile der Sieben-Tage-Liste.
+ *
+ * Drei Formen, in dieser Reihenfolge:
+ *
+ * - `frei` — nichts eingetragen
+ * - `gesperrt` — eine Sperre deckt den ganzen Tag; eine Uhrzeit waere hier
+ *   sinnlos genau (FR-014)
+ * - `14:00–17:30` — die erste Belegung des Tages, bei weiteren mit `+1`,
+ *   `+2` … dahinter
+ *
+ * Das `+1` zaehlt **weitere Eintraege desselben Tages**, nicht den Ueberhang
+ * in den Folgetag. Der steht ohnehin schon da: Eine Belegung, die
+ * durchlaeuft, endet in dieser Spalte auf `24:00`, und das ist deutlicher
+ * als jedes Zeichen dahinter.
+ *
+ * Die Spalte ist 112 Pixel breit. Alles, was hier steht, muss in eine Zeile
+ * passen — deshalb steht dort ein Zaehler und keine zweite Zeitangabe.
+ */
+export function alsTageszeile(belegungen: readonly Tagesbelegung[]): string {
+	if (belegungen.length === 0) return 'frei';
+
+	const ersteSperre = belegungen.find((b) => b.art === 'sperre' && b.ganztags);
+	if (ersteSperre) return 'gesperrt';
+
+	const erste = belegungen[0]!;
+	const weitere = belegungen.length - 1;
+	const spanne = `${erste.vonUhr}–${erste.bisUhr}`;
+	return weitere > 0 ? `${spanne} +${weitere}` : spanne;
+}
+
+/**
+ * Was in der Liste „Kommende Belegungen" als Art dasteht.
+ *
+ * **Jeder** Eintrag heisst „Reserviert" — auch der eigene. Bucky kennt keine
+ * Nutzeridentitaet (E-11), und einen Namen zu nennen, den man nicht sicher
+ * zuordnen kann, waere schlimmer als keinen zu nennen. Ein Sperrgrund
+ * erscheint ebenfalls nicht (FR-010): „Wartung" ist eine Aussage ueber ein
+ * Vereinsflugzeug, die nicht auf einer Uebersichtsseite steht.
+ */
+export function alsBelegungsart(art: Belegungsart): string {
+	return art === 'sperre' ? 'Sperre' : 'Reserviert';
+}

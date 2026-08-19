@@ -355,51 +355,63 @@ einschließlich einer Belegung über Mitternacht und eines Ganztagseintrags.
 
 ### Kern — Segmente
 
-- [ ] T037 [US2] `packages/reservierung-core/src/segmente.ts` anlegen:
+- [X] T037 [US2] `packages/reservierung-core/src/segmente.ts` anlegen:
       Tagesbalken (Fenster 06:00–22:00) und Wochenraster als
       `Balkensegment`-Folgen, Schnitt an Mitternacht und an den
       Fenstergrenzen, Sortierung und Vorrang der Sperre
-- [ ] T038 [US2] Prüfungen in
+- [X] T038 [US2] Prüfungen in
       `packages/reservierung-core/tests/segmente.test.ts`: Belegung über
       Mitternacht ergibt je Tag ein Segment, Ganztagseintrag (00:00–24:00)
       füllt den Balken, Belegung außerhalb 06:00–22:00 wird korrekt
       beschnitten, überlappende Einträge kollabieren nicht zu Lücken
-- [ ] T039 [US2] `packages/reservierung-core/src/index.ts` um die Ausgänge aus
+- [X] T039 [US2] `packages/reservierung-core/src/index.ts` um die Ausgänge aus
       `segmente.ts` erweitern (`tagesuhr` ist bereits in T024 ergänzt)
 
 ### Oberfläche
 
-- [ ] T040 [US2] `apps/web/src/routes/reservierung/[kennung]/+page.svelte`
+- [X] T040 [US2] `apps/web/src/routes/reservierung/[kennung]/+page.svelte`
       anlegen (E-12): Sticky Header mit Zurück-Knopf, 40er Avatar, Kennzeichen
       und Typ, Theme-Knopf. Unbekannte Kennung → freundlicher Leerfall statt
       Fehlerseite
-- [ ] T041 [US2] Statusblock umsetzen: pulsierender 9-px-Punkt, Statuswort in
+- [X] T041 [US2] Statusblock umsetzen: pulsierender 9-px-Punkt, Statuswort in
       Versalien, Statussatz in 27 px in Statusfarbe, Stand-Text darunter
-- [ ] T042 [US2] `apps/web/src/lib/components/Tagesbalken.svelte` anlegen:
+- [X] T042 [US2] `apps/web/src/lib/components/Tagesbalken.svelte` anlegen:
       Karte „Heute" mit Balken, Jetzt-Linie, Stundenachse 6/10/14/18/22 und
       Belegungszeiten als Chips
-- [ ] T043 [US2] Segmented Control „7 Tage" / „Woche" umsetzen, beim Öffnen
+- [X] T043 [US2] Segmented Control „7 Tage" / „Woche" umsetzen, beim Öffnen
       stets auf „7 Tage" zurückgesetzt (Handoff, Interaktionen)
-- [ ] T044 [US2] Sieben-Tage-Liste umsetzen: Tag und Datum links, Balken in
+- [X] T044 [US2] Sieben-Tage-Liste umsetzen: Tag und Datum links, Balken in
       der Mitte, Textspalte rechts in Tagesfarbe („frei" / „gesperrt" /
       „14:00–17:30 +1")
-- [ ] T045 [US2] `apps/web/src/lib/components/Wochenraster.svelte` anlegen:
+- [X] T045 [US2] `apps/web/src/lib/components/Wochenraster.svelte` anlegen:
       sieben Spalten mit Stundenachse links, Heute-Spalte mit Jetzt-Linie,
       Tageslabels unter den Spalten
-- [ ] T046 [US2] „KOMMENDE BELEGUNGEN" umsetzen: höchstens sechs Einträge mit
+- [X] T046 [US2] „KOMMENDE BELEGUNGEN" umsetzen: höchstens sechs Einträge mit
       Farbstreifen, Zeitraum, Art und Dauer. **Jeder** Eintrag zeigt
       „Reserviert" bzw. „Sperre" — keine Namen, kein Sperrgrund, keine
       Kennzeichnung eigener Buchungen (E-11, E-14, FR-010). Leerfall:
       „Nichts eingetragen in den nächsten sieben Tagen."
-- [ ] T047 [US2] Fußnote und Sticky Aktionsleiste anlegen; die Leiste trägt
+- [X] T047 [US2] Fußnote und Sticky Aktionsleiste anlegen; die Leiste trägt
       zunächst nur den sekundären POH-Verweis (FR-018) — der
       Reservieren-Knopf kommt in US4. Die Fußnote nennt Vereinsflieger als
       verbindliche Quelle (FR-012, zweite Stelle nach der Übersicht)
-- [ ] T048 [US2] Minütliches Nachziehen auch in der Detailansicht anschließen
+- [X] T048 [US2] Minütliches Nachziehen auch in der Detailansicht anschließen
       (FR-016)
-- [ ] T049 [US2] `tests/ui/klickpfad.mjs` erweitern: Tap auf eine Kachel öffnet
+- [X] T049 [US2] `tests/ui/klickpfad.mjs` erweitern: Tap auf eine Kachel öffnet
       die Detailansicht, Zurück führt zur Übersicht, Reiterwechsel
       funktioniert, kein Name erscheint
+
+- [X] T049a [US2] Der Hell/Dunkel-Umschalter zieht in
+      `apps/web/src/lib/farbschema.svelte.ts` um. Beide Seiten tragen einen,
+      und er muss dasselbe schalten: Wer im Flugzeugpark auf Dunkel stellt
+      und eine Maschine öffnet, darf nicht wieder in einer weißen Seite
+      landen. Zwei Kopien derselben `localStorage`-Logik liefen genau darauf
+      hinaus
+- [X] T049b [US2] `alsTageszeile` liest das „+1" der rechten Spalte als
+      **weiteren Eintrag desselben Tages** (Entscheidung des Auftraggebers,
+      19.08.2026). Der Überhang in den Folgetag braucht kein Zeichen — eine
+      durchlaufende Belegung endet in dieser Spalte auf `24:00`, und das ist
+      deutlicher
 
 **Checkpoint**: US1 und US2 sind beide unabhängig nutzbar. Das Feature erfüllt
 seinen Kernzweck.

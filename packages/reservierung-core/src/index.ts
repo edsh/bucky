@@ -12,25 +12,47 @@ export { belegungenImFenster, belegungsauskunft, endeDerKette, zeitraeumeFuer, t
 export { flotteBilden, kategorieFuer, STAMMLISTE } from './flotte.js';
 export {
 	alsAltersangabe,
+	alsBelegungsart,
 	alsDauer,
 	alsRueckfallHinweis,
 	alsSatz,
 	alsStatussatz,
+	alsTageszeile,
 	alsZusatzzeile
 } from './formulieren.js';
 export { kalenderDeuten } from './kalender-deuten.js';
+export {
+	balkensegmente,
+	BALKEN_BIS,
+	BALKEN_VON,
+	FENSTER_FLUGTAG,
+	FENSTER_GANZTAGS,
+	jetztAnteil,
+	kommendeBelegungen,
+	tagesbalken,
+	tagesbelegungen,
+	wochenbalken,
+	type Balkenfenster,
+	type Balkentag,
+	type Tagesbelegung
+} from './segmente.js';
 export { alterInWorten, alterMs, istVeraltet, VERFALLSGRENZE_MS } from './verfall.js';
 export {
 	alsIso,
 	alsIsoMitVersatz,
 	alsKurzdatumUhrzeit,
 	alsTagesdatum,
+	alsTagUndMonat,
 	alsUhrzeit,
+	alsUhrzeitKurz,
 	alsWochentagDatumUhrzeit,
+	alsWochentagKurz,
 	gleicherTag,
 	minuteDesTages,
+	naechsterTag,
 	ortstag,
 	ortszeitZuZeitpunkt,
+	zeitpunktFuerMinute,
 	ZONE
 } from './zeit.js';
 export {

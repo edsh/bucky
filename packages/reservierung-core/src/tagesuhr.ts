@@ -1,4 +1,4 @@
-import { minuteDesTages, ortstag, ortszeitZuZeitpunkt } from './zeit.js';
+import { minuteDesTages, ortstag, zeitpunktFuerMinute } from './zeit.js';
 import { zeitraeumeFuer } from './belegung.js';
 import type { Reservierung, Ringsegment, Sonnenzeiten } from './typen.js';
 
@@ -141,7 +141,7 @@ function fuellungFuer(
 	zeitraeume: { von: number; bis: number; art: 'reservierung' | 'sperre' }[],
 	nachtPruefen: (minute: number) => boolean
 ): Ringsegment['fuellung'] {
-	const zeitpunkt = zeitpunktFuer(tag, minute);
+	const zeitpunkt = zeitpunktFuerMinute(tag, minute).getTime();
 	let beste: Ringsegment['fuellung'] = nachtPruefen(minute) ? 'nacht' : 'frei';
 
 	for (const z of zeitraeume) {
@@ -150,22 +150,6 @@ function fuellungFuer(
 	}
 
 	return beste;
-}
-
-/**
- * Ein Zeitstempel aus Ortstag und Minute (Bruchteile erlaubt).
- *
- * Bewusst ueber die Ortszeit-Deutung aus `zeit.ts` und nicht ueber
- * `new Date(jahr, monat, ...)`: Letzteres naehme die Zone des Geraets — und
- * ein Telefon in Spanien zeigte einen anderen Ring (T-11).
- */
-function zeitpunktFuer(tag: string, minute: number): number {
-	const gesamtSekunden = Math.round(minute * 60);
-	const stunde = Math.trunc(gesamtSekunden / 3600);
-	const rest = gesamtSekunden - stunde * 3600;
-	const zweistellig = (n: number) => String(n).padStart(2, '0');
-	const uhrzeit = `${zweistellig(stunde)}:${zweistellig(Math.trunc(rest / 60))}:${zweistellig(rest % 60)}`;
-	return ortszeitZuZeitpunkt(`${tag} ${uhrzeit}`).getTime();
 }
 
 /**

@@ -10,6 +10,7 @@
   import Maschinenkachel from '$lib/components/Maschinenkachel.svelte';
   import Skelettkachel from '$lib/components/Skelettkachel.svelte';
   import { FARBEN } from '$lib/flotte/farben.js';
+  import { farbschema } from '$lib/farbschema.svelte.js';
   import { handlungenFuer } from '$lib/flotte/handlungen.js';
   import { Flottenstand } from '$lib/flotte/stand.svelte.js';
 
@@ -39,7 +40,7 @@
    */
   const stand = new Flottenstand();
 
-  let dunkel = $state(false);
+  const dunkel = $derived(farbschema.dunkel);
 
   /** Kennzeichen des Flugzeugs, dessen Menü offen steht — oder nichts. */
   let offen = $state<string | undefined>(undefined);
@@ -65,18 +66,14 @@
   }
 
   onMount(() => {
-    const gespeichert = localStorage.getItem('bucky.farbschema');
-    dunkel =
-      gespeichert === 'dunkel' ||
-      (gespeichert === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    farbschema.laden();
 
     void stand.starten();
     return () => stand.beenden();
   });
 
   function schemaUmschalten() {
-    dunkel = !dunkel;
-    localStorage.setItem('bucky.farbschema', dunkel ? 'dunkel' : 'hell');
+    farbschema.umschalten();
   }
 
   /**

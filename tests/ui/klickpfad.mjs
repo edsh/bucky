@@ -2442,6 +2442,116 @@ pruefe(
   musterzeilen.join(' / ')
 );
 
+// --- Feature 054, Phase 4: die Detailansicht ------------------------------
+
+// 138: Ein Tipp auf eine Kachel fuehrt in die Details der **richtigen**
+// Maschine. Die Verwechslung waere hier besonders teuer: Alle Kacheln sehen
+// gleich aus, und wer die Belegung der Nachbarmaschine liest, plant seinen
+// Tag auf einer fremden Auskunft.
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.tastenkachel[data-kennung="D-4413"]').click();
+await page.waitForURL(/reservierung\/d-4413/, { timeout: 5000 }).catch(() => {});
+await page.waitForLoadState('networkidle');
+const detailText = await page.locator('main').innerText();
+pruefe(
+  138,
+  'ein Tipp auf eine Kachel oeffnet die Details derselben Maschine',
+  /\/reservierung\/d-4413/.test(page.url()) &&
+    (await page.locator('h1').first().innerText()).trim() === 'D-4413',
+  page.url()
+);
+
+// 139: Der heutige Balken steht da, mit Stundenachse. Ohne die Achse ist ein
+// Balken ein farbiger Streifen ohne Aussage.
+pruefe(
+  139,
+  'die Detailansicht zeigt den heutigen Balken mit Stundenachse',
+  (await page.locator('.balken').count()) === 1 &&
+    /\b6\b[\s\S]*\b10\b[\s\S]*\b14\b[\s\S]*\b18\b[\s\S]*\b22\b/.test(detailText),
+  detailText.split('\n').find((z) => /^Heute/.test(z.trim())) ?? '(keine Karte gefunden)'
+);
+
+// 140: Sieben Zeilen, nicht sechs und nicht acht. Die Liste beginnt heute;
+// eine achte Zeile waere der Tag, den das Datenfenster nur zur Sicherheit
+// mitliefert (E-06) und der nicht vollstaendig waere.
+pruefe(
+  140,
+  'die Sieben-Tage-Liste hat sieben Zeilen',
+  (await page.locator('.tage li').count()) === 7,
+  `${await page.locator('.tage li').count()} Zeilen`
+);
+
+// 141: Der freie Tag sagt „frei", der belegte nennt eine Spanne. Stuende
+// ueberall dasselbe, traege die Spalte nichts bei.
+const tagtexte = (await page.locator('.tagtext').allInnerTexts()).map((z) => z.trim());
+pruefe(
+  141,
+  'die Textspalte unterscheidet freie und belegte Tage',
+  tagtexte.length === 7 &&
+    tagtexte.some((z) => z === 'frei') &&
+    tagtexte.some((z) => /\d{2}:\d{2}–\d{2}:\d{2}/.test(z)),
+  tagtexte.join(' | ')
+);
+
+// 142: Der Reiterwechsel tauscht Liste gegen Raster — und zurueck.
+await page.getByRole('tab', { name: 'Woche' }).click();
+pruefe(
+  142,
+  'der Reiter „Woche" zeigt das Raster statt der Liste',
+  (await page.locator('.spalte').count()) === 7 && (await page.locator('.tage li').count()) === 0,
+  `${await page.locator('.spalte').count()} Spalten`
+);
+
+await page.getByRole('tab', { name: '7 Tage' }).click();
+pruefe(
+  143,
+  'der Reiter „7 Tage" bringt die Liste zurueck',
+  (await page.locator('.tage li').count()) === 7 && (await page.locator('.spalte').count()) === 0,
+  `${await page.locator('.tage li').count()} Zeilen`
+);
+
+// 144: Die kommenden Belegungen nennen Zeitraum, Art und Dauer — und keinen
+// Namen. Das ist die Stelle, an der ein Personenname am ehesten durchrutschen
+// wuerde (FR-010, E-11).
+const kommendText = await page.locator('.kommende').innerText();
+pruefe(
+  144,
+  'die kommenden Belegungen nennen Art und Dauer, aber keine Person',
+  /Reserviert/.test(kommendText) &&
+    /\d+(,\d)?\s*h/.test(kommendText) &&
+    !/Pilot|Fluglehrer|Deine Reservierung|Wartung/i.test(kommendText),
+  kommendText.replace(/\n/g, ' | ')
+);
+
+// 145: Der POH-Verweis erscheint nur, wo es einen Rechner gibt (FR-018). Ein
+// Knopf, der ins Leere fuehrt, ist schlimmer als kein Knopf.
+pruefe(
+  145,
+  'ein Segelflugzeug zeigt keinen POH-Verweis',
+  (await page.locator('.poh').count()) === 0,
+  ''
+);
+
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
+pruefe(
+  146,
+  'die D-EELK zeigt ihn',
+  (await page.locator('.poh').count()) === 1,
+  (await page.locator('.poh').first().getAttribute('href')) ?? '(kein Ziel)'
+);
+
+// 147: Und der Weg zurueck in den Flugzeugpark steht im Kopf, nicht nur im
+// Browser. Wer die Seite ueber einen geteilten Verweis oeffnet, hat kein
+// Zurueck.
+await page.locator('.zurueck').click();
+await page.locator('.tastenkachel[data-kennung="D-EELK"]').waitFor({ timeout: 5000 });
+pruefe(
+  147,
+  'der Zurueck-Knopf im Kopf fuehrt in den Flugzeugpark',
+  new URL(page.url()).pathname.replace(/\/$/, '') === new URL(BASE).pathname.replace(/\/$/, ''),
+  page.url()
+);
+
 await page.unroute('**/api/flotte*');
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));

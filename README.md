@@ -20,10 +20,10 @@ Die Startseite ist der **Flugzeugpark**, nicht der Rechner. Bucky begrüßt dort
 mit „Hi Pilot, was darf's sein?", und darunter steht die ganze Vereinsflotte:
 je Maschine ein runder Avatar, dessen Ring als Tagesuhr zeigt, wann sie heute
 belegt ist, dazu ein Statuspunkt und ein Kurzsatz in Worten. Ein Tippen öffnet,
-was sich mit dieser Maschine tun lässt — bei der D-EELK Reservierungsdetails
-und POH-Rechner, bei den übrigen führt der Tipp ohne Umweg in die
-Reservierungsdetails, weil ein Menü mit einem einzigen Eintrag ein Klick wäre,
-der nichts entscheidet.
+was sich mit dieser Maschine tun lässt — Reservierung, bei der D-EELK auch der
+POH-Rechner, und in jedem Fall der Schalter „Lieblingsmaschine", der sie oben
+festhält. Gemerkte Maschinen stehen am Seitenanfang und nicht mehr in ihrer
+Kategoriegruppe; gespeichert wird das allein auf dem Gerät.
 
 Der Einstieg läuft bewusst über das Flugzeug und nicht über eine Liste von
 Funktionen: Wer die App öffnet, hat in aller Regel eine bestimmte Maschine im

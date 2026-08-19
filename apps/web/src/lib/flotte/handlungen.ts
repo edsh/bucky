@@ -8,7 +8,7 @@ import { base } from '$app/paths';
  * er damit tun will. Dass die Belegung dabei schon am Ring ablesbar ist, ist
  * die angenehme Nebenwirkung — nicht der Zweck der Seite.
  *
- * Heute kann nur die D-EELK mehr als Reservierungsdetails; sie ist das
+ * Heute kann nur die D-EELK mehr als Reservierung; sie ist das
  * einzige Flugzeug mit digitalisiertem POH (Feature 001). Deshalb steht die
  * Liste hier und nicht als feste Verzweigung im Markup: Kommt für eine
  * weitere Maschine eine Fähigkeit hinzu, wird hier ein Eintrag ergänzt und
@@ -25,7 +25,7 @@ export interface Handlung {
 
 export function handlungenFuer(kennung: string): Handlung[] {
 	const handlungen: Handlung[] = [
-		{ name: 'Reservierungsdetails', ziel: `${base}/reservierung/${kennung.toLowerCase()}/` }
+		{ name: 'Reservierung', ziel: `${base}/reservierung/${kennung.toLowerCase()}/` }
 	];
 
 	if (kennung === 'D-EELK') {

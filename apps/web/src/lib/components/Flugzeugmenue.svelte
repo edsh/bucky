@@ -212,8 +212,16 @@
   .menue .schalter {
     display: flex;
     align-items: center;
-    /* Mindestens 44 Pixel hoch (FR-017) -- ein Menü, das man am Flugplatz im
-       Stehen bedient, verträgt keine 36er Zeilen. */
+    /*
+      Mindestens 44 Pixel hoch (FR-017) -- ein Menü, das man am Flugplatz im
+      Stehen bedient, verträgt keine 36er Zeilen.
+
+      `box-sizing` gehört ausdrücklich dazu: Eine Schaltfläche rechnet die
+      Innenabstände von sich aus in ihre Höhe ein, ein Verweis nicht. Ohne
+      diese Zeile stünden 44 Pixel neben 63 -- gleiche Regel, verschiedene
+      Rechnung, und der letzte Eintrag sähe gedrängt aus.
+    */
+    box-sizing: border-box;
     min-height: 44px;
     padding: 0.6rem 1rem;
     color: inherit;

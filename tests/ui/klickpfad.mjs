@@ -1806,7 +1806,7 @@ pruefe(
   87,
   'Antippen oeffnet das Menue mit beiden Eintraegen (FR-010)',
   eintraege.length === 2 &&
-    eintraege[0].trim() === 'Reservierungsdetails' &&
+    eintraege[0].trim() === 'Reservierung' &&
     eintraege[1].trim() === 'POH-Rechner' &&
     (await kachel('D-EELK').getAttribute('aria-expanded')) === 'true',
   eintraege.join(' | ')
@@ -1901,7 +1901,7 @@ await page.waitForTimeout(200);
 pruefe(
   88,
   'die Reservierung steht als erster Menueeintrag',
-  (await page.locator('[role="menuitem"]').first().innerText()).trim() === 'Reservierungsdetails'
+  (await page.locator('[role="menuitem"]').first().innerText()).trim() === 'Reservierung'
 );
 
 // 89: Escape schliesst und gibt den Fokus dorthin zurueck, wo er herkam (FR-011, FR-012)
@@ -2428,7 +2428,7 @@ pruefe(
 await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
 await page.locator('.tastenkachel[data-kennung="D-9021"]').click();
 await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
-await page.getByRole('menuitem', { name: 'Reservierungsdetails' }).click();
+await page.getByRole('menuitem', { name: 'Reservierung' }).click();
 await page.waitForURL(/reservierung\/d-9021/, { timeout: 5000 }).catch(() => {});
 await page.waitForLoadState('networkidle');
 pruefe(
@@ -2513,7 +2513,7 @@ pruefe(
 await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
 await page.locator('.tastenkachel[data-kennung="D-4413"]').click();
 await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
-await page.getByRole('menuitem', { name: 'Reservierungsdetails' }).click();
+await page.getByRole('menuitem', { name: 'Reservierung' }).click();
 await page.waitForURL(/reservierung\/d-4413/, { timeout: 5000 }).catch(() => {});
 await page.waitForLoadState('networkidle');
 const detailText = await page.locator('main').innerText();
@@ -2883,18 +2883,24 @@ pruefe(
   `vorher gesetzt: ${warGesetzt}`
 );
 
-// 166: Der Menueeintrag ist mindestens 44 Pixel hoch (FR-017). Ein Menue, das
-// man im Stehen am Flugplatz bedient, vertraegt keine 36er Zeilen.
+// 166: Alle Menüeintraege sind gleich hoch und mindestens 44 Pixel (FR-017).
+// Ein Verweis rechnet seine Innenabstaende anders als eine Schaltflaeche --
+// dieselbe Regel ergab 63 Pixel neben 44, und der letzte Eintrag sah gedrueckt
+// aus.
 await page.locator('.raster .tastenkachel[data-kennung="D-EELK"]').click();
 await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
-const schalterKasten = await page
-  .getByRole('menuitemcheckbox', { name: 'Lieblingsmaschine' })
-  .boundingBox();
+const eintragshoehen = await page.evaluate(() =>
+  [...document.querySelector('[role="menu"]').children].map((el) =>
+    Math.round(el.getBoundingClientRect().height)
+  )
+);
 pruefe(
   166,
-  'der Lieblingsschalter ist mindestens 44 Pixel hoch',
-  schalterKasten !== null && schalterKasten.height >= 44,
-  schalterKasten ? `${Math.round(schalterKasten.height)} px` : 'nicht gefunden'
+  'alle Menueeintraege sind gleich hoch und mindestens 44 Pixel',
+  eintragshoehen.length === 3 &&
+    eintragshoehen.every((h) => h >= 44) &&
+    new Set(eintragshoehen).size === 1,
+  eintragshoehen.join(' | ')
 );
 await page.keyboard.press('Escape');
 

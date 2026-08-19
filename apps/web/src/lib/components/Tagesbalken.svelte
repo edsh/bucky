@@ -65,10 +65,12 @@
     {#each segmente as segment, i (i)}
       <span
         class="segment"
+        class:naht={segment.stoesstAn}
         style:left={alsProzent(segment.von)}
         style:width={alsProzent(segment.bis - segment.von)}
-        style:background={flaecheFuer(segment.art)}
-      ></span>
+      >
+        <span class="fuellung" style:background={flaecheFuer(segment.art)}></span>
+      </span>
     {/each}
 
     {#if linie !== null}
@@ -136,7 +138,22 @@
     position: absolute;
     top: 0;
     bottom: 0;
+  }
+
+  .fuellung {
+    position: absolute;
+    inset: 0;
     border-radius: 6px;
+  }
+
+  /*
+    Zwei Reservierungen, die lückenlos aneinander anschließen, sind zwei
+    Belegungen mit zwei Nutzern -- und sähen ohne diese Fuge wie eine aus.
+    Die Füllung rückt zwei Pixel ein, sodass die Spur durchscheint; das
+    Segment selbst behält seine wahre Breite, damit die Zeitachse stimmt.
+  */
+  .segment.naht .fuellung {
+    left: 2px;
   }
 
   /*

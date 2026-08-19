@@ -198,6 +198,16 @@ export interface Balkensegment {
 	von: number;
 	bis: number;
 	art: Belegungsart;
+	/**
+	 * Beginnt dieses Segment genau dort, wo das vorige endet?
+	 *
+	 * Zwei aneinanderliegende Reservierungen — 10:00–13:00 und 13:00–16:00 —
+	 * sind zwei Eintraege und zwei Segmente, aber sie beruehren sich. Ohne
+	 * dieses Merkmal saehe der Nutzer einen durchgehenden Balken und damit
+	 * eine Belegung, wo zwei sind. Der Zugangsweg zeichnet an dieser Naht
+	 * eine Fuge; wo sie fehlt, gibt es nichts zu trennen.
+	 */
+	stoesstAn: boolean;
 }
 
 /**

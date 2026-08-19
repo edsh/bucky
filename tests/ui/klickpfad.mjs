@@ -2558,9 +2558,9 @@ pruefe(
 // wird der gerechnete Stil, nicht die Klasse: Eine Klasse kann dastehen,
 // ohne dass eine Regel greift.
 await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-mrxs/`, { waitUntil: 'networkidle' });
-await page.locator('.balken .segment').first().waitFor({ timeout: 5000 });
+await page.locator('.balken .segment .fuellung').first().waitFor({ timeout: 5000 });
 const sperrflaeche = await page
-  .locator('.balken .segment')
+  .locator('.balken .segment .fuellung')
   .first()
   .evaluate((s) => getComputedStyle(s).backgroundImage);
 pruefe(
@@ -2573,9 +2573,9 @@ pruefe(
 // 149: Und eine Reservierung gerade nicht — sonst waeren beide Zustaende
 // wieder ununterscheidbar, nur andersherum.
 await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
-await page.locator('.balken .segment').first().waitFor({ timeout: 5000 });
+await page.locator('.balken .segment .fuellung').first().waitFor({ timeout: 5000 });
 const belegtflaeche = await page
-  .locator('.balken .segment')
+  .locator('.balken .segment .fuellung')
   .first()
   .evaluate((s) => getComputedStyle(s).backgroundImage);
 pruefe(
@@ -2583,6 +2583,49 @@ pruefe(
   'eine Reservierung bleibt eine glatte Flaeche',
   belegtflaeche === 'none',
   belegtflaeche.slice(0, 90)
+);
+
+// 150/151: Zwei Reservierungen, die lueckenlos aneinander anschliessen, sind
+// zwei Belegungen mit zwei Nutzern. Ein durchgehender Balken behauptet eine —
+// und wer ihn sieht, ruft womoeglich den Falschen an. Feste Ortszeiten, weil
+// das Fenster 06:00–22:00 fest ist und relative Zeiten nachts hinausfielen.
+const heuteIso = new Date(jetztMs).toISOString().slice(0, 10);
+await page.unroute('**/api/flotte*');
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      ...flottenstand,
+      belegungen: [
+        { kennung: 'D-EXYZ', beginn: `${heuteIso}T10:00:00`, ende: `${heuteIso}T13:00:00`, art: 'reservierung' },
+        { kennung: 'D-EXYZ', beginn: `${heuteIso}T13:00:00`, ende: `${heuteIso}T16:00:00`, art: 'reservierung' }
+      ]
+    })
+  })
+);
+
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-exyz/`, { waitUntil: 'networkidle' });
+await page.locator('.balken .segment').first().waitFor({ timeout: 5000 });
+const anzahlSegmente = await page.locator('.balken .segment').count();
+pruefe(
+  150,
+  'zwei aneinanderliegende Reservierungen bleiben zwei Balken',
+  anzahlSegmente === 2,
+  `${anzahlSegmente} Segmente`
+);
+
+// 151: Getrennt in den Daten reicht nicht — pixelgenau aneinanderstossend
+// saehen sie wieder wie eines aus. Das zweite Stueck rueckt deshalb ein.
+const fugeLinks = await page
+  .locator('.balken .segment')
+  .nth(1)
+  .locator('.fuellung')
+  .evaluate((s) => getComputedStyle(s).left);
+pruefe(
+  151,
+  'an der Naht steht eine sichtbare Fuge',
+  fugeLinks === '2px',
+  fugeLinks
 );
 
 await page.unroute('**/api/flotte*');

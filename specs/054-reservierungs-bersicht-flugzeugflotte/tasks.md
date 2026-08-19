@@ -422,6 +422,17 @@ einschließlich einer Belegung über Mitternacht und eines Ganztagseintrags.
       heißen. Nur der 4 px schmale Streifen unter „Kommende Belegungen"
       behält eine glatte Farbe: Ein 12-px-Muster auf 4 px Breite ergibt
       Grieß, kein Band
+- [X] T049d [US2] Jede Belegung ist **ein** Balken. Die Zellrechnung in
+      `balkensegmente` merkt sich seither nicht nur die Art einer Minute,
+      sondern die Belegung, der sie gehört; verschmolzen wird nur bei
+      gleicher Quelle. Zwei lückenlos anschließende Reservierungen —
+      10:00–13:00 und 13:00–16:00 — ergaben vorher einen durchgehenden
+      Balken, und der behauptet eine Belegung, wo zwei sind: Wer ihn sieht,
+      schließt auf einen Nutzer und eine Absprache und ruft womöglich den
+      Falschen an. Damit die Trennung nicht nur in den Daten stattfindet,
+      trägt jedes Segment `stoesstAn`; an dieser Naht rückt die Füllung im
+      Zugangsweg zwei Pixel ein, sodass die Spur durchscheint. Das Segment
+      selbst behält seine wahre Breite — die Zeitachse darf nicht lügen
 
 **Checkpoint**: US1 und US2 sind beide unabhängig nutzbar. Das Feature erfüllt
 seinen Kernzweck.

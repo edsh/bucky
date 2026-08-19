@@ -75,6 +75,13 @@ const ZELLE_MINUTEN = 1;
  * Freie Minuten erzeugen **kein** Segment. Der Balken hat eine Spur, die
  * darunter durchscheint; ein „frei"-Segment waere ein Rechteck in der Farbe
  * des Hintergrunds — sichtbar nur als Kante, wo keine sein sollte.
+ *
+ * Jede Zelle merkt sich dabei nicht bloss ihre **Art**, sondern die
+ * **Belegung**, der sie gehoert. Nur nach Art zusammengefasst verschmelzen
+ * zwei aneinanderliegende Reservierungen — 10:00–13:00 und 13:00–16:00 — zu
+ * einem einzigen Balken, und die Anzeige behauptet eine Belegung, wo zwei
+ * sind. Das ist kein Schoenheitsfehler: Wer den Balken sieht, schliesst auf
+ * einen Nutzer und eine Absprache, und ruft womoeglich den Falschen an.
  */
 export function balkensegmente(
 	reservierungen: readonly Reservierung[],
@@ -86,53 +93,81 @@ export function balkensegmente(
 	if (breite <= 0) return [];
 
 	const zeitraeume = zeitraeumeFuer([...reservierungen], kennung);
-	const zellen: (Belegungsart | null)[] = [];
+	const zellen: number[] = [];
 
 	for (let minute = fenster.vonMinute; minute < fenster.bisMinute; minute += ZELLE_MINUTEN) {
 		// Die Mitte der Zelle, nicht ihr Rand: Sonst entschiede an jeder Naht
 		// ein Vergleich auf Gleichheit darueber, ob die Minute noch belegt ist.
 		const zeitpunkt = zeitpunktFuerMinute(tag, minute + ZELLE_MINUTEN / 2).getTime();
-		zellen.push(artFuer(zeitpunkt, zeitraeume));
+		zellen.push(quelleFuer(zeitpunkt, zeitraeume));
 	}
 
-	return zusammenfassen(zellen, fenster);
+	return zusammenfassen(zellen, zeitraeume, fenster);
 }
 
-function artFuer(
+/** Kennzeichen einer freien Zelle — kein Index zeigt darauf. */
+const FREI = -1;
+
+/**
+ * Welche Belegung diese Minute fuer sich beansprucht — als Index, nicht als
+ * Art.
+ *
+ * Bei Ueberschneidung gewinnt der hoehere Rang (Sperre vor Reservierung,
+ * T-07); bei gleichem Rang die frueher beginnende, denn `zeitraeumeFuer`
+ * liefert nach Beginn sortiert. So haengt das Ergebnis nicht davon ab, in
+ * welcher Reihenfolge die Schnittstelle die Eintraege ausgibt.
+ */
+function quelleFuer(
 	zeitpunkt: number,
 	zeitraeume: readonly { von: number; bis: number; art: Belegungsart }[]
-): Belegungsart | null {
-	let beste: Belegungsart | null = null;
-	for (const z of zeitraeume) {
+): number {
+	let beste = FREI;
+	for (let i = 0; i < zeitraeume.length; i++) {
+		const z = zeitraeume[i]!;
 		if (zeitpunkt < z.von || zeitpunkt >= z.bis) continue;
-		if (beste === null || RANG[z.art] > RANG[beste]) beste = z.art;
+		if (beste === FREI || RANG[z.art] > RANG[zeitraeume[beste]!.art]) beste = i;
 	}
 	return beste;
 }
 
-/** Gleichartige Nachbarzellen verschmelzen; freie Laeufe fallen weg. */
+/**
+ * Zellen derselben Belegung verschmelzen; freie Laeufe fallen weg.
+ *
+ * Verschmolzen wird nur bei **gleicher Quelle**, nicht bei gleicher Art —
+ * siehe `balkensegmente`. Stossen zwei Segmente dennoch aneinander, wird das
+ * vermerkt, damit der Zugangsweg dort eine Fuge zeichnen kann.
+ */
 function zusammenfassen(
-	zellen: readonly (Belegungsart | null)[],
+	zellen: readonly number[],
+	zeitraeume: readonly { von: number; bis: number; art: Belegungsart }[],
 	fenster: Balkenfenster
 ): Balkensegment[] {
 	const breite = fenster.bisMinute - fenster.vonMinute;
 	const segmente: Balkensegment[] = [];
+	let letzteQuelle = FREI;
 
 	for (let i = 0; i < zellen.length; i++) {
-		const art = zellen[i];
-		if (art === null || art === undefined) continue;
+		const quelle = zellen[i] ?? FREI;
+		if (quelle === FREI) {
+			letzteQuelle = FREI;
+			continue;
+		}
 
+		const art = zeitraeume[quelle]!.art;
 		const letztes = segmente[segmente.length - 1];
 		const von = (i * ZELLE_MINUTEN) / breite;
 		const bis = ((i + 1) * ZELLE_MINUTEN) / breite;
-
 		// Anschluss nur, wenn die Zelle unmittelbar folgt — sonst wuerde eine
 		// freie Stunde zwischen zwei Reservierungen zugeschuettet.
-		if (letztes && letztes.art === art && naheBei(letztes.bis, von)) {
+		const lueckenlos = letztes !== undefined && naheBei(letztes.bis, von);
+
+		if (letztes && quelle === letzteQuelle && lueckenlos) {
 			letztes.bis = bis;
 		} else {
-			segmente.push({ von, bis, art });
+			segmente.push({ von, bis, art, stoesstAn: lueckenlos });
 		}
+
+		letzteQuelle = quelle;
 	}
 
 	return segmente;

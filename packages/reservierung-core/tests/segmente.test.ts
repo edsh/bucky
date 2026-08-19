@@ -130,7 +130,11 @@ describe('balkensegmente', () => {
 		expect(alsMinute(segmente[1]!.von)).toBe(14 * 60);
 	});
 
-	it('führt zwei lückenlos anschließende Reservierungen zu einem Segment zusammen', () => {
+	it('hält zwei lückenlos anschließende Reservierungen auseinander', () => {
+		// Zwei Eintraege, zwei Nutzer, zwei Absprachen — auch wenn der eine
+		// endet, wo der andere beginnt. Zu einem Balken verschmolzen behauptet
+		// die Anzeige eine Belegung, wo zwei sind; wer sie sieht, ruft
+		// womoeglich den Falschen an.
 		const segmente = balkensegmente(
 			[
 				res('2026-08-19T09:00:00+02:00', '2026-08-19T11:00:00+02:00'),
@@ -140,15 +144,64 @@ describe('balkensegmente', () => {
 			TAG
 		);
 
-		expect(segmente).toHaveLength(1);
+		expect(segmente).toHaveLength(2);
 		expect(alsMinute(segmente[0]!.von)).toBe(9 * 60);
-		expect(alsMinute(segmente[0]!.bis)).toBe(13 * 60);
+		expect(alsMinute(segmente[0]!.bis)).toBe(11 * 60);
+		expect(alsMinute(segmente[1]!.von)).toBe(11 * 60);
+		expect(alsMinute(segmente[1]!.bis)).toBe(13 * 60);
+	});
+
+	it('vermerkt die Naht, damit der Zugangsweg sie zeichnen kann', () => {
+		// Ohne diesen Vermerk stossen die beiden Segmente pixelgenau
+		// aneinander und sehen wieder wie eines aus — die Trennung waere nur
+		// in den Daten passiert, nicht auf dem Schirm.
+		const segmente = balkensegmente(
+			[
+				res('2026-08-19T09:00:00+02:00', '2026-08-19T11:00:00+02:00'),
+				res('2026-08-19T11:00:00+02:00', '2026-08-19T13:00:00+02:00')
+			],
+			'D-EELK',
+			TAG
+		);
+
+		expect(segmente[0]!.stoesstAn).toBe(false);
+		expect(segmente[1]!.stoesstAn).toBe(true);
+	});
+
+	it('vermerkt keine Naht, wo eine echte Lücke liegt', () => {
+		const segmente = balkensegmente(
+			[
+				res('2026-08-19T09:00:00+02:00', '2026-08-19T11:00:00+02:00'),
+				res('2026-08-19T14:00:00+02:00', '2026-08-19T16:00:00+02:00')
+			],
+			'D-EELK',
+			TAG
+		);
+
+		expect(segmente[1]!.stoesstAn).toBe(false);
+	});
+
+	it('zerlegt eine Reservierung, die eine Sperre durchschneidet, in drei Stücke', () => {
+		const segmente = balkensegmente(
+			[
+				res('2026-08-19T09:00:00+02:00', '2026-08-19T15:00:00+02:00'),
+				res('2026-08-19T11:00:00+02:00', '2026-08-19T12:00:00+02:00', 'sperre')
+			],
+			'D-EELK',
+			TAG
+		);
+
+		expect(segmente.map((s) => s.art)).toEqual(['reservierung', 'sperre', 'reservierung']);
+		expect(segmente.map((s) => s.stoesstAn)).toEqual([false, true, true]);
+		expect(alsMinute(segmente[2]!.bis)).toBe(15 * 60);
 	});
 
 	it('kollabiert überlappende Einträge nicht zu Lücken', () => {
 		// Zwei Reservierungen, die sich um eine Stunde überschneiden. Der
-		// Balken muss durchgehend belegt sein — nicht zweimal gezeichnet und
-		// erst recht nicht mit einem Loch in der Mitte.
+		// Balken muss von 9 bis 15 durchgehend belegt sein — kein Loch in der
+		// Mitte und keine zwei uebereinanderliegenden Rechtecke. Dass es zwei
+		// Segmente sind, ist richtig: Es sind zwei Belegungen. Die
+		// Ueberschneidung selbst faellt der frueheren zu, bis diese endet.
 		const segmente = balkensegmente(
 			[
 				res('2026-08-19T09:00:00+02:00', '2026-08-19T12:00:00+02:00'),
@@ -158,9 +211,12 @@ describe('balkensegmente', () => {
 			TAG
 		);
 
-		expect(segmente).toHaveLength(1);
+		expect(segmente).toHaveLength(2);
 		expect(alsMinute(segmente[0]!.von)).toBe(9 * 60);
-		expect(alsMinute(segmente[0]!.bis)).toBe(15 * 60);
+		expect(alsMinute(segmente[0]!.bis)).toBe(12 * 60);
+		expect(alsMinute(segmente[1]!.von)).toBe(12 * 60);
+		expect(alsMinute(segmente[1]!.bis)).toBe(15 * 60);
+		expect(segmente[1]!.stoesstAn).toBe(true);
 	});
 
 	it('lässt die Sperre über die Reservierung gewinnen', () => {

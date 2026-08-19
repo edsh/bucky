@@ -68,10 +68,12 @@
           {#each tag.segmente as segment, i (i)}
             <span
               class="segment"
+              class:naht={segment.stoesstAn}
               style:top={alsProzent(segment.von)}
               style:height={alsProzent(segment.bis - segment.von)}
-              style:background={flaecheFuer(segment.art)}
-            ></span>
+            >
+              <span class="fuellung" style:background={flaecheFuer(segment.art)}></span>
+            </span>
           {/each}
 
           {#if linie !== null}
@@ -141,7 +143,17 @@
     position: absolute;
     left: 1px;
     right: 1px;
+  }
+
+  .fuellung {
+    position: absolute;
+    inset: 0;
     border-radius: 4px;
+  }
+
+  /* Hier läuft die Zeit von oben nach unten -- die Fuge entsprechend. */
+  .segment.naht .fuellung {
+    top: 2px;
   }
 
   .jetzt {

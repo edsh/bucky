@@ -104,7 +104,9 @@ andere Frage beantworten als die gestellte.
 Reiseleistungstabelle (Abb. 5-4a) verwendet. Der Pilot wählt weder Abflugmasse noch
 Tankvariante.
 
-**Rationale**: D-EELK ist eine Cessna F172N mit Standardtanks. Damit gilt die
+**Rationale**: D-EELK ist eine Cessna 172N mit Standardtanks (das Original-
+Handbuch deckt die Muster F172N und F172P ab; die Tabellen führen diesen
+Geltungsbereich wörtlich mit). Damit gilt die
 maximale Abflugmasse von 1043 kg — die Tabellen für 1089 kg sind laut POH der 172P
 vorbehalten — und eine ausfliegbare Menge von 127,4 l. Von den 13 digitalisierten
 Tabellen sind nur fünf für D-EELK überhaupt anwendbar, davon zwei für dieses

@@ -27,12 +27,25 @@ export interface Darstellung {
  */
 const DARSTELLUNGEN: Record<string, Darstellung> = {
 	'D-EELK': {
-		typ: 'Cessna F172N',
+		typ: 'Cessna 172N',
 		bild: '/d-eelk.gif',
 		pohPfad: '/d-eelk/poh-rechner/'
 	},
 	'D-EXYZ': {
+		typ: 'Aviat Husky A-1',
 		bild: '/d-exyz.gif'
+	},
+	'D-MRXS': {
+		typ: 'WT9 Dynamic'
+	},
+	'D-3004': {
+		typ: 'Discus 2b'
+	},
+	'D-4413': {
+		typ: 'Hornet C'
+	},
+	'D-9021': {
+		typ: 'ASK 21'
 	}
 };
 

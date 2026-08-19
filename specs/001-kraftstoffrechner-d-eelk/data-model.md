@@ -16,7 +16,7 @@ Die vom Piloten erfassten Werte. Alle Felder sind Pflichtfelder (FR-008).
 | `isaDeviationC` | °C | −30 – +40 | Abweichung von der ISA-Temperatur |
 | `windComponentKt` | kt | −50 – +50 | positiv = Gegenwind, negativ = Rückenwind |
 
-Abflugmasse und Tankvariante sind **keine** Eingaben: D-EELK ist eine F172N mit
+Abflugmasse und Tankvariante sind **keine** Eingaben: D-EELK ist eine 172N mit
 Standardtanks, damit ist je Tabellenart genau eine Tabelle anwendbar.
 
 ### Validierungsregeln

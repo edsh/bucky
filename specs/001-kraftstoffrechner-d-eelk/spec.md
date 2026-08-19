@@ -15,7 +15,7 @@ Flugvorhabens in Litern, aufgeschlüsselt nach Anlassen/Rollen/Start, Steigflug 
 Reiseflug, nach dem im POH beschriebenen Rechenverfahren ("Erforderliche
 Kraftstoffmenge", Seite 5-3 bis 5-5) und ausschließlich auf Basis der
 digitalisierten Tabellen aus Abschnitt 5b (Propeller MTV-6-A/190-69). D-EELK ist
-eine Cessna F172N mit Standardtanks; anwendbar sind daher die Tabellen für 1043 kg
+eine Cessna 172N mit Standardtanks; anwendbar sind daher die Tabellen für 1043 kg
 Abflugmasse, also Abb. 5-3a für den Steigflug und Abb. 5-4a für die Reiseleistung.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -369,8 +369,9 @@ Prüfhinweis enthält — unabhängig vom konkreten Zahlenwert.
 
 ## Geklärte Punkte
 
-- **Muster und Tankkonfiguration** (2026-08-06): D-EELK ist eine Cessna F172N mit
-  Standardtanks. Damit gelten 1043 kg maximale Abflugmasse und 127,4 l
+- **Muster und Tankkonfiguration** (2026-08-06): D-EELK ist eine Cessna 172N mit
+  Standardtanks. Das Original-Handbuch gilt für die Muster F172N und F172P; die
+  Tabellen fuehren diesen Geltungsbereich wörtlich mit. Damit gelten 1043 kg maximale Abflugmasse und 127,4 l
   ausfliegbarer Kraftstoff; Abb. 5-3a und 5-4a sind die anwendbaren Tabellen.
 - **Vy-Widerspruch im Original** (2026-08-06): Die Bedingungen der
   Steigflugtabellen nennen vy = 69 KIAS, die Vy-Spalte derselben Tabellen 70 KIAS.

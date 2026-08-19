@@ -321,6 +321,23 @@ Papier nicht zu sehen waren. Sie stehen hier als eigene Aufgaben, damit die
       Durchgang, 8 für den Browser-Download). Ohne Grenze hing der Lauf am
       18.08. vier Stunden im Download fest, ohne je etwas zu melden — ein
       Ablauf, der nicht endet, meldet auch keinen Fehler
+- [X] T036i `apps/web/src/lib/flotte/darstellung.ts` führt für **jede** der
+      sechs Maschinen eine Musterbezeichnung: Cessna 172N, Aviat Husky A-1,
+      WT9 Dynamic, Discus 2b, Hornet C, ASK 21 (Auskunft des Auftraggebers,
+      19.08.2026). Bisher stand sie nur bei einer Maschine — und dort falsch.
+      Ein Kennzeichen allein beantwortet die Frage „was ist das für ein
+      Flugzeug?" nur dem, der die Flotte ohnehin auswendig kennt.
+      Klickpfad-Prüfungen 136 und 137 (jede Kachel trägt ein Muster; die
+      D-EELK trägt das richtige)
+- [X] T036j Die Prosa in `specs/001-kraftstoffrechner-d-eelk/` nennt D-EELK
+      nicht länger eine „Cessna F172N". Der Irrtum hatte eine nachvollziehbare
+      Quelle: Das Original-Handbuch gilt für die Muster F172N **und** F172P,
+      und die digitalisierten Tabellen führen diesen Geltungsbereich wörtlich
+      mit. Der Geltungsbereich eines Handbuchs ist aber nicht das Muster der
+      Maschine. Die Daten unter `data/poh/` bleiben deshalb unverändert —
+      sie geben das Original wieder (Prinzip I); korrigiert ist nur die
+      Auslegung in spec.md, research.md, data-model.md und safety.md, jeweils
+      mit dem Hinweis auf den weiteren Geltungsbereich
 
 **Checkpoint**: Die Übersicht ist für sich nutzbar und liefert den eigentlichen
 Mehrwert gegenüber Feature 052. Ab hier wäre eine Veröffentlichung sinnvoll.

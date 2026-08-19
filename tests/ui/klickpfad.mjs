@@ -2419,6 +2419,29 @@ pruefe(
   abendText.replace(/\n/g, ' | ')
 );
 
+// 136: Jede Maschine nennt ihr Muster. Ein Kennzeichen allein sagt nur dem,
+// der die Flotte ohnehin auswendig kennt, um welches Flugzeug es geht --
+// „ASK 21" beantwortet die Frage, die ein Gast als erste stellt. Geprueft
+// wird die Vollstaendigkeit, nicht ein einzelner Eintrag: Genau eine Kachel
+// mit Muster war der Zustand, den diese Pruefung ausschliessen soll.
+const musterzeilen = await page.locator('.tastenkachel .typ').allInnerTexts();
+pruefe(
+  136,
+  'jede Kachel nennt das Muster ihrer Maschine',
+  musterzeilen.length === erwartet.length && musterzeilen.every((t) => t.trim().length > 0),
+  musterzeilen.join(' / ')
+);
+
+// 137: Und das Muster der D-EELK stimmt. „Cessna F172N" stand hier laenger,
+// als es haette stehen duerfen -- das ist der Reims-Lizenzbau, den das
+// Original-Handbuch mit abdeckt, aber nicht die Maschine im Hangar.
+pruefe(
+  137,
+  'die D-EELK ist eine Cessna 172N, keine F172N',
+  musterzeilen.some((t) => t.trim() === 'Cessna 172N') && !musterzeilen.some((t) => /F172N/.test(t)),
+  musterzeilen.join(' / ')
+);
+
 await page.unroute('**/api/flotte*');
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));

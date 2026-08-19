@@ -334,17 +334,37 @@ Auftraggeber, nicht Vereinsflieger-Dokumentation):
 https://vereinsflieger.de/member/community/reservations/add
   ?type=0&inline=0
   &frm_apid=75132
-  &frm_datefrom=25.08.2026
-  &frm_dateto=25.08.2026
-  &frm_datefromtime=00:00
+  &frm_datefrom=25.08.2026&frm_datefromtime=09:00
+  &frm_dateto=25.08.2026&frm_datetotime=11:00
 ```
 
 | Parameter | Bedeutung | Format |
 | --- | --- | --- |
-| `frm_apid` | Kennung des Flugzeugs in Vereinsflieger (vermutlich *airplane id*); `75132` ist die D-EELK | Zahl |
+| `frm_apid` | Kennung des Flugzeugs in Vereinsflieger (vermutlich *airplane id*) | Zahl |
 | `frm_datefrom` | Beginn, Datumsteil | `TT.MM.JJJJ` |
-| `frm_dateto` | Ende, Datumsteil | `TT.MM.JJJJ` |
 | `frm_datefromtime` | Beginn, Uhrzeit | `HH:MM` |
+| `frm_dateto` | Ende, Datumsteil | `TT.MM.JJJJ` |
+| `frm_datetotime` | Ende, Uhrzeit | `HH:MM` |
+
+`frm_datetotime` war zunächst nur vermutet und wurde am 19.08.2026 am
+laufenden System bestätigt.
+
+**Die Nummern der Vereinsmaschinen** (erhoben am 19.08.2026 aus dem
+Reservierungskalender, je Maschine aus der Adresszeile abgelesen):
+
+| Kennzeichen | `frm_apid` |
+| --- | --- |
+| D-EELK | 75132 |
+| D-EXYZ | 43352 |
+| D-MRXS | 62034 |
+| D-3004 | 41149 |
+| D-4413 | 28390 |
+| D-9021 | 4538 |
+
+Die Nummern folgen keiner erkennbaren Ordnung und lassen sich aus dem
+Kennzeichen nicht herleiten — sie sind erhobene Daten, keine Rechenvorschrift.
+Kommt eine Maschine hinzu, muss ihre Nummer auf demselben Weg nachgetragen
+werden; bis dahin entfällt für sie genau dieser Parameter.
 
 **Entscheidung**: Das Sheet zeigt den berechneten Vorschlag „Von/Bis" weiterhin
 als Text **und** hängt ihn an den Verweis an, in einem neuen Tab. Der Vorschlag
@@ -362,13 +382,14 @@ im schlechtesten Fall ausbleibt.
   Wartungsfenster ändern oder fallenlassen. Der Verweis muss deshalb auch ohne
   Wirkung der Parameter zu einer benutzbaren Maske führen (`type=0&inline=0`
   trägt für sich).
-- Ein Gegenstück zu `frm_datefromtime` für das **Ende** ist noch nicht
-  beobachtet. Naheliegend wäre `frm_datetotime`; das ist eine Vermutung und
-  vor dem Einbau am laufenden System zu prüfen.
-- Die `frm_apid` ist **je Maschine** nötig und bisher nur für die D-EELK
-  bekannt (`75132`). Die übrigen Werte fehlen. Sie kommen nicht aus dem
-  Kennzeichen; sie müssen einmal erhoben werden. Bis dahin trägt der Verweis
-  für alle anderen Maschinen keine Flugzeugvorwahl.
+- Die Nummern sind **erhoben, nicht abgeleitet**. Vergibt Vereinsflieger sie
+  bei einem Umzug oder Neuanlegen einer Maschine neu, zeigt der Verweis auf
+  ein falsches Flugzeug — ein Fehler, der sich nicht von selbst meldet. Die
+  Maske zeigt das gewählte Flugzeug aber vor dem Absenden an; das Mitglied
+  sieht es also, sofern es hinsieht.
+- Die Zeitangaben gehen als **Ortszeit ohne Zonenangabe** hinüber. Das passt
+  zu allem, was diese Anwendung sonst tut (Feature 052), verlässt sich aber
+  darauf, dass Vereinsflieger dieselbe Zone annimmt.
 
 **Folgen für die Umsetzung** (Phase 7 / US4):
 

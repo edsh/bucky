@@ -81,11 +81,12 @@ Während der Planung geklärt (2026-08-18, siehe `research.md`):
 - **Vorbelegtes Zeitfenster an Vereinsflieger** (E-13, Stand 2026-08-19):
   Die Klärung vom 2026-08-18 hatte die Vorbelegung gestrichen, weil keine
   Parameterform bekannt war. Inzwischen ist eine beobachtet
-  (`frm_apid`, `frm_datefrom`, `frm_dateto`, `frm_datefromtime`), und FR-011
+  (`frm_apid`, `frm_datefrom`/`frm_datefromtime`,
+  `frm_dateto`/`frm_datetotime`), und FR-011
   verlangt die Übertragung wieder. Dokumentiert ist sie damit nicht — der
   Vorschlag bleibt deshalb im Sheet sichtbar, damit ein wirkungsloser
   Parameter das Mitglied nicht vor ein leeres Formular stellt, das es für
-  gefüllt hält. Die `frm_apid` ist bisher nur für die D-EELK bekannt.
+  gefüllt hält. Die Nummern aller sechs Maschinen sind erhoben (E-13).
 
 ## User Scenarios & Testing *(mandatory)*
 

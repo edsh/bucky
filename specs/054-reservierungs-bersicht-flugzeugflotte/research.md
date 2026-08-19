@@ -319,23 +319,75 @@ des Bauteils, nicht am Umschalten eines Zustands.
 
 ---
 
-## E-13 — Der Reservieren-Verweis trägt keine Vorbelegung
+## E-13 — Der Reservieren-Verweis trägt eine beobachtete Vorbelegung
 
-**Entscheidung**: Das Sheet zeigt den berechneten Vorschlag „Von/Bis" als Text
-und verweist auf
-`https://vereinsflieger.de/member/community/reservations/add?type=0&inline=0`
-— ohne Zeitparameter, in einem neuen Tab.
+**Stand vom 2026-08-19 — diese Entscheidung wurde umgekehrt.** Die
+ursprüngliche Fassung (2026-08-18) verzichtete auf jede Vorbelegung, weil für
+Formularparameter dieses Endpunkts keine Zusage vorlag. Inzwischen liegt eine
+Beobachtung aus dem Verein vor: Die Reservierungsmaske nimmt Parameter zur
+Vorbelegung entgegen.
 
-**Begründung**: So macht es der Handoff, und für Formularparameter dieses
-Endpunkts gibt es keine dokumentierte Zusage. Sich auf undokumentierte
-Parameter zu stützen, hieße, die Anzeige an eine Beobachtung zu binden, die
-sich beim nächsten Wartungsfenster von Vereinsflieger ändern kann.
+**Beobachtete Form** (Quelle: Beobachtung am laufenden System durch den
+Auftraggeber, nicht Vereinsflieger-Dokumentation):
 
-FR-011 wurde daraufhin angepasst (Klärung vom 2026-08-18): Die Anforderung
-verlangt jetzt, den Vorschlag **anzuzeigen** und zu Vereinsflieger zu führen,
-nicht das Fenster zu übertragen. Damit steht die Anforderung nicht länger im
-Widerspruch zur Umsetzung. Sollte sich eine belastbare Parameterform finden,
-ist sie eine Zeile in diesem Verweis.
+```
+https://vereinsflieger.de/member/community/reservations/add
+  ?type=0&inline=0
+  &frm_apid=75132
+  &frm_datefrom=25.08.2026
+  &frm_dateto=25.08.2026
+  &frm_datefromtime=00:00
+```
+
+| Parameter | Bedeutung | Format |
+| --- | --- | --- |
+| `frm_apid` | Kennung des Flugzeugs in Vereinsflieger (vermutlich *airplane id*); `75132` ist die D-EELK | Zahl |
+| `frm_datefrom` | Beginn, Datumsteil | `TT.MM.JJJJ` |
+| `frm_dateto` | Ende, Datumsteil | `TT.MM.JJJJ` |
+| `frm_datefromtime` | Beginn, Uhrzeit | `HH:MM` |
+
+**Entscheidung**: Das Sheet zeigt den berechneten Vorschlag „Von/Bis" weiterhin
+als Text **und** hängt ihn an den Verweis an, in einem neuen Tab. Der Vorschlag
+bleibt damit auch dann vollständig sichtbar, wenn die Vorbelegung ausbleibt —
+das Mitglied kann ihn abtippen, statt ratlos vor einem leeren Formular zu
+stehen. Genau daran scheitert die Begründung der alten Fassung: Sie fürchtete,
+ein stillschweigend ignorierter Parameter lasse das Mitglied glauben, das
+Fenster sei gesetzt. Solange der Vorschlag daneben steht und die Maske vor dem
+Absenden sichtbar ist, ist das kein Blindflug, sondern eine Erleichterung, die
+im schlechtesten Fall ausbleibt.
+
+**Was daran unsicher bleibt** — und deshalb offen benannt gehört:
+
+- Die Parameter sind **nicht dokumentiert**. Vereinsflieger kann sie bei einem
+  Wartungsfenster ändern oder fallenlassen. Der Verweis muss deshalb auch ohne
+  Wirkung der Parameter zu einer benutzbaren Maske führen (`type=0&inline=0`
+  trägt für sich).
+- Ein Gegenstück zu `frm_datefromtime` für das **Ende** ist noch nicht
+  beobachtet. Naheliegend wäre `frm_datetotime`; das ist eine Vermutung und
+  vor dem Einbau am laufenden System zu prüfen.
+- Die `frm_apid` ist **je Maschine** nötig und bisher nur für die D-EELK
+  bekannt (`75132`). Die übrigen Werte fehlen. Sie kommen nicht aus dem
+  Kennzeichen; sie müssen einmal erhoben werden. Bis dahin trägt der Verweis
+  für alle anderen Maschinen keine Flugzeugvorwahl.
+
+**Folgen für die Umsetzung** (Phase 7 / US4):
+
+- `STAMMLISTE` in `packages/reservierung-core/src/flotte.ts` ist heute eine
+  reine Liste von Kennzeichen. Für `frm_apid` braucht sie je Eintrag ein
+  zweites Feld. Das ist eine Vereinsangabe im Repository — dieselbe Abweichung,
+  die E-01 für die Stammliste bereits begründet und in `plan.md` unter
+  Prinzip II vermerkt ist; sie wächst hier um ein Feld, nicht um eine neue Art
+  von Daten. Eine Geheimhaltung verlangt die Nummer nicht: Sie benennt ein
+  Vereinsflugzeug, kein Konto und keine Person.
+- Der Verweis wird gebaut, nicht getippt: Ein Helfer im Kern erzeugt ihn aus
+  Kennung und Zeitfenster, damit Datumsformat und Parameternamen an **einer**
+  Stelle stehen (Prinzip IV). Fehlt die `frm_apid`, entfällt genau dieser
+  Parameter, nicht der ganze Verweis.
+
+FR-011 ist entsprechend zurückgedreht: Der Vorschlag wird angezeigt **und**
+übertragen, soweit die Maske ihn annimmt. Gebucht wird weiterhin
+ausschließlich in Vereinsflieger — die Vorbelegung füllt ein Formular vor, sie
+sendet es nicht ab (Prinzip II bleibt gewahrt).
 
 ---
 

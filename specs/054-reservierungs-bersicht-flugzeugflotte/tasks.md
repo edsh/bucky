@@ -538,7 +538,20 @@ antippen und prüfen, ob der Vorschlag der nächsten freien Lücke entspricht
 - [ ] T065 [US4] `apps/web/src/lib/components/ReservierenSheet.svelte` anlegen:
       Overlay, Grabber, Titel, Hinweiszeile, zwei Felder „Von"/„Bis" aus
       `naechsteLuecke` (Z-07), primärer Verweis nach Vereinsflieger
-      (`rel="noopener noreferrer"`, neuer Tab, **ohne** Zeitparameter — E-13)
+      (`rel="noopener noreferrer"`, neuer Tab, **mit** Vorbelegung aus
+      T065a — E-13). Die Felder bleiben auch dann sichtbar, wenn die
+      Vorbelegung wirkungslos ist
+- [ ] T065a [US4] Verweis-Helfer im Kern
+      (`packages/reservierung-core/src/reservierungs-verweis.ts`): erzeugt aus
+      Kennung und Zeitfenster die Adresse mit `type=0&inline=0`, `frm_apid`,
+      `frm_datefrom`, `frm_dateto`, `frm_datefromtime` (Datum `TT.MM.JJJJ`,
+      Uhrzeit `HH:MM`, Ortszeit). Parameternamen und Formate stehen damit an
+      **einer** Stelle (Prinzip IV). Ist keine `frm_apid` bekannt, entfällt
+      genau dieser Parameter — nie der ganze Verweis
+- [ ] T065b [US4] `STAMMLISTE` in `packages/reservierung-core/src/flotte.ts`
+      um die Vereinsflieger-Nummer je Maschine erweitern (D-EELK = `75132`,
+      übrige noch zu erheben). Bestehende Aufrufer, die eine reine Liste von
+      Kennzeichen erwarten, mitziehen
 - [ ] T066 [US4] Primären Knopf „Reservieren" in die Sticky Aktionsleiste aus
       T047 aufnehmen
 - [ ] T067 [US4] Schließen über Tap auf das Overlay, ohne dass ein Aufruf nach

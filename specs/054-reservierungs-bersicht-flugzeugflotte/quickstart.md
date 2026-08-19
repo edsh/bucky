@@ -174,6 +174,9 @@ aussieht", entscheidet, wer die Seite in der Hand hält.
 
 - **Eigene Reservierungen** sind zurückgestellt (E-11). Jeder fremde wie eigene
   Eintrag erscheint als „Reserviert"; es gibt nichts zu prüfen.
-- **Vorbelegung des Vereinsflieger-Formulars** findet nicht statt (E-13). Der
-  Vorschlag steht im Sheet, der Verweis ist unparametrisiert.
+- **Wirkung der Vorbelegung in Vereinsflieger** (E-13) lässt sich hier nicht
+  nachweisen: Sie tritt hinter fremdem Login ein. Prüfbar ist nur, dass der
+  Verweis die Parameter trägt und ohne sie zu einer benutzbaren Maske führt.
+- **`frm_apid` außer der D-EELK** ist unbekannt; für die übrigen Maschinen
+  trägt der Verweis keine Flugzeugvorwahl.
 - **POH-Verweise** existieren nur für die D-EELK (FR-018).

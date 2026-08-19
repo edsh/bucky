@@ -17,8 +17,8 @@ Einzelmaschinen-Anzeige (Feature 047/052, nur D-EELK) auf die gesamte Flotte.
 Aus dem Design bereits entschieden (nicht erneut zu klären):
 
 - Buchen findet **nicht** in dieser Anwendung statt; die Reservierungsabsicht
-  wird zu Vereinsflieger verlinkt, das vorgeschlagene Zeitfenster dabei
-  genannt, nicht übertragen (E-13).
+  wird zu Vereinsflieger verlinkt, das vorgeschlagene Zeitfenster dabei genannt
+  und zusätzlich in die dortige Maske vorbelegt (E-13, Stand 2026-08-19).
 - Ringdarstellung ist die **Tagesuhr** (24-h-Ring), nicht Vollring oder
   Punkt-Abzeichen — diese sind Entwurfsalternativen und nicht umzusetzen.
 - Es gibt **keinen** eigenen Zustand „bald belegt" — nur einen stufenlosen
@@ -78,13 +78,14 @@ Während der Planung geklärt (2026-08-18, siehe `research.md`):
   gibt. FR-004 trennt beides nun: Die Zeitskala bleibt fix und damit über die
   Jahreszeiten lernbar, die Einfärbung folgt den echten Sonnenzeiten. Die
   Sonnenmarker bleiben — sie benennen jetzt eine echte Farbkante.
-- **Kein vorbelegtes Zeitfenster an Vereinsflieger** (E-13): Ob der
-  Reservierungslink Zeitparameter entgegennimmt, ist weder dokumentiert noch
-  zugesichert. Ein geratener Parameter, der stillschweigend ignoriert wird,
-  ist schlimmer als gar keiner — das Mitglied glaubt dann, das Fenster sei
-  gesetzt, und bucht daneben. FR-011 verlangt deshalb nur noch, den Vorschlag
-  **anzuzeigen**. Sobald die Schnittstelle belegt ist, lässt sich die
-  Vorbelegung ohne Änderung an der Oberfläche nachziehen.
+- **Vorbelegtes Zeitfenster an Vereinsflieger** (E-13, Stand 2026-08-19):
+  Die Klärung vom 2026-08-18 hatte die Vorbelegung gestrichen, weil keine
+  Parameterform bekannt war. Inzwischen ist eine beobachtet
+  (`frm_apid`, `frm_datefrom`, `frm_dateto`, `frm_datefromtime`), und FR-011
+  verlangt die Übertragung wieder. Dokumentiert ist sie damit nicht — der
+  Vorschlag bleibt deshalb im Sheet sichtbar, damit ein wirkungsloser
+  Parameter das Mitglied nicht vor ein leeres Formular stellt, das es für
+  gefüllt hält. Die `frm_apid` ist bisher nur für die D-EELK bekannt.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -321,9 +322,11 @@ Anwendung selbst etwas bucht.
 
 - **FR-011**: Das System MUSS die nächste freie Lücke als Reservierungs­vorschlag
   anzeigen (auf 30 Minuten aufgerundet, 2 Stunden Dauer) und von dort auf den
-  Reservierungskalender in Vereinsflieger führen. Das Zeitfenster wird dem
-  Mitglied **genannt**, nicht übertragen — Bucky bucht nicht und füllt kein
-  fremdes Formular vor.
+  Reservierungskalender in Vereinsflieger führen. Das Zeitfenster MUSS dem
+  Mitglied **genannt** und zusätzlich als Vorbelegung an die dortige Maske
+  übergeben werden (E-13). Bucky bucht nicht: Es füllt ein fremdes Formular
+  vor, sendet es aber nie ab. Bleibt die Vorbelegung wirkungslos, MUSS der
+  genannte Vorschlag allein ausreichen, um von Hand einzutragen.
 
 #### Darstellung & Zeit
 

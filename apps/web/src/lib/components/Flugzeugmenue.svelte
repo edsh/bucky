@@ -6,22 +6,29 @@
    * herausgelöst (Feature 043), damit der Flugzeugpark es unverändert
    * weiterbenutzt.
    *
-   * Es stellt sich wie ein Kontextmenü dorthin, wo Platz ist: bevorzugt
-   * rechts neben den Anker, sonst links daneben, sonst darunter — in jedem
-   * Fall innerhalb des Fensters. Eine feste Seite geht nicht: Die erste
-   * Kachel steht am linken Rand, auf einem Telefon ist rechts von ihr
+   * Es erscheint dort, wo getippt wurde, und weicht aus, wo es sonst aus dem
+   * Fenster ragte. Wurde es mit der Tastatur geöffnet, gibt es keinen
+   * Berührungspunkt; dann tritt die Kachel an seine Stelle — bevorzugt rechts
+   * daneben, sonst links, sonst darunter. Eine feste Seite geht nicht: Die
+   * erste Kachel steht am linken Rand, auf einem Telefon ist rechts von ihr
    * womöglich kein Platz mehr (FR-020).
    */
   let {
     kennung,
     handlungen,
     anker,
+    zeiger,
     schliessen
   }: {
     kennung: string;
     handlungen: Handlung[];
-    /** Element, an dem das Menü ausgerichtet wird — die Kachel. */
+    /** Element, an dem das Menü ausgerichtet wird, wenn kein Zeigerpunkt vorliegt. */
     anker: HTMLElement | undefined;
+    /**
+     * Der Berührungspunkt in Seitenkoordinaten. Fehlt er — Tastatur —, zählt
+     * der Anker.
+     */
+    zeiger?: { seiteX: number; seiteY: number };
     schliessen: () => void;
   } = $props();
 
@@ -52,21 +59,42 @@
       const breite = window.innerWidth;
       const hoehe = window.innerHeight;
 
-      let x = a.right + luecke;
-      let y = a.top;
+      // Der Berührungspunkt zurück in Fensterkoordinaten. Beim Scrollen
+      // wandert das Menü so mit der Kachel, statt auf dem Schirm zu kleben.
+      const zx = zeiger ? zeiger.seiteX - window.scrollX : null;
+      const zy = zeiger ? zeiger.seiteY - window.scrollY : null;
 
-      if (x + m.width > breite - rand) {
-        // Rechts ist kein Platz: links daneben versuchen.
-        x = a.left - luecke - m.width;
-      }
-      if (x < rand) {
-        // Auch links nicht: darunter, am Anker ausgerichtet und ins Fenster geklemmt.
-        x = Math.min(Math.max(a.left, rand), Math.max(breite - rand - m.width, rand));
-        y = a.bottom + luecke;
+      let x: number;
+      let y: number;
+
+      if (zx !== null && zy !== null) {
+        // Rechts unterhalb des Fingers -- so, dass er nicht auf dem Menü
+        // liegt und die oberen Einträge verdeckt.
+        x = zx + luecke;
+        y = zy + luecke;
+
+        if (x + m.width > breite - rand) x = zx - luecke - m.width;
+        if (x < rand) x = Math.min(Math.max(zx - m.width / 2, rand), Math.max(breite - rand - m.width, rand));
+        if (y + m.height > hoehe - rand) y = zy - luecke - m.height;
+      } else {
+        x = a.right + luecke;
+        y = a.top;
+
+        if (x + m.width > breite - rand) {
+          // Rechts ist kein Platz: links daneben versuchen.
+          x = a.left - luecke - m.width;
+        }
+        if (x < rand) {
+          // Auch links nicht: darunter, am Anker ausgerichtet und ins Fenster geklemmt.
+          x = Math.min(Math.max(a.left, rand), Math.max(breite - rand - m.width, rand));
+          y = a.bottom + luecke;
+        }
       }
 
-      // Senkrecht nur so weit verschieben, dass nichts unten heraushaengt.
+      // Senkrecht nur so weit verschieben, dass nichts heraushaengt -- weder
+      // unten noch, nach dem Hochklappen ueber den Finger, oben.
       y = Math.min(y, Math.max(hoehe - rand - m.height, rand));
+      y = Math.max(y, rand);
 
       menue.style.left = `${x - h.left}px`;
       menue.style.top = `${y - h.top}px`;

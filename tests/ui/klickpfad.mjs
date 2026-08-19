@@ -1822,14 +1822,51 @@ pruefe(
   menueKasten ? `${Math.round(menueKasten.x)} bis ${Math.round(menueKasten.x + menueKasten.width)} px` : 'nicht gefunden'
 );
 
-// 96: neben dem Avatar, wenn dort Platz ist -- wie ein Kontextmenue
+// 96: am Beruehrungspunkt, nicht an der Kachel. An der Kachel ausgerichtet
+// stand das Menue weit rechts vom Finger und liess den Nutzer zweimal greifen.
+// Dafuer wird bewusst in die linke obere Ecke der Kachel getippt: In der Mitte
+// getroffen liesse sich beides nicht auseinanderhalten.
+// Erst schliessen: Solange etwas offen ist, liegt das Schliessfeld ueber der
+// Seite und faengt den naechsten Tipp ab.
+await page.keyboard.press('Escape');
+await page.waitForTimeout(200);
 const avatarKasten2 = await kachel('D-EELK').boundingBox();
+await kachel('D-EELK').click({ position: { x: 12, y: 12 } });
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+await page.waitForTimeout(150);
+const zeigerMenue = await page.locator('[role="menu"]').boundingBox();
+const tippX = avatarKasten2 ? avatarKasten2.x + 12 : 0;
+const tippY = avatarKasten2 ? avatarKasten2.y + 12 : 0;
 pruefe(
   96,
-  'das Menue steht neben dem Avatar, solange daneben Platz ist',
-  menueKasten !== null && avatarKasten2 !== null && menueKasten.x >= avatarKasten2.x + avatarKasten2.width,
-  menueKasten && avatarKasten2
-    ? `Avatar bis ${Math.round(avatarKasten2.x + avatarKasten2.width)} px, Menue ab ${Math.round(menueKasten.x)} px`
+  'das Menue erscheint am Beruehrungspunkt',
+  zeigerMenue !== null &&
+    avatarKasten2 !== null &&
+    Math.abs(zeigerMenue.x - (tippX + 8)) <= 2 &&
+    Math.abs(zeigerMenue.y - (tippY + 8)) <= 2,
+  zeigerMenue
+    ? `getippt ${Math.round(tippX)}/${Math.round(tippY)}, Menue ${Math.round(zeigerMenue.x)}/${Math.round(zeigerMenue.y)}`
+    : 'nicht gefunden'
+);
+
+// 154: Mit der Tastatur geoeffnet gibt es keinen Beruehrungspunkt. Die linke
+// obere Fensterecke waere die falsche Antwort -- dann zaehlt wieder die
+// Kachel, neben der das Menue erscheint.
+await page.keyboard.press('Escape');
+await page.waitForTimeout(150);
+await kachel('D-EELK').focus();
+await page.keyboard.press('Enter');
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+await page.waitForTimeout(150);
+const tastenMenue = await page.locator('[role="menu"]').boundingBox();
+pruefe(
+  154,
+  'per Tastatur geoeffnet steht das Menue neben der Kachel, nicht in der Ecke',
+  tastenMenue !== null &&
+    avatarKasten2 !== null &&
+    tastenMenue.x >= avatarKasten2.x + avatarKasten2.width,
+  tastenMenue && avatarKasten2
+    ? `Kachel bis ${Math.round(avatarKasten2.x + avatarKasten2.width)} px, Menue ab ${Math.round(tastenMenue.x)} px`
     : 'nicht gefunden'
 );
 

@@ -441,6 +441,14 @@ einschließlich einer Belegung über Mitternacht und eines Ganztagseintrags.
       Leute, die davorstehen. Segelflugzeuge behalten unverändert ihr ganzes
       Kennzeichen: Für sie ist die Kurzform nicht gebräuchlich, und „04"
       ließe sich von einer D-9004 nicht unterscheiden
+- [X] T049f [US2] Das Kontextmenü erscheint am **Berührungspunkt**, nicht an
+      der Kachel. An der Kachel ausgerichtet stand es weit rechts vom Finger;
+      wer tippt, muss dann ein zweites Mal greifen. Der Punkt wird in
+      Seitenkoordinaten gemerkt, damit das Menü beim Scrollen mit der Kachel
+      wandert statt auf dem Schirm zu kleben. Per Tastatur geöffnet gibt es
+      keinen Punkt (`ereignis.detail === 0`, `clientX/Y` beide 0) — die linke
+      obere Fensterecke wäre die falsche Antwort, deshalb bleibt dort die
+      bisherige Ausrichtung an der Kachel
 
 **Checkpoint**: US1 und US2 sind beide unabhängig nutzbar. Das Feature erfüllt
 seinen Kernzweck.

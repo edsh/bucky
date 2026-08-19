@@ -52,12 +52,32 @@
    */
   const kacheln: Record<string, HTMLButtonElement | undefined> = {};
 
-  function umschalten(kennung: string) {
+  /**
+   * Wo zuletzt getippt oder geklickt wurde — in Seitenkoordinaten, nicht in
+   * Fensterkoordinaten.
+   *
+   * Ein Kontextmenü gehört dorthin, wo der Finger ist. An der Kachel
+   * ausgerichtet stand es weit rechts vom Berührungspunkt und ließ den Nutzer
+   * zweimal greifen. Gespeichert wird die Stelle **auf der Seite**: Beim
+   * Scrollen soll das Menü mit der Kachel wandern und nicht auf dem Schirm
+   * kleben bleiben.
+   */
+  let zeiger = $state<{ seiteX: number; seiteY: number } | undefined>(undefined);
+
+  function umschalten(kennung: string, ereignis: MouseEvent) {
+    // `detail === 0` heißt: mit der Tastatur ausgelöst. Dann sind clientX und
+    // clientY beide 0 — die linke obere Ecke des Fensters ist aber kein Ort,
+    // an dem jemand etwas erwartet. In diesem Fall bleibt die Kachel der Anker.
+    zeiger =
+      ereignis.detail > 0
+        ? { seiteX: ereignis.clientX + window.scrollX, seiteY: ereignis.clientY + window.scrollY }
+        : undefined;
     offen = offen === kennung ? undefined : kennung;
   }
 
   function schliessen(zurueckZu?: string) {
     offen = undefined;
+    zeiger = undefined;
     if (zurueckZu) kacheln[zurueckZu]?.focus();
   }
 
@@ -205,7 +225,7 @@
                     aria-haspopup="menu"
                     aria-expanded={offen === maschine.kennung}
                     aria-label="{maschine.kennung} — Auswahl öffnen"
-                    onclick={() => umschalten(maschine.kennung)}
+                    onclick={(ereignis) => umschalten(maschine.kennung, ereignis)}
                   >
                     <Maschinenkachel
                       kennung={maschine.kennung}
@@ -220,6 +240,7 @@
                       kennung={maschine.kennung}
                       {handlungen}
                       anker={kacheln[maschine.kennung]}
+                      {zeiger}
                       schliessen={() => schliessen()}
                     />
                   {/if}

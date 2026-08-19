@@ -502,25 +502,25 @@ Kategoriegruppe.
 **Unabhängiger Test**: Auf einem frischen Gerät ohne Favoritenreihe öffnen,
 einen Favoriten setzen, neu laden, auf einem zweiten Gerät gegenprüfen.
 
-- [ ] T058 [US3] `apps/web/src/lib/flotte/favoriten.ts` anlegen: `localStorage`
+- [X] T058 [US3] `apps/web/src/lib/flotte/favoriten.ts` anlegen: `localStorage`
       mit versioniertem Schlüssel `bucky.favoriten` nach dem Muster von
       `lib/einstellungen/speicher.ts`, unlesbarer Inhalt wird still verworfen
       (E-10). Die drei Fälle „nie gesetzt" / „leer" / „gefüllt" bleiben
       unterscheidbar (FR-007b)
-- [ ] T059 [US3] Prüfungen in `apps/web/tests/flotte/favoriten.test.ts`:
+- [X] T059 [US3] Prüfungen in `apps/web/tests/flotte/favoriten.test.ts`:
       Lesen ohne Eintrag, Schreiben und Lesen, fremde Fassung, kaputter Inhalt,
       unbekanntes Kennzeichen in der Liste
-- [ ] T060 [US3] Favoritenreihe in der Übersicht umsetzen (96er Avatare,
+- [X] T060 [US3] Favoritenreihe in der Übersicht umsetzen (96er Avatare,
       Kennzeichen, Kurzsatz, „danach …") — sie erscheint **nur**, wenn
       mindestens ein Favorit gesetzt ist (FR-007b)
-- [ ] T061 [US3] Favoriten aus ihrer Kategoriegruppe entfernen, Gruppenzähler
+- [X] T061 [US3] Favoriten aus ihrer Kategoriegruppe entfernen, Gruppenzähler
       entsprechend anpassen (FR-007). Eine Gruppe mit einer Maschine zeigt
       weiterhin ihren Kopf mit Zähler „1"
-- [ ] T062 [US3] Umschalten der Markierung in Übersicht und Detailansicht
+- [X] T062 [US3] Umschalten der Markierung in Übersicht und Detailansicht
       anbieten, Tap-Ziel mindestens 44 px (FR-017)
-- [ ] T063 [US3] Legende umpositionieren: bei höchstens zwei Favoriten rechts
+- [X] T063 [US3] Legende umpositionieren: bei höchstens zwei Favoriten rechts
       neben der Reihe, sonst als eigene Zeile darunter (Handoff)
-- [ ] T064 [US3] Nachweis 8 aus `quickstart.md` durchführen und
+- [X] T064 [US3] Nachweis 8 aus `quickstart.md` durchführen und
       `tests/ui/klickpfad.mjs` um den Favoritenweg erweitern
 
 ---

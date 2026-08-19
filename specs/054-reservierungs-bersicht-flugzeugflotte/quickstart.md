@@ -154,6 +154,11 @@ fehlen (E-08).
 3. Ein zweites privates Fenster öffnen → dort keine Markierung.
 4. Alle Favoriten wieder abwählen, neu laden → die Reihe verschwindet ganz.
 
+Die Schritte 1, 2 und 4 laufen als Klickpfad-Prüfungen 159–168 mit. Schritt 3
+bleibt von Hand: Ein zweites privates Fenster ist gerade das, was ein
+Browser-Kontext im selben Durchlauf nicht ist — ihn nachzustellen prüfte die
+Attrappe, nicht die Trennung.
+
 ## Nachweis 9 — Vorschau auf dem Telefon
 
 Dieses Feature ändert Aussehen und Bedienung grundlegend. Vor der

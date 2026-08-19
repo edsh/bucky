@@ -25,9 +25,16 @@
   import TagesuhrAvatar from '$lib/components/TagesuhrAvatar.svelte';
   import Tagesbalken from '$lib/components/Tagesbalken.svelte';
   import Wochenraster from '$lib/components/Wochenraster.svelte';
+  import Stern from '$lib/components/Stern.svelte';
   import { FARBEN, flaecheFuer, statusfarbe } from '$lib/flotte/farben.js';
   import { darstellungFuer } from '$lib/flotte/darstellung.js';
   import { farbschema } from '$lib/farbschema.svelte.js';
+  import {
+    istFavorit,
+    ladeFavoriten,
+    sichereFavoriten,
+    umschalten as favoritUmgeschaltet
+  } from '$lib/flotte/favoriten.js';
   import { Flottenstand } from '$lib/flotte/stand.svelte.js';
 
   /**
@@ -54,8 +61,24 @@
   /** Beim Öffnen stets „7 Tage" — der Reiter ist keine Einstellung, sondern ein Blick. */
   let ansicht = $state<'liste' | 'woche'>('liste');
 
+  /**
+   * Die gemerkten Maschinen dieses Geräts. Hier zählt nur, ob die gerade
+   * gezeigte dabei ist — die Liste wird trotzdem ganz geführt, damit das
+   * Umschalten die übrigen nicht überschreibt.
+   */
+  let favoriten = $state<string[] | null>(null);
+
+  const gemerkt = $derived(istFavorit(favoriten, kennung));
+
+  function lieblingUmschalten() {
+    const neu = favoritUmgeschaltet(favoriten ?? [], kennung);
+    favoriten = neu;
+    sichereFavoriten(neu);
+  }
+
   onMount(() => {
     farbschema.laden();
+    favoriten = ladeFavoriten();
     void stand.starten();
     return () => stand.beenden();
   });
@@ -186,6 +209,19 @@
           <p class="typ">{darstellung.typ}</p>
         {/if}
       </div>
+
+      <button
+        class="stern"
+        type="button"
+        aria-pressed={gemerkt}
+        onclick={lieblingUmschalten}
+        aria-label={gemerkt
+          ? `${kennung} nicht mehr als Lieblingsmaschine`
+          : `${kennung} als Lieblingsmaschine`}
+        title="Lieblingsmaschine"
+      >
+        <Stern gefuellt={gemerkt} groesse={17} />
+      </button>
 
       <button
         class="schema"
@@ -409,6 +445,37 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  /*
+    Ein Tippziel von 44 Pixeln, der Stern darin nur 17 (FR-017). Deshalb kein
+    grauer Kreis wie beim Schema-Knopf: Eine 44er Scheibe neben einer 32er
+    saehe aus, als sei eine der beiden verrutscht.
+  */
+  .stern {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-right: -6px;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: inherit;
+    opacity: 0.45;
+    cursor: pointer;
+  }
+
+  /* Gemerkt heisst: voll da. Der Unterschied haengt nicht an der Deckkraft
+     allein -- der Stern ist dann auch gefuellt statt umrissen. */
+  .stern[aria-pressed='true'] {
+    opacity: 1;
+  }
+
+  .stern:hover {
+    background: rgba(127, 127, 127, 0.12);
   }
 
   .schema {

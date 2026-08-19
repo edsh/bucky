@@ -273,6 +273,21 @@ bereits und hat sich bewährt. Wichtig für FR-007b: Kein gespeicherter Wert und
 eine leere Liste sind zu unterscheiden — ohne je gesetzten Favoriten erscheint
 **keine** Reihe, nicht einmal eine leere.
 
+**Wie markiert wird** (entschieden am 19.08.2026, im Handoff nicht enthalten):
+über den Eintrag „Lieblingsmaschine" im Kontextmenü der Kachel, mit einem
+Stern davor — gefüllt oder umrissen je nach Zustand. In der Detailansicht
+liegt derselbe Schalter als Stern im Kopf.
+
+Die Folge ist eine Änderung am bisherigen Verhalten: Bis dahin öffnete eine
+Maschine mit nur einer Fähigkeit **kein** Menü, sondern sprang direkt in ihre
+Details — ein Menü mit einem Eintrag sei ein Klick, der nichts entscheidet.
+Der Schalter steht nun in jedem Menü, und damit hat jede Maschine mehr als
+eine Wahl. Der Preis ist ein zusätzlicher Tipp auf dem Weg in die Details der
+fünf Maschinen ohne POH; dafür gibt es das Merken überall an derselben Stelle.
+Ein Stern direkt auf der Kachel wäre der kürzere Weg gewesen, hätte aber ein
+zweites Tippziel in eine 118 Pixel breite Fläche gelegt, die selbst schon eins
+ist — auf einem Telefon trifft man dann regelmäßig das falsche.
+
 ---
 
 ## E-11 — Eigene Reservierungen werden zurückgestellt

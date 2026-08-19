@@ -21,6 +21,7 @@ export {
 	alsZusatzzeile
 } from './formulieren.js';
 export { kalenderDeuten } from './kalender-deuten.js';
+export { istLuftfahrzeug, kennungVereinheitlichen, KENNZEICHEN } from './kennzeichen.js';
 export {
 	balkensegmente,
 	BALKEN_BIS,

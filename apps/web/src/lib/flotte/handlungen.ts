@@ -12,9 +12,11 @@ import { base } from '$app/paths';
  * einzige Flugzeug mit digitalisiertem POH (Feature 001). Deshalb steht die
  * Liste hier und nicht als feste Verzweigung im Markup: Kommt für eine
  * weitere Maschine eine Fähigkeit hinzu, wird hier ein Eintrag ergänzt und
- * sonst nichts. Ein Flugzeug mit genau einer Handlung öffnet kein Menü,
- * sondern springt direkt — ein Menü mit einem Eintrag ist ein Klick, der
- * nichts entscheidet.
+ * sonst nichts.
+ *
+ * Diese Liste nennt nur die **Wege**. Das Menü zeigt darunter noch den
+ * Schalter „Lieblingsmaschine", der nirgendwohin führt — deshalb hat jede
+ * Maschine ein Menü, auch eine mit nur einem Weg.
  */
 export interface Handlung {
 	name: string;

@@ -2421,16 +2421,19 @@ pruefe(
   legendeText.replace(/\n/g, ' | ')
 );
 
-// 132: Ein Flugzeug, das ausser der Reservierung nichts kann, springt direkt
-// dorthin. Ein Menue mit einem einzigen Eintrag waere ein Klick, der nichts
-// entscheidet.
+// 132: Auch ein Flugzeug, das ausser der Reservierung nichts kann, oeffnet
+// jetzt ein Menue -- der Lieblingsschalter steht immer darin, und damit hat
+// jede Maschine mehr als eine Wahl. Frueher sprang so eine Kachel direkt in
+// die Details; das ginge nicht mehr, ohne den Schalter zu verstecken.
 await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
 await page.locator('.tastenkachel[data-kennung="D-9021"]').click();
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+await page.getByRole('menuitem', { name: 'Reservierungsdetails' }).click();
 await page.waitForURL(/reservierung\/d-9021/, { timeout: 5000 }).catch(() => {});
 await page.waitForLoadState('networkidle');
 pruefe(
   132,
-  'eine Maschine ohne weitere Faehigkeiten fuehrt ohne Umweg in ihre Details',
+  'eine Maschine ohne weitere Faehigkeiten fuehrt ueber ihr Menue in ihre Details',
   /\/reservierung\/d-9021/.test(page.url()) &&
     (await page.locator('h1').first().innerText()).trim() === 'D-9021',
   page.url()
@@ -2509,6 +2512,8 @@ pruefe(
 // Tag auf einer fremden Auskunft.
 await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
 await page.locator('.tastenkachel[data-kennung="D-4413"]').click();
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+await page.getByRole('menuitem', { name: 'Reservierungsdetails' }).click();
 await page.waitForURL(/reservierung\/d-4413/, { timeout: 5000 }).catch(() => {});
 await page.waitForLoadState('networkidle');
 const detailText = await page.locator('main').innerText();
@@ -2767,6 +2772,164 @@ pruefe(
 );
 
 await page.unroute('**://api.open-meteo.com/**');
+await page.unroute('**/api/flotte*');
+
+// ---------------------------------------------------------------------------
+// Favoriten (Feature 054, US3) — Nachweis 8 aus quickstart.md
+// ---------------------------------------------------------------------------
+
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({ contentType: 'application/json', body: JSON.stringify(flottenstand) })
+);
+
+// Ein sauberes Geraet: Was ein frueherer Durchgang gemerkt hat, faelschte
+// sonst genau die Pruefung, die "noch nie etwas gesetzt" heisst.
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.evaluate(() => localStorage.removeItem('bucky.favoriten'));
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.tastenkachel[data-kennung="D-EELK"]').waitFor({ timeout: 5000 });
+
+// 159: Ohne je gesetzten Favoriten erscheint keine Reihe -- auch keine leere
+// (FR-007b). Eine Ueberschrift ueber einem leeren Streifen erklaerte eine
+// Funktion, nach der niemand gefragt hat.
+const zaehlerVorher = await page.locator('.zaehler').allInnerTexts();
+pruefe(
+  159,
+  'ohne gesetzten Favoriten gibt es keine Favoritenreihe',
+  (await page.locator('.favoritenreihe').count()) === 0 &&
+    zaehlerVorher.join('/') === '3/3',
+  `Zaehler ${zaehlerVorher.join(' | ')}`
+);
+
+// 160: Der Schalter im Menue heisst "Lieblingsmaschine" und meldet seinen
+// Zustand -- der gefuellte Stern allein sagte einem Vorleser nichts.
+await page.locator('.tastenkachel[data-kennung="D-MRXS"]').click();
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+const schalter = page.getByRole('menuitemcheckbox', { name: 'Lieblingsmaschine' });
+pruefe(
+  160,
+  'jedes Menue traegt den Schalter Lieblingsmaschine, anfangs nicht gesetzt',
+  (await schalter.count()) === 1 && (await schalter.getAttribute('aria-checked')) === 'false',
+  await schalter.getAttribute('aria-checked')
+);
+
+// 161: Markiert steht die Maschine oben -- und **nicht** mehr in ihrer Gruppe
+// (FR-007). Der Gruppenzaehler zaehlt, was die Gruppe zeigt: Er muss also
+// sinken, sonst nennt er eine Zahl, die sich nicht nachzaehlen laesst.
+await schalter.click();
+await page.locator('.favoritenreihe').waitFor({ timeout: 3000 });
+const zaehlerNachher = await page.locator('.zaehler').allInnerTexts();
+const inGruppe = await page.locator('.raster .tastenkachel[data-kennung="D-MRXS"]').count();
+const obenDrin = await page.locator('.favoritenreihe .tastenkachel[data-kennung="D-MRXS"]').count();
+pruefe(
+  161,
+  'ein Favorit steht oben, nicht mehr in seiner Gruppe, und der Zaehler sinkt',
+  obenDrin === 1 && inGruppe === 0 && zaehlerNachher.join('/') === '2/3',
+  `oben ${obenDrin}, in Gruppe ${inGruppe}, Zaehler ${zaehlerNachher.join(' | ')}`
+);
+
+// 162: Und zwar ueber das Neuladen hinweg -- eine Merkliste, die den ersten
+// Seitenwechsel nicht ueberlebt, merkt sich nichts.
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.favoritenreihe').waitFor({ timeout: 5000 });
+pruefe(
+  162,
+  'die Markierung ueberlebt das Neuladen',
+  (await page.locator('.favoritenreihe .tastenkachel[data-kennung="D-MRXS"]').count()) === 1
+);
+
+// 163: Bei hoechstens zwei Favoriten steht die Legende rechts neben der Reihe,
+// sonst als eigene Zeile darunter. Zweimal darf sie nie erscheinen: Wer
+// dieselbe Legende an zwei Stellen sieht, sucht nach dem Unterschied.
+const legendenEins = await page.locator('.legende').count();
+const danebenEins = await page.locator('.legende-daneben .legende').count();
+pruefe(
+  163,
+  'bei einem Favoriten steht die Legende neben der Reihe, und nur einmal',
+  legendenEins === 1 && danebenEins === 1,
+  `${legendenEins} Legenden, davon ${danebenEins} daneben`
+);
+
+// 164: Ab dem dritten Favoriten reicht der Streifen daneben nicht mehr.
+for (const kennzeichen of ['D-EELK', 'D-EXYZ']) {
+  await page.locator(`.raster .tastenkachel[data-kennung="${kennzeichen}"]`).click();
+  await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+  await page.getByRole('menuitemcheckbox', { name: 'Lieblingsmaschine' }).click();
+  await page.waitForTimeout(150);
+}
+const darunter = await page.locator('.legende-darunter .legende').count();
+const legendenDrei = await page.locator('.legende').count();
+pruefe(
+  164,
+  'ab drei Favoriten wandert die Legende in eine eigene Zeile darunter',
+  legendenDrei === 1 && darunter === 1 && (await page.locator('.legende-daneben').count()) === 0,
+  `${legendenDrei} Legenden, ${darunter} darunter`
+);
+
+// 165: Das Menue traegt bei einer bereits gemerkten Maschine den gesetzten
+// Zustand -- und ein zweiter Druck nimmt die Markierung zurueck.
+await page.locator('.favoritenreihe .tastenkachel[data-kennung="D-EELK"]').click();
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+const schalterGesetzt = page.getByRole('menuitemcheckbox', { name: 'Lieblingsmaschine' });
+const warGesetzt = (await schalterGesetzt.getAttribute('aria-checked')) === 'true';
+await schalterGesetzt.click();
+await page.waitForTimeout(200);
+pruefe(
+  165,
+  'ein zweiter Druck nimmt die Markierung zurueck',
+  warGesetzt &&
+    (await page.locator('.favoritenreihe .tastenkachel[data-kennung="D-EELK"]').count()) === 0 &&
+    (await page.locator('.raster .tastenkachel[data-kennung="D-EELK"]').count()) === 1,
+  `vorher gesetzt: ${warGesetzt}`
+);
+
+// 166: Der Menueeintrag ist mindestens 44 Pixel hoch (FR-017). Ein Menue, das
+// man im Stehen am Flugplatz bedient, vertraegt keine 36er Zeilen.
+await page.locator('.raster .tastenkachel[data-kennung="D-EELK"]').click();
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+const schalterKasten = await page
+  .getByRole('menuitemcheckbox', { name: 'Lieblingsmaschine' })
+  .boundingBox();
+pruefe(
+  166,
+  'der Lieblingsschalter ist mindestens 44 Pixel hoch',
+  schalterKasten !== null && schalterKasten.height >= 44,
+  schalterKasten ? `${Math.round(schalterKasten.height)} px` : 'nicht gefunden'
+);
+await page.keyboard.press('Escape');
+
+// 167: In der Detailansicht liegt derselbe Schalter als Stern im Kopf -- und
+// er zeigt, was die Uebersicht gemerkt hat. Zwei Orte, ein Gedaechtnis.
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-mrxs/`, { waitUntil: 'networkidle' });
+const sternDetail = page.locator('.stern');
+await sternDetail.waitFor({ timeout: 5000 });
+const sternKasten = await sternDetail.boundingBox();
+pruefe(
+  167,
+  'die Detailansicht zeigt die Markierung aus der Uebersicht, mit 44er Tippziel',
+  (await sternDetail.getAttribute('aria-pressed')) === 'true' &&
+    sternKasten !== null &&
+    sternKasten.height >= 44 &&
+    sternKasten.width >= 44,
+  sternKasten ? `${Math.round(sternKasten.width)} x ${Math.round(sternKasten.height)} px` : 'nicht gefunden'
+);
+
+// 168: Und er wirkt in beide Richtungen: Was hier abgewaehlt wird, ist in der
+// Uebersicht nicht mehr oben.
+await sternDetail.click();
+await page.waitForTimeout(150);
+const abgewaehlt = (await sternDetail.getAttribute('aria-pressed')) === 'false';
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.tastenkachel[data-kennung="D-MRXS"]').waitFor({ timeout: 5000 });
+pruefe(
+  168,
+  'was in der Detailansicht abgewaehlt wird, steht in der Uebersicht wieder in seiner Gruppe',
+  abgewaehlt &&
+    (await page.locator('.raster .tastenkachel[data-kennung="D-MRXS"]').count()) === 1 &&
+    (await page.locator('.favoritenreihe .tastenkachel[data-kennung="D-MRXS"]').count()) === 0
+);
+
+await page.evaluate(() => localStorage.removeItem('bucky.favoriten'));
 await page.unroute('**/api/flotte*');
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));

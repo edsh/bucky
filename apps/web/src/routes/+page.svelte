@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import {
     alsKurzdatumUhrzeit,
     alsRueckfallHinweis,
@@ -9,10 +9,16 @@
     STAMMLISTE
   } from '@edsh-bucky/reservierung-core';
   import Flugzeugmenue from '$lib/components/Flugzeugmenue.svelte';
+  import Legende from '$lib/components/Legende.svelte';
   import Maschinenkachel from '$lib/components/Maschinenkachel.svelte';
   import Skelettkachel from '$lib/components/Skelettkachel.svelte';
-  import { FARBEN } from '$lib/flotte/farben.js';
   import { farbschema } from '$lib/farbschema.svelte.js';
+  import {
+    istFavorit,
+    ladeFavoriten,
+    sichereFavoriten,
+    umschalten as favoritUmgeschaltet
+  } from '$lib/flotte/favoriten.js';
   import { handlungenFuer } from '$lib/flotte/handlungen.js';
   import { Flottenstand } from '$lib/flotte/stand.svelte.js';
 
@@ -96,12 +102,42 @@
     if (zurueckZu) kacheln[zurueckZu]?.focus();
   }
 
+  /**
+   * Die gemerkten Maschinen — `null`, solange nichts geladen ist, und auch
+   * dann, wenn auf diesem Gerät noch nie etwas gemerkt wurde.
+   *
+   * Beides sieht gleich aus, und das ist richtig so: Vor `onMount` gibt es
+   * keinen `localStorage`, und eine Favoritenreihe, die beim ersten Bild noch
+   * fehlt und dann erscheint, springt weniger als eine, die erscheint und
+   * wieder verschwindet.
+   */
+  let favoriten = $state<string[] | null>(null);
+
+  /**
+   * Setzt oder entfernt eine Markierung.
+   *
+   * Danach schließt das Menü, denn die Kachel darunter wandert: aus ihrer
+   * Gruppe nach oben oder zurück. Ein Menü, das an einer verschwindenden
+   * Kachel hängt, stünde im Nichts. Der Fokus geht erst nach dem Umbau
+   * zurück — die Kachel unter diesem Kennzeichen ist dann eine andere.
+   */
+  async function lieblingUmschalten(kennung: string) {
+    const neu = favoritUmgeschaltet(favoriten ?? [], kennung);
+    favoriten = neu;
+    sichereFavoriten(neu);
+    offen = undefined;
+    zeiger = undefined;
+    await tick();
+    kacheln[kennung]?.focus();
+  }
+
   function beiTaste(ereignis: KeyboardEvent) {
     if (ereignis.key === 'Escape' && offen) schliessen(offen);
   }
 
   onMount(() => {
     farbschema.laden();
+    favoriten = ladeFavoriten();
 
     void stand.starten();
     return () => stand.beenden();
@@ -123,10 +159,36 @@
 
   const laedtNoch = $derived(stand.laedt && stand.abgerufenAm === null);
 
-  const gruppen = $derived([
-    { titel: 'Motorflugzeuge & UL', maschinen: maschinen.filter((m) => m.kategorie === 'motor') },
-    { titel: 'Segelflugzeuge', maschinen: maschinen.filter((m) => m.kategorie === 'segelflug') }
-  ]);
+  /**
+   * Die gemerkten Maschinen in der Reihenfolge, in der sie gemerkt wurden —
+   * und nur die, die es auch gibt.
+   *
+   * Der Speicher darf ein Kennzeichen behalten, das gerade nicht in der
+   * Flotte steht (etwa nach einem Verkauf): Gefiltert wird hier, damit eine
+   * Merkliste einen vorübergehend fehlenden Eintrag übersteht, statt ihn beim
+   * ersten Laden stillschweigend zu verlieren.
+   */
+  const favoritenmaschinen = $derived(
+    (favoriten ?? [])
+      .map((kennung) => maschinen.find((m) => m.kennung === kennung))
+      .filter((m) => m !== undefined)
+  );
+
+  const gruppen = $derived(
+    [
+      { titel: 'Motorflugzeuge & UL', kategorie: 'motor' as const },
+      { titel: 'Segelflugzeuge', kategorie: 'segelflug' as const }
+    ].map((gruppe) => ({
+      titel: gruppe.titel,
+      // Ein Favorit steht oben und **nicht** zusaetzlich in seiner Gruppe
+      // (FR-007). Der Zaehler zaehlt deshalb, was die Gruppe zeigt, nicht was
+      // der Verein besitzt -- sonst nennte er eine Zahl, die sich nicht
+      // nachzaehlen laesst.
+      maschinen: maschinen.filter(
+        (m) => m.kategorie === gruppe.kategorie && !istFavorit(favoriten, m.kennung)
+      )
+    }))
+  );
 
   const standText = $derived(
     stand.abgerufenAm === null
@@ -138,17 +200,6 @@
     stand.quelle === null ? null : alsRueckfallHinweis(stand.quelle)
   );
 
-  /**
-   * Die drei Zustände, die eine Aussage treffen. Der dunkle Nachtanteil des
-   * Rings steht bewusst **nicht** dabei: Er ist keine Verfügbarkeitsaussage,
-   * sondern Beiwerk zur Orientierung auf der Uhr — und in einer Legende, die
-   * sonst nur Status erklärt, sähe er wie ein vierter Status aus.
-   */
-  const legende = [
-    { farbe: FARBEN.frei, text: 'frei' },
-    { farbe: FARBEN.belegt, text: 'belegt' },
-    { farbe: FARBEN.sperreFlaeche, text: 'gesperrt' }
-  ];
 </script>
 
 <svelte:head>
@@ -202,6 +253,76 @@
       </p>
     {/if}
 
+    {#snippet maschinenknopf(maschine: { kennung: string }, avatargroesse: number)}
+      {@const handlungen = handlungenFuer(maschine.kennung)}
+      <div class="halter">
+        {#if laedtNoch}
+          <Skelettkachel groesse={avatargroesse} />
+        {:else}
+          <button
+            class="tastenkachel"
+            type="button"
+            data-kennung={maschine.kennung}
+            bind:this={kacheln[maschine.kennung]}
+            aria-haspopup="menu"
+            aria-expanded={offen === maschine.kennung}
+            aria-label="{maschine.kennung} — Auswahl öffnen"
+            onclick={(ereignis) => umschalten(maschine.kennung, ereignis)}
+          >
+            <Maschinenkachel
+              kennung={maschine.kennung}
+              belegungen={stand.belegungen}
+              jetzt={stand.jetzt}
+              {sonnenzeiten}
+              {avatargroesse}
+            />
+          </button>
+
+          {#if offen === maschine.kennung}
+            <Flugzeugmenue
+              kennung={maschine.kennung}
+              {handlungen}
+              anker={kacheln[maschine.kennung]}
+              {zeiger}
+              favorit={istFavorit(favoriten, maschine.kennung)}
+              favoritUmschalten={() => void lieblingUmschalten(maschine.kennung)}
+              schliessen={() => schliessen()}
+            />
+          {/if}
+        {/if}
+      </div>
+    {/snippet}
+
+    <!--
+      Die gemerkten Maschinen zuerst -- und nur, wenn es welche gibt. Ohne je
+      gesetzten Favoriten erscheint hier gar nichts, nicht einmal eine leere
+      Reihe (FR-007b): Eine Ueberschrift ueber einem leeren Streifen erklaerte
+      eine Funktion, nach der niemand gefragt hat.
+    -->
+    {#if favoritenmaschinen.length > 0}
+      <div class="oben">
+        <div class="favoritenreihe">
+          {#each favoritenmaschinen as maschine (maschine.kennung)}
+            <div class="favorit">
+              {@render maschinenknopf(maschine, 96)}
+            </div>
+          {/each}
+        </div>
+
+        {#if favoritenmaschinen.length <= 2}
+          <div class="legende-daneben">
+            <Legende spaltig />
+          </div>
+        {/if}
+      </div>
+
+      {#if favoritenmaschinen.length > 2}
+        <div class="legende-darunter">
+          <Legende />
+        </div>
+      {/if}
+    {/if}
+
     {#each gruppen as gruppe (gruppe.titel)}
       {#if gruppe.maschinen.length > 0}
         <section>
@@ -212,57 +333,7 @@
 
           <div class="raster">
             {#each gruppe.maschinen as maschine (maschine.kennung)}
-              {@const handlungen = handlungenFuer(maschine.kennung)}
-              <div class="halter">
-                {#if laedtNoch}
-                  <Skelettkachel groesse={74} />
-                {:else if handlungen.length === 1}
-                  <!-- Genau eine Fähigkeit: Ein Menü mit einem Eintrag wäre ein
-                       Klick, der nichts entscheidet — also direkt dorthin. -->
-                  <a
-                    class="tastenkachel"
-                    data-kennung={maschine.kennung}
-                    href={handlungen[0]?.ziel}
-                  >
-                    <Maschinenkachel
-                      kennung={maschine.kennung}
-                      belegungen={stand.belegungen}
-                      jetzt={stand.jetzt}
-                      {sonnenzeiten}
-                      avatargroesse={74}
-                    />
-                  </a>
-                {:else}
-                  <button
-                    class="tastenkachel"
-                    type="button"
-                    data-kennung={maschine.kennung}
-                    bind:this={kacheln[maschine.kennung]}
-                    aria-haspopup="menu"
-                    aria-expanded={offen === maschine.kennung}
-                    aria-label="{maschine.kennung} — Auswahl öffnen"
-                    onclick={(ereignis) => umschalten(maschine.kennung, ereignis)}
-                  >
-                    <Maschinenkachel
-                      kennung={maschine.kennung}
-                      belegungen={stand.belegungen}
-                      jetzt={stand.jetzt}
-                      {sonnenzeiten}
-                      avatargroesse={74}
-                    />
-                  </button>
-
-                  {#if offen === maschine.kennung}
-                    <Flugzeugmenue
-                      kennung={maschine.kennung}
-                      {handlungen}
-                      anker={kacheln[maschine.kennung]}
-                      {zeiger}
-                      schliessen={() => schliessen()}
-                    />
-                  {/if}
-                {/if}
-              </div>
+              {@render maschinenknopf(maschine, 74)}
             {/each}
           </div>
         </section>
@@ -275,14 +346,17 @@
       </p>
     {/if}
 
-    <div class="legende">
-      {#each legende as eintrag (eintrag.text)}
-        <span class="eintrag">
-          <span class="punkt" style:background={eintrag.farbe}></span>
-          {eintrag.text}
-        </span>
-      {/each}
-    </div>
+    <!--
+      Ohne Favoriten steht die Legende am Fuss, wo sie seit jeher steht. Gibt
+      es eine Favoritenreihe, ist sie dort schon erklaert worden -- zweimal
+      dieselbe Legende auf einer Seite laesst den Leser nach dem Unterschied
+      suchen, den es nicht gibt.
+    -->
+    {#if favoritenmaschinen.length === 0}
+      <div class="legende-unten">
+        <Legende />
+      </div>
+    {/if}
 
     <p class="fussnote">
       Unverbindliche Anzeige. Verbindlich ist der Reservierungskalender in Vereinsflieger.
@@ -461,28 +535,44 @@
     line-height: 1.5;
   }
 
-  .legende {
+  /*
+    Der Kopfbereich: die gemerkten Maschinen und -- solange es hoechstens zwei
+    sind -- die Legende daneben. Bei dreien waere der Streifen rechts zu
+    schmal; dann bekommt sie eine eigene Zeile darunter.
+  */
+  .oben {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    padding: 16px 16px 0;
+  }
+
+  /*
+    Umbruch, sobald es mehr sind, als nebeneinander passen: Bei 118 Pixeln je
+    Kachel gehen in die 430er Spalte genau drei. Ohne Umbruch liefe die vierte
+    aus der Seite hinaus -- und wer alle sechs Maschinen merkt, saehe die
+    letzten drei nicht mehr.
+  */
+  .favoritenreihe {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 14px;
+    gap: 18px;
+    align-items: flex-start;
+  }
+
+  .favorit {
+    width: 118px;
+  }
+
+  .legende-daneben {
+    flex: 1;
+    align-self: flex-end;
+    min-width: 0;
+  }
+
+  .legende-darunter,
+  .legende-unten {
     margin: 16px 16px 0;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: rgba(127, 127, 127, 0.09);
-  }
-
-  .eintrag {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11.5px;
-    opacity: 0.75;
-  }
-
-  .punkt {
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
   }
 
   .fussnote {

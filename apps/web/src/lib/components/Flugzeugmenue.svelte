@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Handlung } from '$lib/flotte/handlungen.js';
+  import Stern from './Stern.svelte';
 
   /**
    * Das Kontextmenü zu einem Flugzeug — aus der bisherigen Startseite
@@ -18,6 +19,8 @@
     handlungen,
     anker,
     zeiger,
+    favorit,
+    favoritUmschalten,
     schliessen
   }: {
     kennung: string;
@@ -29,6 +32,9 @@
      * der Anker.
      */
     zeiger?: { seiteX: number; seiteY: number };
+    /** Ob die Maschine oben festgehalten ist. */
+    favorit: boolean;
+    favoritUmschalten: () => void;
     schliessen: () => void;
   } = $props();
 
@@ -125,7 +131,9 @@
     if (!tasten.includes(ereignis.key)) return;
 
     const menue = ereignis.currentTarget as HTMLElement;
-    const eintraege = [...menue.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+    const eintraege = [
+      ...menue.querySelectorAll<HTMLElement>('[role="menuitem"], [role="menuitemcheckbox"]')
+    ];
     if (eintraege.length === 0) return;
 
     const jetzt = eintraege.indexOf(document.activeElement as HTMLElement);
@@ -158,6 +166,24 @@
       {handlung.name}
     </a>
   {/each}
+
+  <!--
+    Der Schalter steht zuletzt: Er fuehrt nirgendwohin, waehrend alles ueber
+    ihm ein Weg ist. Als `menuitemcheckbox` sagt er einem Vorleser seinen
+    Zustand von selbst -- der gefuellte Stern allein taete das nicht.
+  -->
+  <button
+    class="schalter"
+    type="button"
+    role="menuitemcheckbox"
+    aria-checked={favorit}
+    onclick={favoritUmschalten}
+    use:anfangsfokus={handlungen.length === 0}
+  >
+    <Stern gefuellt={favorit} />
+    Lieblingsmaschine
+  </button>
+
 </div>
 
 <style>
@@ -182,15 +208,38 @@
     box-shadow: 0 6px 18px rgb(0 0 0 / 28%);
   }
 
-  .menue a {
+  .menue a,
+  .menue .schalter {
+    display: flex;
+    align-items: center;
+    /* Mindestens 44 Pixel hoch (FR-017) -- ein Menü, das man am Flugplatz im
+       Stehen bedient, verträgt keine 36er Zeilen. */
+    min-height: 44px;
     padding: 0.6rem 1rem;
     color: inherit;
     text-decoration: none;
     font-size: 13.5px;
   }
 
+  /*
+    Der Schalter muss aussehen wie die Verweise ueber ihm -- eine Schaltflaeche
+    bringt Rahmen, eigene Schrift und zentrierten Text mit, die ihn sonst als
+    Fremdkoerper zeigten.
+  */
+  .menue .schalter {
+    gap: 0.55rem;
+    border: none;
+    border-top: 1px solid rgba(127, 127, 127, 0.2);
+    background: none;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
   .menue a:hover,
-  .menue a:focus-visible {
+  .menue a:focus-visible,
+  .menue .schalter:hover,
+  .menue .schalter:focus-visible {
     background: rgba(0, 102, 204, 0.14);
     outline: none;
   }

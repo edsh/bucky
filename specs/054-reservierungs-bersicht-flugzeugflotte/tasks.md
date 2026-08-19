@@ -433,6 +433,14 @@ einschließlich einer Belegung über Mitternacht und eines Ganztagseintrags.
       trägt jedes Segment `stoesstAn`; an dieser Naht rückt die Füllung im
       Zugangsweg zwei Pixel ein, sodass die Spur durchscheint. Das Segment
       selbst behält seine wahre Breite — die Zeitachse darf nicht lügen
+- [X] T049e [US2] Wo ein Avatarbild fehlt, steht das **Funkrufzeichen** in
+      der abgekürzten Form: „D-XS" für die D-MRXS, „D-LK" für die D-EELK
+      (Entscheidung des Auftraggebers, 19.08.2026). „MRXS" war nicht falsch,
+      aber es ist niemandes Wort für dieses Flugzeug — im Funk und im Verein
+      heißt es anders, und die Anzeige soll denselben Namen benutzen wie die
+      Leute, die davorstehen. Segelflugzeuge behalten unverändert ihr ganzes
+      Kennzeichen: Für sie ist die Kurzform nicht gebräuchlich, und „04"
+      ließe sich von einer D-9004 nicht unterscheiden
 
 **Checkpoint**: US1 und US2 sind beide unabhängig nutzbar. Das Feature erfüllt
 seinen Kernzweck.

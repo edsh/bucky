@@ -1769,6 +1769,28 @@ pruefe(
   JSON.stringify(avatarStil)
 );
 
+// 85a: Wo ein Avatarbild fehlt, steht das Funkrufzeichen — so heisst die
+// Maschine im Funk und im Verein. „MRXS" war nicht falsch, aber es ist
+// niemandes Wort fuer dieses Flugzeug.
+const kurzMotor = (await kachel('D-MRXS').locator('.kurz').innerText()).trim();
+pruefe(
+  152,
+  'ein Motorflugzeug ohne Bild zeigt sein Funkrufzeichen',
+  kurzMotor === 'D-XS',
+  kurzMotor
+);
+
+// 152a: Segelflugzeuge behalten das ganze Kennzeichen — fuer sie gibt es
+// keine gebraeuchliche Kurzform, und „04" liesse sich von einer D-9004 nicht
+// unterscheiden.
+const kurzSegler = (await kachel('D-3004').locator('.kurz').innerText()).trim();
+pruefe(
+  153,
+  'ein Segelflugzeug behaelt sein ganzes Kennzeichen',
+  kurzSegler === 'D-3004',
+  kurzSegler
+);
+
 // 86: das Menue erscheint erst auf Antippen und meldet seinen Zustand (FR-009)
 pruefe(
   86,

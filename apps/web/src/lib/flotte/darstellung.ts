@@ -57,19 +57,27 @@ export function darstellungFuer(kennung: string): Darstellung {
 /**
  * Die Ersatzform fuer eine fehlende Bilddatei.
  *
- * Bei Motorflugzeugen faellt das Landeszeichen weg: In einer Flotte, in der
- * jede Kennung mit „D-E" beginnt, traegt dieser Teil keine Unterscheidung —
- * „EELK" liest sich schneller und ist trotzdem eindeutig.
+ * Motorflugzeuge tragen ihr **Funkrufzeichen** in der abgekuerzten Form:
+ * das Landeszeichen und die letzten beiden Buchstaben, also „D-LK" fuer die
+ * D-EELK. So wird die Maschine im Funk gerufen und im Verein genannt; die
+ * Anzeige soll denselben Namen benutzen wie die Leute, die davorstehen.
+ * „MRXS" war nicht falsch, aber es ist niemandes Wort fuer dieses Flugzeug
+ * (Auskunft des Auftraggebers, 19.08.2026).
  *
  * Segelflugzeuge behalten ihr **ganzes** Kennzeichen. Fuer sie ist die
- * Kurzform nicht gebraeuchlich (Auskunft des Auftraggebers, 18.08.2026), und
- * eine erfundene waere schlimmer als keine: „04" liesse sich von einer
- * D-9004 nicht unterscheiden.
+ * Kurzform nicht gebraeuchlich, und eine erfundene waere schlimmer als
+ * keine: „04" liesse sich von einer D-9004 nicht unterscheiden.
+ *
+ * Zu kurze oder unerwartete Kennungen bleiben unveraendert. Eine Kurzform
+ * herzustellen, die zu nichts passt, hilft niemandem — dann lieber die
+ * vollstaendige Angabe, auch wenn sie im Kreis enger sitzt.
  */
 export function kurzkennung(kennung: string): string {
 	const gross = kennung.toUpperCase();
 	if (/^D-\d/.test(gross)) return gross;
 
-	const teil = /-(.+)$/.exec(gross);
-	return teil ? teil[1] : gross;
+	const teil = /^(D)-([A-Z]{2,})$/.exec(gross);
+	if (!teil) return gross;
+
+	return `${teil[1]}-${teil[2]!.slice(-2)}`;
 }

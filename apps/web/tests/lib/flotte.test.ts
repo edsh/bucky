@@ -85,9 +85,12 @@ describe('darstellungFuer (E-03, FR-018)', () => {
 });
 
 describe('kurzkennung', () => {
-	it('lässt bei Motorflugzeugen das Landeszeichen weg — es unterscheidet nichts', () => {
-		expect(kurzkennung('D-EELK')).toBe('EELK');
-		expect(kurzkennung('D-MRXS')).toBe('MRXS');
+	it('nennt Motorflugzeuge bei ihrem Funkrufzeichen', () => {
+		// So heißt die Maschine im Funk und im Verein. „MRXS" war nicht
+		// falsch, aber es ist niemandes Wort für dieses Flugzeug.
+		expect(kurzkennung('D-EELK')).toBe('D-LK');
+		expect(kurzkennung('D-EXYZ')).toBe('D-YZ');
+		expect(kurzkennung('D-MRXS')).toBe('D-XS');
 	});
 
 	it('lässt Segelflugzeugen ihr ganzes Kennzeichen', () => {
@@ -99,5 +102,13 @@ describe('kurzkennung', () => {
 
 	it('gibt eine Kennung ohne Bindestrich unverändert zurück', () => {
 		expect(kurzkennung('EELK')).toBe('EELK');
+	});
+
+	it('lässt eine zu kurze oder fremde Kennung in Ruhe', () => {
+		// Lieber die vollständige Angabe als eine Kurzform, die zu nichts
+		// passt — ein ausländisches Kennzeichen darf nicht deutsch aussehen.
+		expect(kurzkennung('D-E')).toBe('D-E');
+		expect(kurzkennung('G-ABCD')).toBe('G-ABCD');
+		expect(kurzkennung('D-EE-LK')).toBe('D-EE-LK');
 	});
 });

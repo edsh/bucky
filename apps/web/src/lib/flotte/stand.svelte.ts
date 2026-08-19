@@ -1,4 +1,4 @@
-import type { Maschine, Quelle, Reservierung } from '@edsh-bucky/reservierung-core';
+import type { Maschine, Quelle, Reservierung, Sonnenzeiten } from '@edsh-bucky/reservierung-core';
 
 /**
  * Der Stand der Flotte im Browser: einmal geholt, minuetlich neu gerechnet.
@@ -23,6 +23,7 @@ export interface Flottenantwort {
 	veraltet?: boolean;
 	flotte: Maschine[];
 	belegungen?: Reservierung[];
+	sonnenzeiten?: Sonnenzeiten[];
 }
 
 export class Flottenstand {
@@ -35,6 +36,13 @@ export class Flottenstand {
 	 * unterscheiden — genau die Verwechslung, die SC-003 ausschliesst.
 	 */
 	belegungen = $state<Reservierung[] | null>(null);
+	/**
+	 * Die Sonnenzeiten der kommenden Tage — leer, solange oder falls es keine
+	 * gibt. Anders als bei den Belegungen braucht es hier kein `null`: Ein
+	 * fehlender Wetterdienst ist keine Aussage, die man verwechseln koennte.
+	 * Der Ring faellt dann auf 21:00/06:00 zurueck (E-15, T-06a).
+	 */
+	sonnenzeiten = $state<Sonnenzeiten[]>([]);
 	quelle = $state<Quelle | null>(null);
 	abgerufenAm = $state<string | null>(null);
 	veraltet = $state(false);
@@ -80,6 +88,7 @@ export class Flottenstand {
 
 			this.flotte = inhalt.flotte ?? [];
 			this.belegungen = inhalt.stand === 'vorhanden' ? (inhalt.belegungen ?? []) : null;
+			this.sonnenzeiten = inhalt.sonnenzeiten ?? [];
 			this.quelle = inhalt.quelle ?? null;
 			this.abgerufenAm = inhalt.abgerufenAm ?? null;
 			this.veraltet = inhalt.veraltet ?? false;

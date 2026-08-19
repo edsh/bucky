@@ -460,35 +460,35 @@ seinen Kernzweck.
 **Ziel**: Die beiden Sonnenmarker auf dem Ring. Bewusst nach US1/US2 — der Ring
 ist ohne sie vollständig **richtig**, nur ärmer (E-08).
 
-- [ ] T050 [US1] `packages/reservierung-core/src/sonnenzeiten.ts` anlegen:
+- [X] T050 [US1] `packages/reservierung-core/src/sonnenzeiten.ts` anlegen:
       Deuten der Open-Meteo-Antwort (`daily.sunrise`/`daily.sunset` als
       Ortszeit ohne Versatz) über `ortszeitZuZeitpunkt` → `alsIsoMitVersatz`,
       netzfrei und rein (E-08)
-- [ ] T051 [US1] Prüfungen in
+- [X] T051 [US1] Prüfungen in
       `packages/reservierung-core/tests/sonnenzeiten.test.ts`: gültige
       Antwort, fehlende Felder, unbrauchbare Antwort (wirft), Sommer- und
       Winterzeit
-- [ ] T052 [US1] `apps/reservierungs-abruf/src/sonnenzeiten-holen.ts` anlegen:
+- [X] T052 [US1] `apps/reservierungs-abruf/src/sonnenzeiten-holen.ts` anlegen:
       Abruf nach E-08 mit `forecast_days=8` und `timezone=Europe/Berlin`,
       sprechender `User-Agent`. Ein Fehlschlag beendet den Durchgang **nicht** —
       der Reservierungsstand ist wichtiger als die Sonne
-- [ ] T053 [US1] `apps/reservierungs-abruf/src/abruf.ts` erweitern: Im selben
+- [X] T053 [US1] `apps/reservierungs-abruf/src/abruf.ts` erweitern: Im selben
       Durchgang prüfen, ob der KV-Schlüssel `sonnenzeiten` noch die kommenden
       acht Tage abdeckt, und nur dann neu holen — also höchstens einmal
       täglich (Prinzip V)
-- [ ] T054 [US1] `apps/web/src/routes/api/flotte/+server.ts` um das Feld
+- [X] T054 [US1] `apps/web/src/routes/api/flotte/+server.ts` um das Feld
       `sonnenzeiten` aus dem KV ergänzen (F-08). Die Route ruft den
       Wetterdienst **nicht** auf (F-09)
-- [ ] T055 [US1] `TagesuhrAvatar.svelte` die echten Sonnenzeiten übergeben:
+- [X] T055 [US1] `TagesuhrAvatar.svelte` die echten Sonnenzeiten übergeben:
       Damit wandert die Hell/Dunkel-Kante des Rings auf den tatsächlichen
       Sonnenstand (E-15) und die beiden Sonnenmarker erscheinen — sie sitzen
       genau auf dieser Kante. Fehlen die Sonnenzeiten, entfallen **nur** die
       Marker, und die Kante fällt auf 21:00/06:00 zurück (T-06a). Danach
       Nachweis im Dezember-Fall gegensehen: Der Nachmittag ab Sonnenuntergang
       muss dunkel sein, obwohl die Skala dort noch „Tag" heißt
-- [ ] T056 [US1] Namensnennung „Weather data by Open-Meteo.com" mit Verweis in
+- [X] T056 [US1] Namensnennung „Weather data by Open-Meteo.com" mit Verweis in
       der Fußnote der Detailansicht ergänzen (CC BY 4.0, E-08)
-- [ ] T057 [US1] Nachweis 7 aus `quickstart.md` durchführen: zehn Seitenaufrufe
+- [X] T057 [US1] Nachweis 7 aus `quickstart.md` durchführen: zehn Seitenaufrufe
       erzeugen **null** ausgehende Aufrufe an `api.open-meteo.com`; ohne den
       KV-Schlüssel bleibt der Ring vollständig
 

@@ -2687,6 +2687,86 @@ pruefe(
   fugeLinks
 );
 
+// 155–158: Die Sonnenmarker (Phase 5, F-08/F-09, Prinzip V).
+//
+// Zuerst der Fall ohne Sonnenzeiten: Er ist der wichtigere. Ein
+// ausgefallener Wetterdienst darf den Ring nicht beschaedigen -- er wird
+// aermer, nicht falsch.
+await page.unroute('**/api/flotte*');
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({ contentType: 'application/json', body: JSON.stringify(flottenstand) })
+);
+
+// Jeder Versuch, den Wetterdienst aus dem Browser heraus zu fragen, wird hier
+// gezaehlt statt beantwortet. Erwartet werden null.
+let wetterabrufe = 0;
+await page.route('**://api.open-meteo.com/**', (route) => {
+  wetterabrufe += 1;
+  return route.abort();
+});
+
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.ring').first().waitFor({ timeout: 5000 });
+const ohneSonne = await page.locator('.marker').count();
+const ringeOhneSonne = await page.locator('.ring').count();
+pruefe(
+  155,
+  'ohne Sonnenzeiten bleibt der Ring vollstaendig, nur ohne Sonnenmarker',
+  ringeOhneSonne === 6 && ohneSonne === 6,
+  `${ringeOhneSonne} Ringe, ${ohneSonne} Marker (je Maschine nur der Jetzt-Marker)`
+);
+
+// 156: Mit Sonnenzeiten kommen je Maschine zwei Marker hinzu.
+const heuteTag = new Date(jetztMs).toISOString().slice(0, 10);
+await page.unroute('**/api/flotte*');
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      ...flottenstand,
+      sonnenzeiten: [
+        { tag: heuteTag, aufgang: `${heuteTag}T06:05:00+02:00`, untergang: `${heuteTag}T20:48:00+02:00` }
+      ]
+    })
+  })
+);
+
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.ring').first().waitFor({ timeout: 5000 });
+const mitSonne = await page.locator('.marker').count();
+pruefe(
+  156,
+  'mit Sonnenzeiten tragen alle Ringe ihre beiden Sonnenmarker',
+  mitSonne === 18,
+  `${mitSonne} Marker (erwartet 6 x 3)`
+);
+
+// 157: Die Namensnennung nach CC BY 4.0 steht dort, wo die Daten erscheinen
+// -- und nur dann (E-08).
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
+await page.locator('.fussnote').waitFor({ timeout: 5000 });
+const fussnote = await page.locator('.fussnote').innerText();
+pruefe(
+  157,
+  'die Detailansicht nennt Open-Meteo, wenn sie deren Daten zeigt',
+  /Weather data by Open-Meteo\.com/.test(fussnote),
+  fussnote.replace(/\s+/g, ' ').slice(0, 120)
+);
+
+// 158: Nachweis 7 aus quickstart.md -- zehn Seitenaufrufe, null Fremdaufrufe.
+// Die Sonnenzeiten kommen aus dem KV, den der Abruf-Worker hoechstens einmal
+// taeglich schreibt; das Kontingent haengt damit nicht am Besucheraufkommen.
+for (let i = 0; i < 10; i++) {
+  await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+}
+pruefe(
+  158,
+  'zehn Seitenaufrufe erzeugen null Aufrufe an den Wetterdienst',
+  wetterabrufe === 0,
+  `${wetterabrufe} Aufrufe`
+);
+
+await page.unroute('**://api.open-meteo.com/**');
 await page.unroute('**/api/flotte*');
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));

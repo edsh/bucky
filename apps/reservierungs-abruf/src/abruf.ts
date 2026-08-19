@@ -1,5 +1,12 @@
-import { antwortDeuten, type Abrufstand } from '@edsh-bucky/reservierung-core';
+import {
+	antwortDeuten,
+	deckenAb,
+	ortstag,
+	type Abrufstand,
+	type Sonnenzeiten
+} from '@edsh-bucky/reservierung-core';
 import { anmelden, GRUNDADRESSE, type Sitzung, type Zugangsdaten } from './anmeldung.js';
+import { sonnenzeitenHolen, VORHERSAGETAGE } from './sonnenzeiten-holen.js';
 
 /**
  * Was der Abruf-Worker tut — getrennt von seiner Einstiegsdatei.
@@ -24,6 +31,7 @@ export interface Env {
 
 export const SCHLUESSEL_STAND = 'stand';
 export const SCHLUESSEL_SITZUNG = 'sitzung';
+export const SCHLUESSEL_SONNENZEITEN = 'sonnenzeiten';
 
 async function reservierungenHolen(sitzung: Sitzung): Promise<unknown> {
 	const antwort = await fetch(`${GRUNDADRESSE}/reservation/list/active`, {
@@ -62,6 +70,37 @@ function neuanmeldungenFortschreiben(
 	const gleicherTag = tag(new Date(vorher.abgerufenAm)) === tag(jetzt);
 
 	return gleicherTag ? vorher.neuanmeldungen + zusaetzlich : zusaetzlich;
+}
+
+/**
+ * Die Sonnenzeiten auffrischen — aber nur, wenn sie nicht mehr reichen.
+ *
+ * Der Worker laeuft alle 30 Minuten. Wuerde er jedes Mal beim Wetterdienst
+ * anfragen, waeren das 48 Aufrufe am Tag statt einem, ohne dass sich die
+ * Antwort dazwischen aendert. Gefragt wird deshalb erst, wenn der abgelegte
+ * Satz die kommenden acht Tage nicht mehr abdeckt — das ist genau einmal
+ * taeglich der Fall, beim ersten Durchgang nach Mitternacht (Prinzip V).
+ *
+ * Ein Fehlschlag beendet den Durchgang **nicht**. Der Reservierungsstand ist
+ * die Aussage, auf die es ankommt; die Sonne macht den Ring nur reicher. Und
+ * ein alter Satz ist besser als keiner: Sonnenzeiten aendern sich von Tag zu
+ * Tag um Minuten, nicht um Stunden.
+ */
+async function sonnenzeitenAuffrischen(env: Env, jetzt: Date): Promise<void> {
+	const vorhanden = await env.RESERVIERUNGEN.get<Sonnenzeiten[]>(SCHLUESSEL_SONNENZEITEN, 'json');
+	if (deckenAb(vorhanden, ortstag(jetzt), VORHERSAGETAGE)) return;
+
+	try {
+		const frisch = await sonnenzeitenHolen();
+		// Eine leere Liste nicht ueber einen brauchbaren Satz schreiben: Der
+		// Dienst hat dann zwar geantwortet, aber nichts gesagt.
+		if (frisch.length > 0) {
+			await env.RESERVIERUNGEN.put(SCHLUESSEL_SONNENZEITEN, JSON.stringify(frisch));
+		}
+	} catch {
+		// Bewusst still: Der naechste Durchgang in einer halben Stunde
+		// versucht es erneut, und bis dahin zeigt der Ring, was er hat.
+	}
 }
 
 /**
@@ -113,5 +152,10 @@ export async function durchgang(env: Env, jetzt: Date = new Date()): Promise<Abr
 	};
 
 	await env.RESERVIERUNGEN.put(SCHLUESSEL_STAND, JSON.stringify(stand));
+
+	// Erst nachdem der Stand liegt: Was hier noch schiefgeht, darf ihn nicht
+	// mehr kosten.
+	await sonnenzeitenAuffrischen(env, jetzt);
+
 	return stand;
 }

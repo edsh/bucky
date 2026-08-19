@@ -14,6 +14,8 @@
     alsWochentagKurz,
     alsZusatzzeile,
     kommendeBelegungen,
+    ortstag,
+    sonnenzeitenFuerTag,
     tagesbelegungen,
     wochenbalken,
     zeitpunktFuerMinute,
@@ -59,6 +61,13 @@
   });
 
   const dunkel = $derived(farbschema.dunkel);
+
+  /**
+   * Die Sonnenzeiten des heutigen Ortstages — oder nichts. Fehlen sie,
+   * entfallen allein die beiden Sonnenmarker auf dem Ring und die
+   * Hell/Dunkel-Kante fällt auf 21:00/06:00 zurück (E-15, T-06a).
+   */
+  const sonnenzeiten = $derived(sonnenzeitenFuerTag(stand.sonnenzeiten, ortstag(stand.jetzt)));
 
   const bekannt = $derived(stand.flotte.some((m) => m.kennung === kennung));
   const unbekannt = $derived(!bekannt && !stand.laedt && stand.flotte.length > 0);
@@ -164,6 +173,7 @@
           {kennung}
           belegungen={stand.belegungen}
           jetzt={stand.jetzt}
+          {sonnenzeiten}
           groesse={40}
           statusfarbe={farbe}
           gesperrt={zustand?.status === 'sperre'}
@@ -294,6 +304,18 @@
     <p class="fussnote">
       Unverbindliche Anzeige. Verbindlich ist der Reservierungskalender in Vereinsflieger. Namen
       werden hier grundsätzlich nicht angezeigt.
+      <!--
+        Namensnennung nach CC BY 4.0 (E-08). Sie steht nur dort, wo die Daten
+        auch erscheinen: Ohne Sonnenzeiten zeigt der Ring nichts von
+        Open-Meteo, und dann wäre der Hinweis eine Behauptung über etwas, das
+        gar nicht da ist.
+      -->
+      {#if sonnenzeiten}
+        Sonnenauf- und -untergang:
+        <a href="https://open-meteo.com/" rel="noopener noreferrer" target="_blank"
+          >Weather data by Open-Meteo.com</a
+        >.
+      {/if}
     </p>
 
     {#if darstellung.pohPfad}
@@ -636,6 +658,12 @@
     font-size: 11.5px;
     line-height: 1.55;
     opacity: 0.45;
+  }
+
+  /* Der Verweis muss anklickbar sein, ohne sich vorzudrängen. */
+  .fussnote a {
+    color: inherit;
+    text-decoration: underline;
   }
 
   /*

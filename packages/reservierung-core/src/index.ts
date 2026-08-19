@@ -63,6 +63,7 @@ export {
 	type Markerwinkel
 } from './tagesuhr.js';
 export { zustandFuer } from './zustand.js';
+export { deckenAb, sonnenzeitenDeuten, sonnenzeitenFuerTag } from './sonnenzeiten.js';
 export type {
 	Abrufstand,
 	Balkensegment,

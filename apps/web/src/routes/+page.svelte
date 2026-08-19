@@ -4,6 +4,8 @@
     alsKurzdatumUhrzeit,
     alsRueckfallHinweis,
     kategorieFuer,
+    ortstag,
+    sonnenzeitenFuerTag,
     STAMMLISTE
   } from '@edsh-bucky/reservierung-core';
   import Flugzeugmenue from '$lib/components/Flugzeugmenue.svelte';
@@ -41,6 +43,19 @@
   const stand = new Flottenstand();
 
   const dunkel = $derived(farbschema.dunkel);
+
+  /**
+   * Die Sonnenzeiten des heutigen Ortstages — oder nichts.
+   *
+   * `null` ist hier kein Ausfall, sondern der vorgesehene Normalfall am Rand:
+   * Der abgelegte Satz deckt acht Tage ab; hat der Abruf-Worker noch nie
+   * gelaufen oder war der Wetterdienst nicht erreichbar, gibt es ihn gar
+   * nicht. Dann entfallen allein die beiden Sonnenmarker und die
+   * Hell/Dunkel-Kante fällt auf 21:00/06:00 zurück (E-15, T-06a). Eine
+   * Aussage über Verfügbarkeit hängt daran nie.
+   */
+  const sonnenzeiten = $derived(sonnenzeitenFuerTag(stand.sonnenzeiten, ortstag(stand.jetzt)));
+
 
   /** Kennzeichen des Flugzeugs, dessen Menü offen steht — oder nichts. */
   let offen = $state<string | undefined>(undefined);
@@ -213,6 +228,7 @@
                       kennung={maschine.kennung}
                       belegungen={stand.belegungen}
                       jetzt={stand.jetzt}
+                      {sonnenzeiten}
                       avatargroesse={74}
                     />
                   </a>
@@ -231,6 +247,7 @@
                       kennung={maschine.kennung}
                       belegungen={stand.belegungen}
                       jetzt={stand.jetzt}
+                      {sonnenzeiten}
                       avatargroesse={74}
                     />
                   </button>

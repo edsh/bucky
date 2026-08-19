@@ -5,7 +5,8 @@ import {
 	ortstag,
 	ortszeitZuZeitpunkt,
 	STAMMLISTE,
-	type Quelle
+	type Quelle,
+	type Sonnenzeiten
 } from '@edsh-bucky/reservierung-core';
 import { standHolen } from '../../../lib/server/stand-holen.js';
 
@@ -36,8 +37,33 @@ export const prerender = false;
  */
 const FENSTER_TAGE = 8;
 
+/**
+ * Die abgelegten Sonnenzeiten — oder nichts.
+ *
+ * Gelesen wird nur; geholt hat sie der zeitgesteuerte Abruf-Worker (F-09,
+ * Prinzip V). Jeder Fehlschlag endet hier in `undefined`: Fehlt das Feld,
+ * entfallen die beiden Sonnenmarker und die Hell/Dunkel-Kante faellt auf
+ * 21:00/06:00 zurueck (F-08). Ein ausgefallener Wetterdienst darf keine
+ * Aussage ueber Verfuegbarkeit beeinflussen — und schon gar nicht diese
+ * Route scheitern lassen.
+ */
+async function sonnenzeitenLesen(platform?: App.Platform): Promise<Sonnenzeiten[] | undefined> {
+	const speicher = platform?.env?.RESERVIERUNGEN;
+	if (!speicher) return undefined;
+
+	try {
+		const abgelegt = await speicher.get('sonnenzeiten', 'json');
+		return Array.isArray(abgelegt) && abgelegt.length > 0
+			? (abgelegt as Sonnenzeiten[])
+			: undefined;
+	} catch {
+		return undefined;
+	}
+}
+
 export async function GET({ platform }: { platform?: App.Platform }): Promise<Response> {
 	const { stand, quelle } = await standHolen(platform);
+	const sonnenzeiten = await sonnenzeitenLesen(platform);
 
 	// Die Flotte haengt **nicht** am Abrufstand: Sie stammt aus der
 	// Stammliste (E-01). Deshalb kann die Oberflaeche die Maschinen auch dann
@@ -49,7 +75,10 @@ export async function GET({ platform }: { platform?: App.Platform }): Promise<Re
 		return antwort({
 			stand: 'fehlt',
 			quelle: quelle satisfies Quelle,
-			flotte: flotteBilden(STAMMLISTE, [])
+			flotte: flotteBilden(STAMMLISTE, []),
+			// Auch ohne Reservierungsstand: Der Ring zeigt dann zwar keine
+			// Belegung, aber Tag und Nacht stimmen trotzdem.
+			...(sonnenzeiten ? { sonnenzeiten } : {})
 		});
 	}
 
@@ -64,7 +93,10 @@ export async function GET({ platform }: { platform?: App.Platform }): Promise<Re
 		// Die Flotte entsteht aus Stammliste **und** Abzug (E-01): Drei der
 		// sechs Maschinen tauchen im Kalender ausschliesslich als Sperre auf.
 		flotte: flotteBilden(STAMMLISTE, stand.reservierungen),
-		belegungen: belegungenImFenster(stand.reservierungen, von, bis)
+		belegungen: belegungenImFenster(stand.reservierungen, von, bis),
+		// Fehlen sie, entfaellt allein dieses Feld (F-08). Eine leere Liste
+		// waere von "die Sonne geht nicht auf" nicht zu unterscheiden.
+		...(sonnenzeiten ? { sonnenzeiten } : {})
 	});
 }
 

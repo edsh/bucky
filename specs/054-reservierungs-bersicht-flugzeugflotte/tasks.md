@@ -595,10 +595,12 @@ antippen und prüfen, ob der Vorschlag der nächsten freien Lücke entspricht
       → angelegt als Issue #56. Der Gestaltungs-Handoff v2 (voller Zeitwähler
       im Sheet) ist im selben Zug als Issue #58 abgelegt worden — er kam
       während Phase 7 an und wird bewusst nicht mehr in dieses Feature gezogen
-- [ ] T078 Nachweis 9 aus `quickstart.md`: Vorschau auf dem Telefon über
+- [X] T078 Nachweis 9 aus `quickstart.md`: Vorschau auf dem Telefon über
       `https://pr-<nummer>-bucky.edsh.workers.dev` anbieten, **bevor** die
       Merge-Rückfrage kommt. Gestaltungsfragen entscheidet, wer die Seite vor
       sich hat — ein Bildschirmfoto des Agenten ersetzt das nicht
+      → Vorschau `https://pr-55-bucky.edsh.workers.dev/` angeboten und vom
+      Auftraggeber auf dem Telefon abgenommen
 
 ---
 

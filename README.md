@@ -43,12 +43,20 @@ unter ihm.
 |---|---|
 | `/` | Der Flugzeugpark — die ganze Flotte mit ihrer Belegung |
 | `/reservierung/<kennung>/` | Details zu einer Maschine |
-| `/d-eelk/reservierung/` | Ist sie gerade frei? |
 | `/d-eelk/poh-rechner/` | Der Rechner |
 | `/d-eelk/poh-rechner/tabellen/` | Die digitalisierten Tabellen |
 
 Die alte Adresse `/tabellen` führt weiterhin ans Ziel, damit bestehende
 Lesezeichen nicht ins Leere laufen.
+
+Zwei Adressen sind im August 2026 ersatzlos entfallen: die Einzelauskunft
+`/d-eelk/reservierung/` („Ist sie gerade frei?") und die Route
+`/api/reservierung` dahinter. Seit die Übersicht dieselbe Frage für die ganze
+Flotte beantwortet, hätte die Einzelseite zwei Wege zu einer Auskunft
+bedeutet — und zwei Wege heißt früher oder später zwei Antworten. Eine
+Weiterleitung gibt es bewusst nicht: Die Seite war wenig bekannt, und ein
+Wegweiser, dem niemand folgt, ist nur eine weitere Datei, die gepflegt werden
+will.
 
 ## Aktueller Fokus: Feature 1 – POH-Leistungsrechner
 
@@ -376,7 +384,7 @@ weiter.
 
 ### Die erste Quelle: der Kalender-Abo-Link (seit Feature 052)
 
-Seit Feature 052 fragt die Server-Route `apps/web/src/routes/api/reservierung`
+Seit Feature 052 fragt die Server-Route `apps/web/src/routes/api/flotte`
 zuerst einen öffentlichen, geheimen Kalender-Abo-Link von Vereinsflieger ab
 (`KALENDER_ABO_URL`) und deutet ihn direkt — ohne Anmeldung, ohne
 Tageskontingent, in unter zwei Sekunden. Erst wenn dieser Abruf scheitert
@@ -385,6 +393,11 @@ fällt die Route auf den KV-Namensraum des Abruf-Workers zurück — der zweite
 Worker bleibt also bestehen, ist aber nur noch die Rückfallebene, nicht mehr
 der Normalfall. Deshalb wurde sein Zeitplan von zehn auf dreißig Minuten
 verlangsamt (`apps/reservierungs-abruf/wrangler.jsonc`).
+
+Der Weg war zunächst in `api/reservierung` gebaut, der Einzelauskunft über die
+D-EELK. Diese Route ist im August 2026 entfallen (siehe unten); der
+Beschaffungsweg selbst blieb unverändert und liegt weiterhin in
+`apps/web/src/lib/server/stand-holen.ts`.
 
 Ein erfolgreicher Kalender-Abruf wird serverseitig 30 Sekunden lang
 vorgehalten (`apps/web/src/lib/server/kalender-holen.ts`) — das ist eine

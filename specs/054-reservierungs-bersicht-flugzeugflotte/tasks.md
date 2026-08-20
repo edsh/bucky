@@ -567,30 +567,34 @@ antippen und prüfen, ob der Vorschlag der nächsten freien Lücke entspricht
 
 ## Phase 8: Politur und Übergreifendes
 
-- [ ] T070 Zugänglichkeit prüfen (SC-005): Zustand ist nie ausschließlich über
+- [X] T070 Zugänglichkeit prüfen (SC-005): Zustand ist nie ausschließlich über
       Farbe erkennbar, Knöpfe sind echte `<button>`/`<a>`-Elemente, Fokus
       bleibt sichtbar, Tap-Ziele ≥ 44 px, sinnvolle Beschriftungen für
       Bildschirmleser an Ring und Statuspunkt
-- [ ] T071 [P] Nachweis 5 aus `quickstart.md` durchführen: Die Antwort von
+- [X] T071 [P] Nachweis 5 aus `quickstart.md` durchführen: Die Antwort von
       `/api/flotte` enthält keine Namen, gegengeprüft gegen die echten Namen
       aus dem Kalenderabzug (FR-023, SC-006)
-- [ ] T072 [P] Nachweis 6 aus `quickstart.md` durchführen: Die Anzeige zieht
+- [X] T072 [P] Nachweis 6 aus `quickstart.md` durchführen: Die Anzeige zieht
       binnen einer Minute nach, ohne neuen Abruf (FR-016, E-09)
-- [ ] T073 [P] SC-002 messen: Zeit bis zur sinnvoll sichtbaren Übersicht auf
+- [X] T073 [P] SC-002 messen: Zeit bis zur sinnvoll sichtbaren Übersicht auf
       einer gedrosselten mobilen Verbindung, Größe der Antwort von
       `/api/flotte` festhalten
-- [ ] T074 [P] Nachweis 2 aus `quickstart.md`: Ringgeometrie rechnerisch grün
+- [X] T074 [P] Nachweis 2 aus `quickstart.md`: Ringgeometrie rechnerisch grün
       **und** mit bloßem Auge geprüft — der Jetzt-Strich steht dort, wo die Uhr
       es sagt
-- [ ] T075 `README.md` nachziehen: neue Übersichtsseite, der neue KV-Schlüssel
+- [X] T075 `README.md` nachziehen: neue Übersichtsseite, der neue KV-Schlüssel
       `sonnenzeiten`, die Namensnennung von Open-Meteo. Die Constitution wird
       **nicht** geändert — die Abweichung zu Prinzip II ist in `plan.md`
       dokumentiert und bleibt dort
-- [ ] T076 Verhältnis zur alten Seite `/d-eelk/reservierung/` festhalten: Sie
+- [X] T076 Verhältnis zur alten Seite `/d-eelk/reservierung/` festhalten: Sie
       bleibt in diesem Feature unverändert bestehen; ob sie zugunsten der
       Übersicht entfällt, entscheidet ein eigenes Issue — dieses anlegen
-- [ ] T077 Nachfolge-Issue für die zurückgestellte Kennzeichnung eigener
+      → angelegt als Issue #57
+- [X] T077 Nachfolge-Issue für die zurückgestellte Kennzeichnung eigener
       Reservierungen anlegen (E-11), mit Verweis auf diesen Plan
+      → angelegt als Issue #56. Der Gestaltungs-Handoff v2 (voller Zeitwähler
+      im Sheet) ist im selben Zug als Issue #58 abgelegt worden — er kam
+      während Phase 7 an und wird bewusst nicht mehr in dieses Feature gezogen
 - [ ] T078 Nachweis 9 aus `quickstart.md`: Vorschau auf dem Telefon über
       `https://pr-<nummer>-bucky.edsh.workers.dev` anbieten, **bevor** die
       Merge-Rückfrage kommt. Gestaltungsfragen entscheidet, wer die Seite vor

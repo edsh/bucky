@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GET as GetType } from '../../../src/routes/api/flotte/+server.js';
 
@@ -170,6 +172,101 @@ describe('GET /api/flotte — Stand vorhanden', () => {
 		const roh = await (await GET({ platform: platform(null) })).text();
 		expect(roh).not.toContain('geheim');
 		expect(roh).not.toContain('beispiel.invalid');
+	});
+});
+
+/**
+ * Nachweis 5 aus quickstart.md (FR-023, SC-006).
+ *
+ * Der Fall darüber prüft einen erfundenen Namen — hier läuft der **echte**
+ * Abzug durch die echte Route, und gegengeprüft wird gegen die Namen, die in
+ * diesem Abzug wirklich stehen. Ein Muster nach Feldnamen fände nur, was wir
+ * ohnehin vermuten; dieser Fall findet auch, was jemand versehentlich
+ * durchreicht.
+ *
+ * Die Namen im Prüfstoff sind erfunden und 1:1 ersetzt (siehe
+ * `tests/beispiele/README.md`) — sie stehen an genau den Stellen, an denen im
+ * Original echte standen, und das genügt für diese Frage.
+ */
+describe('GET /api/flotte — gegen den echten Kalenderabzug (Nachweis 5)', () => {
+	const KALENDER = readFileSync(
+		fileURLToPath(
+			new URL(
+				'../../../../../packages/reservierung-core/tests/beispiele/kalender.ics',
+				import.meta.url
+			)
+		),
+		'utf8'
+	);
+
+	/**
+	 * Alle Personennamen des Abzugs, aus den Klammern in `SUMMARY` und
+	 * `DESCRIPTION` gelesen — `Reservierung D-EELK - (Krause, Otto)`.
+	 *
+	 * Aus der Datei gelesen statt abgeschrieben: Wächst der Prüfstoff, wächst
+	 * diese Liste mit. Eine abgeschriebene Liste veraltet still, und zwar in
+	 * die gefährliche Richtung.
+	 */
+	function namenAusDemAbzug(): string[] {
+		const namen = new Set<string>();
+		for (const treffer of KALENDER.matchAll(/\(([^()]*,[^()]*)\)/g)) {
+			const inhalt = treffer[1].trim();
+			// Der Hinweistext im Kalendertitel ist kein Personenname.
+			if (inhalt.includes('Bucky Highfly')) continue;
+			namen.add(inhalt);
+			for (const teil of inhalt.split(',')) {
+				const wort = teil.trim();
+				if (wort.length >= 4) namen.add(wort);
+			}
+		}
+		return [...namen];
+	}
+
+	beforeEach(() => {
+		vi.stubGlobal('fetch', vi.fn(async () => new Response(KALENDER, { status: 200 })));
+		// Der Abzug stammt vom 13.08.2026. Ohne festen Bezugstag liefe dieses
+		// Fenster eines Tages an allen Einträgen vorbei — und der Nachweis
+		// wäre grün, weil nichts mehr durchgereicht *werden kann*. Ein Test,
+		// der mit der Zeit aufhört zu prüfen, ist schlimmer als keiner.
+		vi.useFakeTimers({ toFake: ['Date'] });
+		vi.setSystemTime(new Date('2026-08-13T09:00:00Z'));
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
+	it('findet im Prüfstoff überhaupt Namen — sonst prüft der Rest nichts', () => {
+		expect(namenAusDemAbzug().length).toBeGreaterThan(20);
+	});
+
+	it('reicht überhaupt Belegungen durch — sonst prüft der Rest nichts', async () => {
+		const inhalt = (await (await GET({ platform: platform(null) })).json()) as {
+			belegungen?: unknown[];
+		};
+		expect(inhalt.belegungen?.length ?? 0).toBeGreaterThan(5);
+	});
+
+	it('gibt keinen einzigen davon weiter', async () => {
+		const roh = await (await GET({ platform: platform(null) })).text();
+		expect(namenAusDemAbzug().filter((name) => roh.includes(name))).toEqual([]);
+	});
+
+	it('lässt auch den Sachtext der Einträge draußen', async () => {
+		// Ein Sperrgrund ist kein Personendatum, gehört aber trotzdem nicht
+		// hinaus (FR-010): „Flieger defekt" ist eine Auskunft über die
+		// Werkstatt, nicht über die Verfügbarkeit.
+		const roh = await (await GET({ platform: platform(null) })).text();
+		expect(roh).not.toContain('defekt');
+		expect(roh).not.toContain('Flugplatzfest');
+	});
+
+	it('zeigt trotzdem die ganze Flotte — und keinen Grillplatz', async () => {
+		const inhalt = (await (await GET({ platform: platform(null) })).json()) as {
+			flotte: { kennung: string }[];
+		};
+		const kennungen = inhalt.flotte.map((m) => m.kennung);
+		expect(kennungen).toEqual(['D-EELK', 'D-EXYZ', 'D-MRXS', 'D-3004', 'D-4413', 'D-9021']);
 	});
 });
 

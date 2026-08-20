@@ -109,8 +109,17 @@
   const punktAbstand = $derived(groesse >= 90 ? 9 : 6);
 </script>
 
+<!--
+  Für Bildschirmleser ist der Ring stumm: Er zeigt in Farbe und Winkel genau
+  das, was daneben in Worten steht („Belegt bis 14:00"). Vorgelesen ergäbe er
+  keine zweite Auskunft, sondern nur zwei Ansagen für dieselbe Sache — und
+  eine Reihe von „Grafik, Grafik, Grafik" vor jedem Kennzeichen. Die
+  Zustandsinformation hängt damit trotzdem nie an der Farbe allein (SC-005);
+  sie hängt am Text.
+-->
 <div
   class="uhr"
+  aria-hidden="true"
   style:--groesse="{groesse}px"
   style:--ring="{ringbreite}px"
   style:--gradient={gradient ?? 'none'}

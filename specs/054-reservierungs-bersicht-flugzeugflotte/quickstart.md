@@ -173,6 +173,24 @@ brauchbar.
 Ein Bildschirmfoto des Agenten ersetzt das nicht. Ob der Ring „richtig
 aussieht", entscheidet, wer die Seite in der Hand hält.
 
+## Nachweis 10 — Zwei Sekunden auf einer mobilen Verbindung *(SC-002)*
+
+Gemessen mit gedrosselter Verbindung (rund 1,6 Mbit/s hinunter, 150 ms
+Verzögerung je Richtung) und vierfach gebremster Rechenleistung, Bildschirm
+390 × 844:
+
+| Was                                     | Ergebnis  |
+| --------------------------------------- | --------- |
+| erste Kachel mit sichtbarer Tagesuhr    | 1608 ms   |
+| alle sechs Kacheln sichtbar             | 1610 ms   |
+| Antwortgröße von `/api/flotte`          | 307 Bytes |
+
+Die zwei Sekunden werden gehalten. Dass zwischen der ersten und der sechsten
+Kachel nur zwei Millisekunden liegen, ist kein Zufall, sondern die Bauart: Die
+Übersicht kommt in **einer** Antwort von 307 Bytes, nicht in sechs — der
+Zwischenspeicher aus Prinzip V zahlt sich hier ein zweites Mal aus, diesmal
+beim Besucher statt beim Kontingent.
+
 ---
 
 ## Was dieses Feature **nicht** nachweist

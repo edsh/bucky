@@ -227,7 +227,7 @@
         onclick={schemaUmschalten}
         aria-label={dunkel ? 'Helle Darstellung' : 'Dunkle Darstellung'}
       >
-        {dunkel ? '☀' : '☾'}
+        <span class="rund">{dunkel ? '☀' : '☾'}</span>
       </button>
     </div>
 
@@ -404,20 +404,39 @@
     display: block;
   }
 
+  /*
+    Sichtbar bleibt der 34er Kreis aus dem Handoff, getroffen wird eine Flaeche
+    von 44 Pixeln (FR-017). Der Rahmen und die Milchglasscheibe muessen dafuer
+    am inneren Kreis haengen -- ein Rahmen am Knopf selbst waere mitgewachsen.
+  */
   .schema {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 5px;
+    right: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    background: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .schema .rund {
     width: 34px;
     height: 34px;
     border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.5);
     background: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(4px);
-    color: #fff;
-    font-size: 15px;
-    cursor: pointer;
-    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   section {

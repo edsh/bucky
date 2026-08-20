@@ -3041,6 +3041,163 @@ await page.keyboard.press('Escape');
 await page.unroute('**/api/flotte*');
 await page.unroute('**://vereinsflieger.de/**');
 
+// 175–177: Zugaenglichkeit (SC-005, FR-017).
+//
+// Drei Fragen, die sich am fertigen Bildschirm stellen lassen und am Entwurf
+// nicht: Traegt der Text den Zustand auch ohne Farbe? Sind die Knoepfe echte
+// Knoepfe? Und sieht man, wo der Fokus steht?
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ ...flottenstand, belegungen: [] })
+  })
+);
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
+await page.locator('.statuswort').waitFor({ timeout: 5000 });
+
+// 175: Der Zustand steht als Wort da, nicht nur als Farbe -- und der farbige
+// Punkt daneben bleibt fuer Bildschirmleser stumm, statt dieselbe Auskunft
+// ein zweites Mal anzusagen.
+const statuswortText = (await page.locator('.statuswort').textContent())?.trim() ?? '';
+const punktStumm = await page.locator('.statuswort .punkt').getAttribute('aria-hidden');
+const ringStumm = await page.locator('.kopfavatar .uhr').getAttribute('aria-hidden');
+pruefe(
+  175,
+  'der Zustand steht im Text, Punkt und Ring bleiben stumm',
+  statuswortText.length > 2 && punktStumm === 'true' && ringStumm === 'true',
+  `${statuswortText} | Punkt ${punktStumm} | Ring ${ringStumm}`
+);
+
+// 176: Jedes bedienbare Element ist ein echtes `button` oder `a` und mindestens
+// 44 Pixel hoch. Ein `div` mit Klickhandler waere fuer Tastatur und Vorleser
+// gar nicht da.
+const bedienbar = await page.evaluate(() => {
+  const rollen = [...document.querySelectorAll('[role="button"], [role="tab"], [role="menuitem"]')];
+  const unecht = rollen.filter((el) => !['BUTTON', 'A'].includes(el.tagName));
+  const zuKlein = [...document.querySelectorAll('button, a')]
+    .filter((el) => {
+      const k = el.getBoundingClientRect();
+      // Verweise im Fliesstext (Fussnote) sind keine Tap-Ziele, sondern Text.
+      return k.width > 0 && k.height > 0 && !el.closest('.fussnote');
+    })
+    .filter((el) => el.getBoundingClientRect().height < 44)
+    .map((el) => `${el.tagName}.${el.className} ${Math.round(el.getBoundingClientRect().height)}px`);
+  return { unecht: unecht.length, zuKlein };
+});
+pruefe(
+  176,
+  'alle Bedienelemente sind echte Knoepfe und mindestens 44 Pixel hoch',
+  bedienbar.unecht === 0 && bedienbar.zuKlein.length === 0,
+  bedienbar.zuKlein.join(' | ') || `${bedienbar.unecht} unechte`
+);
+
+// 176a: Dieselbe Frage an die Uebersicht -- sie wird oefter bedient als die
+// Detailansicht.
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.tastenkachel').first().waitFor({ timeout: 5000 });
+const bedienbarUebersicht = await page.evaluate(() => {
+  const unecht = [...document.querySelectorAll('[role="button"], [role="tab"], [role="menuitem"]')]
+    .filter((el) => !['BUTTON', 'A'].includes(el.tagName)).length;
+  const zuKlein = [...document.querySelectorAll('button, a')]
+    .filter((el) => {
+      const k = el.getBoundingClientRect();
+      return k.width > 0 && k.height > 0 && !el.closest('.fussnote');
+    })
+    .filter((el) => el.getBoundingClientRect().height < 44)
+    .map((el) => `${el.tagName}.${el.className} ${Math.round(el.getBoundingClientRect().height)}px`);
+  return { unecht, zuKlein };
+});
+pruefe(
+  '176a',
+  'auch in der Uebersicht trifft jeder Knopf 44 Pixel',
+  bedienbarUebersicht.unecht === 0 && bedienbarUebersicht.zuKlein.length === 0,
+  bedienbarUebersicht.zuKlein.join(' | ') || `${bedienbarUebersicht.unecht} unechte`
+);
+
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
+await page.locator('.reservieren').waitFor({ timeout: 5000 });
+
+// 177: Der Fokus bleibt sichtbar -- auch im Sheet, das sich ueber alles legt.
+await page.locator('.reservieren').focus();
+const fokusSichtbar = await page.evaluate(() => {
+  const stil = getComputedStyle(document.activeElement);
+  return stil.outlineStyle !== 'none' || stil.boxShadow !== 'none';
+});
+await page.locator('.reservieren').click();
+await page.locator('[role="dialog"]').waitFor({ timeout: 3000 });
+await page.keyboard.press('Tab');
+const fokusImSheet = await page.evaluate(() => document.activeElement?.closest('[role="dialog"]') !== null);
+pruefe(
+  177,
+  'der Fokus ist sichtbar und bleibt beim Oeffnen im Sheet',
+  fokusSichtbar && fokusImSheet,
+  `sichtbar: ${fokusSichtbar}, im Sheet: ${fokusImSheet}`
+);
+await page.keyboard.press('Escape');
+await page.unroute('**/api/flotte*');
+
+// 173/174: Nachweis 6 -- die Anzeige zieht nach, ohne neu zu fragen
+// (FR-016, E-09).
+//
+// Die Uhr des Browsers wird gestellt, nicht die des Rechners: So laesst sich
+// der Uebergang von "heute noch frei" nach "belegt" beobachten, ohne eine
+// Stunde zu warten. Gezaehlt wird dabei, wie oft die Seite `/api/flotte`
+// fragt -- erwartet wird genau einmal, beim Laden. Eine Anzeige, die jede
+// Minute nachfragt, waere vierzigmal so teuer fuer denselben Nutzen.
+let flottenabrufe = 0;
+const heuteUhr = '2026-08-20';
+await page.route('**/api/flotte*', (route) => {
+  flottenabrufe += 1;
+  return route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      ...flottenstand,
+      abgerufenAm: `${heuteUhr}T08:00:00.000Z`,
+      belegungen: [
+        {
+          kennung: 'D-EXYZ',
+          beginn: `${heuteUhr}T11:00:00`,
+          ende: `${heuteUhr}T13:00:00`,
+          art: 'reservierung'
+        }
+      ]
+    })
+  });
+});
+
+await page.clock.install({ time: new Date(`${heuteUhr}T10:00:00+02:00`) });
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-exyz/`, { waitUntil: 'domcontentloaded' });
+await page.locator('.statuswort').waitFor({ timeout: 5000 });
+await page.waitForFunction(() => document.querySelector('.satz')?.textContent?.trim().length > 0, null, {
+  timeout: 5000
+});
+const wortVorher = (await page.locator('.statuswort').textContent())?.trim() ?? '';
+const satzVorher = (await page.locator('.satz').textContent())?.trim() ?? '';
+const abrufeVorher = flottenabrufe;
+
+// Siebzig Minuten weiter: Die Belegung hat begonnen.
+await page.clock.fastForward(70 * 60 * 1000);
+await page.waitForTimeout(300);
+const wortNachher = (await page.locator('.statuswort').textContent())?.trim() ?? '';
+const satzNachher = (await page.locator('.satz').textContent())?.trim() ?? '';
+
+pruefe(
+  173,
+  'die Anzeige zieht ohne Neuladen nach',
+  wortVorher === 'Heute noch frei' && wortNachher === 'Belegt' && satzVorher !== satzNachher,
+  `${wortVorher} -> ${wortNachher} | ${satzNachher}`
+);
+
+pruefe(
+  174,
+  'und fragt dafuer kein zweites Mal nach',
+  abrufeVorher === 1 && flottenabrufe === 1,
+  `${flottenabrufe} Abrufe`
+);
+
+await page.clock.runFor(0);
+await page.unroute('**/api/flotte*');
+
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 
 await browser.close();

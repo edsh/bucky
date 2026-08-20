@@ -353,6 +353,27 @@ Die Zugangsdaten für den örtlichen Lauf stehen in
 `apps/reservierungs-abruf/.dev.vars` — die Datei ist von der Versionsverwaltung
 ausgenommen.
 
+#### Die zweite Fracht: die Sonnenzeiten (seit Feature 054)
+
+Derselbe Zeitplan füllt einen zweiten Schlüssel im selben Namensraum,
+`sonnenzeiten`: acht Tage Sonnenauf- und -untergang für den Platz, geholt bei
+**Open-Meteo** (`api.open-meteo.com`, kostenfrei für nichtgewerbliche Nutzung,
+keine Anmeldung). Aus ihnen zeichnet die Tagesuhr die Nachtstunden dunkler —
+mehr tun sie nicht.
+
+Geholt wird nur, wenn der abgelegte Satz die kommenden acht Tage **nicht** mehr
+abdeckt, und ein Fehlschlag überschreibt nichts. Sonnenzeiten verschieben sich
+von Tag zu Tag um Minuten; ein Satz von gestern ist deshalb allemal besser als
+ein leerer Ring. Dass sie über denselben zeitgesteuerten Worker kommen und nicht
+je Besucher, ist dieselbe Regel wie bei Vereinsflieger (Prinzip V) — nur dass
+hier kein Kontingent droht, sondern schlicht die Höflichkeit gegenüber einem
+kostenfreien Dienst.
+
+Die Übersicht liest beides in **einer** Antwort von `/api/flotte`: die Belegung
+aller sechs Maschinen und die Sonnenzeiten, zusammen rund 300 Bytes. Namen
+stehen keine darin (FR-023) — die Route reicht nur Zeiträume und Zustände
+weiter.
+
 ### Die erste Quelle: der Kalender-Abo-Link (seit Feature 052)
 
 Seit Feature 052 fragt die Server-Route `apps/web/src/routes/api/reservierung`

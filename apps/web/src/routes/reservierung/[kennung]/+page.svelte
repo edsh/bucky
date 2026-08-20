@@ -252,8 +252,13 @@
     {:else}
       <section class="statusblock">
         <p class="statuswort">
+          <!--
+            Der Punkt wiederholt in Farbe, was das Wort daneben sagt; für
+            Bildschirmleser bleibt er deshalb stumm (SC-005).
+          -->
           <span
             class="punkt"
+            aria-hidden="true"
             class:pulst={zustand !== null}
             style:background={farbe ?? 'rgba(127,127,127,.45)'}
           ></span>
@@ -435,12 +440,21 @@
     border-bottom: 1px solid rgba(127, 127, 127, 0.18);
   }
 
+  /*
+    Sichtbar bleibt der 34er Kreis des Handoffs, das Tippziel ist 44 Pixel
+    (FR-017): Der Hintergrund wird auf die Inhaltsbox beschnitten, die Flaeche
+    ringsum bleibt unsichtbar und trifft trotzdem. Ein Knopf, den man am
+    Flugplatz im Stehen dreimal antippen muss, ist kein Knopf.
+  */
   .zurueck {
     flex: none;
-    width: 34px;
-    height: 34px;
+    box-sizing: border-box;
+    width: 44px;
+    height: 44px;
+    padding: 5px;
     border-radius: 50%;
     background: rgba(127, 127, 127, 0.12);
+    background-clip: content-box;
     color: inherit;
     text-decoration: none;
     display: flex;
@@ -507,13 +521,17 @@
     background: rgba(127, 127, 127, 0.12);
   }
 
+  /* Dieselbe Rechnung wie beim Zurueck-Knopf: 32er Kreis, 44er Tippziel. */
   .schema {
     flex: none;
-    width: 32px;
-    height: 32px;
+    box-sizing: border-box;
+    width: 44px;
+    height: 44px;
+    padding: 6px;
     border: none;
     border-radius: 50%;
     background: rgba(127, 127, 127, 0.12);
+    background-clip: content-box;
     color: inherit;
     font-size: 15px;
     cursor: pointer;
@@ -609,9 +627,16 @@
     background: rgba(127, 127, 127, 0.12);
   }
 
+  /*
+    Hier waechst die Leiste wirklich: Anders als bei den runden Kopfknoepfen
+    fuellt der aktive Reiter seine Flaeche sichtbar aus, ein unsichtbarer Rand
+    ginge also nicht. 28 Pixel waren zu wenig (FR-017) -- der Handoff nennt
+    diese Hoehe zwar, aber er nennt auch keinen Daumen.
+  */
   .umschalter button {
     flex: 1;
-    padding: 7px 0;
+    min-height: 44px;
+    padding: 0;
     border: none;
     border-radius: 8px;
     background: transparent;

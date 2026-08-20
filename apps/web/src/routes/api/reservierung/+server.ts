@@ -1,5 +1,5 @@
-import { belegungsauskunft, type Abrufstand, type Quelle } from '@edsh-bucky/reservierung-core';
-import { kalenderHolen } from '../../../lib/server/kalender-holen.js';
+import { belegungsauskunft } from '@edsh-bucky/reservierung-core';
+import { standHolen } from '../../../lib/server/stand-holen.js';
 
 /**
  * Die Auskunft ueber den Reservierungsstand.
@@ -26,46 +26,16 @@ export const prerender = false;
 const KENNUNG = 'D-EELK';
 
 export async function GET({ platform }: { platform?: App.Platform }): Promise<Response> {
-	try {
-		const { reservierungen } = await kalenderHolen(platform?.env?.KALENDER_ABO_URL);
-		const stand: Abrufstand = {
-			abgerufenAm: new Date().toISOString(),
-			reservierungen,
-			verworfeneEintraege: 0,
-			neuanmeldungen: 0
-		};
-		const auskunft = belegungsauskunft(stand, KENNUNG, new Date());
-		return antwort({ stand: 'vorhanden', quelle: 'kalender' satisfies Quelle, ...auskunft });
-	} catch {
-		// Jeder Fehlschlag des Kalender-Wegs (Netz, Zeitueberschreitung, kein
-		// gueltiger Kalender, HTTP-Fehler) faellt auf den Zwischenspeicher
-		// zurueck — nie auf "frei" (FR-008). Dieser Fehlschlag schreibt
-		// nichts in den KV-Speicher (FR-006).
-		return rueckfall(platform);
-	}
-}
+	// Der zweistufige Beschaffungsweg liegt seit Feature 054 in
+	// `stand-holen.ts` — dieselbe Quelle wie fuer `/api/flotte` (E-07).
+	// Am Vertrag dieser Route aendert das nichts: Sie liefert Wort fuer Wort
+	// dieselbe Antwort wie zuvor.
+	const { stand, quelle } = await standHolen(platform);
 
-async function rueckfall(platform?: App.Platform): Promise<Response> {
-	const speicher = platform?.env?.RESERVIERUNGEN;
-	const roh = speicher ? await speicher.get('stand') : null;
-
-	// Kein Stand ist ein gueltiges Ergebnis, kein Ausfall (Vertrag Fall 2).
-	// Deshalb 200 und nicht 503: Die Anzeige soll es offen sagen koennen, ohne
-	// einen Fehlerfall behandeln zu muessen — und vor allem, ohne daraus
-	// "frei" zu machen (FR-010).
-	if (roh === null) return antwort({ stand: 'fehlt', quelle: 'rueckfall' satisfies Quelle });
-
-	let stand: Abrufstand;
-	try {
-		stand = JSON.parse(roh) as Abrufstand;
-	} catch {
-		// Ein unlesbarer Eintrag ist dasselbe wie keiner. Ihn zu erraten waere
-		// schlimmer als zuzugeben, dass gerade keine Auskunft moeglich ist.
-		return antwort({ stand: 'fehlt', quelle: 'rueckfall' satisfies Quelle });
-	}
+	if (stand === null) return antwort({ stand: 'fehlt', quelle });
 
 	const auskunft = belegungsauskunft(stand, KENNUNG, new Date());
-	return antwort({ stand: 'vorhanden', quelle: 'rueckfall' satisfies Quelle, ...auskunft });
+	return antwort({ stand: 'vorhanden', quelle, ...auskunft });
 }
 
 function antwort(inhalt: unknown): Response {

@@ -43,7 +43,14 @@ function zonenversatz(zeitpunkt: Date): number {
 		lies('day'),
 		lies('hour'),
 		lies('minute'),
-		lies('second')
+		lies('second'),
+		// Die Millisekunden muessen mit: Ohne sie ist die Differenz um bis zu
+		// 999 ms zu klein, und der Versatz kommt als "+01:59.99" statt
+		// "+02:00" heraus — eine Zeitangabe, die kein Leser mehr deutet.
+		// Aufgefallen ist das erst, als ein Zeitstempel aus `new Date()` (mit
+		// Millisekunden) durch diese Funktion lief; Kalenderzeiten stehen
+		// stets auf der vollen Sekunde und trafen den Fehler nie.
+		zeitpunkt.getUTCMilliseconds()
 	);
 	return alsUtc - zeitpunkt.getTime();
 }
@@ -182,4 +189,162 @@ export function alsUhrzeit(zeitpunkt: Date): string {
 /** Liegen zwei Zeitpunkte am selben Tag in Ortszeit? */
 export function gleicherTag(a: Date, b: Date): boolean {
 	return NUR_TAG.format(a) === NUR_TAG.format(b);
+}
+
+/**
+ * `13.08.2026` — das Datum in Ziffern, wie ein deutsches Formular es erwartet.
+ *
+ * Anders als `alsTagesdatum` („Samstag, 15. Aug.") ist das kein Text zum
+ * Lesen, sondern ein Wert zum Weiterreichen: Er geht so in die Vorbelegung
+ * der Reservierungsmaske (research.md, E-13). Deshalb steht er hier bei den
+ * uebrigen Formaten und nicht im Verweisbauer — ein zweites `Intl`-Format an
+ * anderer Stelle waere die naechste Gelegenheit, dass zwei Datumsangaben
+ * dieser Anwendung auseinanderlaufen.
+ */
+export function alsDatumZiffern(zeitpunkt: Date): string {
+	return NUR_TAG.format(zeitpunkt);
+}
+
+/* -------------------------------------------------------------------------
+ * Feature 054 — Formate und Tagesrechnung fuer die Flottenuebersicht.
+ * ---------------------------------------------------------------------- */
+
+const KURZDATUM_UHRZEIT = new Intl.DateTimeFormat('de-DE', {
+	timeZone: ZONE,
+	weekday: 'short',
+	day: '2-digit',
+	month: '2-digit',
+	hour: '2-digit',
+	minute: '2-digit'
+});
+
+const TAGESDATUM = new Intl.DateTimeFormat('de-DE', {
+	timeZone: ZONE,
+	weekday: 'long',
+	day: 'numeric',
+	month: 'short'
+});
+
+const ORTSTAG = new Intl.DateTimeFormat('en-CA', {
+	timeZone: ZONE,
+	year: 'numeric',
+	month: '2-digit',
+	day: '2-digit'
+});
+
+const NUR_STUNDE_MINUTE = new Intl.DateTimeFormat('en-GB', {
+	timeZone: ZONE,
+	hour: '2-digit',
+	minute: '2-digit',
+	hourCycle: 'h23'
+});
+
+/**
+ * `15:00` — ohne „Uhr", fuer Balken, Chips und schmale Spalten.
+ *
+ * Getrennt von `alsUhrzeit`, das „15:00 Uhr" liefert: In einem Fliesstext ist
+ * das „Uhr" richtig, in einer Spanne wie `14:00–17:30` waere es doppelt und
+ * in 112 Pixeln Spaltenbreite schlicht zu lang.
+ */
+export function alsUhrzeitKurz(zeitpunkt: Date): string {
+	return NUR_STUNDE_MINUTE.format(zeitpunkt);
+}
+
+/** `Sa., 15.08., 12:00` — knapp, fuer Listen (FR-015). */
+export function alsKurzdatumUhrzeit(zeitpunkt: Date): string {
+	return KURZDATUM_UHRZEIT.format(zeitpunkt);
+}
+
+/** `Samstag, 15. Aug.` — die Ueberschrift eines Tages in der Wochenliste. */
+export function alsTagesdatum(zeitpunkt: Date): string {
+	return TAGESDATUM.format(zeitpunkt);
+}
+
+const WOCHENTAG_KURZ = new Intl.DateTimeFormat('de-DE', {
+	timeZone: ZONE,
+	weekday: 'short'
+});
+
+const TAG_UND_MONAT = new Intl.DateTimeFormat('de-DE', {
+	timeZone: ZONE,
+	day: '2-digit',
+	month: '2-digit'
+});
+
+/**
+ * `Sa` — der Wochentag in zwei Buchstaben, fuer Spaltenkoepfe.
+ *
+ * `Intl` liefert `Sa.` mit Punkt; unter einer 40 Pixel breiten Rasterspalte
+ * ist der Punkt ein Zeichen, das keine Information traegt, aber Platz nimmt.
+ */
+export function alsWochentagKurz(zeitpunkt: Date): string {
+	return WOCHENTAG_KURZ.format(zeitpunkt).replace(/\.$/, '');
+}
+
+/** `15.08.` — Tag und Monat ohne Jahr, fuer die linke Spalte der Wochenliste. */
+export function alsTagUndMonat(zeitpunkt: Date): string {
+	return TAG_UND_MONAT.format(zeitpunkt);
+}
+
+/**
+ * Der Ortstag als `YYYY-MM-DD` — der Schluessel, unter dem Tage verglichen und
+ * Sonnenzeiten nachgeschlagen werden.
+ *
+ * `en-CA` liefert genau diese Reihenfolge; das ist kein Zufallsfund, sondern
+ * die uebliche Abkuerzung fuer ein ISO-Datum aus `Intl`. Entscheidend ist die
+ * Zone: Ein Telefon in Neuseeland darf nicht einen Tag weiter sein als der
+ * Flugplatz (T-11).
+ */
+export function ortstag(zeitpunkt: Date): string {
+	return ORTSTAG.format(zeitpunkt);
+}
+
+/**
+ * Minuten seit Ortsmitternacht (0 … 1439) — die Eingangsgroesse des
+ * Tagesuhr-Rings.
+ *
+ * An den Umstellungstagen ist der Tag 23 bzw. 25 Stunden lang. Diese Funktion
+ * liefert trotzdem die Uhrzeit, die auf der Uhr steht, denn genau die steht
+ * auch auf dem Ring. Der Ring bildet Uhrzeiten ab, nicht verstrichene Zeit.
+ */
+export function minuteDesTages(zeitpunkt: Date): number {
+	const teile = NUR_STUNDE_MINUTE.format(zeitpunkt).split(':');
+	return Number(teile[0]) * 60 + Number(teile[1]);
+}
+
+/**
+ * Der Zeitpunkt zu einem Ortstag und einer Minute seit Ortsmitternacht;
+ * Bruchteile einer Minute sind erlaubt und werden auf Sekunden gerundet.
+ *
+ * Bewusst ueber die Ortszeit-Deutung und nicht ueber `new Date(jahr, monat,
+ * …)`: Letzteres naehme die Zone des Geraets — und ein Telefon in Spanien
+ * zeigte einen anderen Ring und andere Balken (T-11).
+ *
+ * Minuten jenseits von 1440 sind zugelassen und laufen in den Folgetag: Ein
+ * Fensterende „24:00" ist die uebliche Schreibweise fuer Mitternacht und
+ * waere als 0:00 desselben Tages das Gegenteil dessen, was gemeint ist.
+ */
+export function zeitpunktFuerMinute(tag: string, minute: number): Date {
+	const gesamtSekunden = Math.round(minute * 60);
+	const stunde = Math.trunc(gesamtSekunden / 3600);
+	const rest = gesamtSekunden - stunde * 3600;
+	const zweistellig = (n: number) => String(n).padStart(2, '0');
+	const uhrzeit = `${zweistellig(stunde)}:${zweistellig(Math.trunc(rest / 60))}:${zweistellig(rest % 60)}`;
+	return ortszeitZuZeitpunkt(`${tag} ${uhrzeit}`);
+}
+
+/**
+ * Der Ortstag nach diesem — als `YYYY-MM-DD`.
+ *
+ * Gerechnet wird ab **Mittag**, nicht ab Mitternacht. An den beiden
+ * Umstellungstagen ist der Ortstag 23 bzw. 25 Stunden lang; wer schlicht
+ * 24 Stunden auf Mitternacht addiert, landet im Maerz um 01:00 des Folgetags
+ * (richtig, aber knapp) und im Oktober um 23:00 **desselben** Tages — der
+ * Wochenblick zeigte denselben Tag zweimal und den letzten gar nicht.
+ * Von der Tagesmitte aus ist der Abstand zur naechsten Mitternacht in beiden
+ * Richtungen so gross, dass eine Stunde nichts verschiebt.
+ */
+export function naechsterTag(tag: string): string {
+	const mittag = zeitpunktFuerMinute(tag, 12 * 60);
+	return ortstag(new Date(mittag.getTime() + 24 * 60 * 60 * 1000));
 }

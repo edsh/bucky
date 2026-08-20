@@ -1708,58 +1708,87 @@ pruefe(
 
 await page.evaluate(() => localStorage.clear());
 
-// --- Feature 043: Startseite, Flugzeug-Avatar und Umzug der Adressen ---
+// --- Feature 043/054: Startseite = Flugzeugpark, Kachel, Kontextmenue ---
+//
+// Seit Feature 054 ist die Startseite der Flugzeugpark: dieselbe Idee wie
+// zuvor (erst das Flugzeug, dann die Handlung), nur fuer die ganze Flotte und
+// mit der Belegung gleich am Ring. Die Pruefungen dieses Blocks sind deshalb
+// vom Avatar auf die Kachel umgestellt -- gefragt wird weiterhin dasselbe.
+
+/** Die Kachel einer bestimmten Maschine, egal ob Taste oder Verweis. */
+const kachel = (kennung) => page.locator(`.tastenkachel[data-kennung="${kennung}"]`);
 
 await page.goto(BASE, { waitUntil: 'networkidle' });
 
 // 83: der Splash traegt Buckys Frage auch fuer alle, die das Bild nicht sehen.
 // Bewusst am Sinn geprueft und nicht am Wortlaut: Das Motiv wurde schon einmal
 // ausgetauscht, und die Pruefung fiel um, obwohl der Alternativtext einwandfrei war
-const splashText = await page.locator('img.splash').getAttribute('alt');
+const splashText = await page.locator('img.splashbild').getAttribute('alt');
 pruefe(
   83,
   'Splash ist da und seine Frage steht als Textalternative bereit (FR-001, FR-002)',
-  (await page.locator('img.splash').isVisible()) &&
+  (await page.locator('img.splashbild').isVisible()) &&
     /Pilot/i.test(splashText ?? '') &&
     (splashText ?? '').includes('?') &&
     (splashText ?? '').length > 40,
   splashText ?? '(kein Alternativtext)'
 );
 
-// 84: auf einem Telefonbildschirm steht der Avatar ohne Scrollen da (FR-004, SC-002)
+// 84: auf einem Telefonbildschirm steht die erste Kachel ohne Scrollen da (FR-004, SC-002)
 await page.setViewportSize({ width: 390, height: 844 });
 await page.waitForTimeout(150);
-const avatarKasten = await page.locator('button.avatar').boundingBox();
+const avatarKasten = await kachel('D-EELK').boundingBox();
 pruefe(
   84,
-  'Avatar ist auf 390x844 ohne Scrollen sichtbar',
+  'die erste Kachel ist auf 390x844 ohne Scrollen sichtbar',
   avatarKasten !== null && avatarKasten.y + avatarKasten.height <= 844,
   avatarKasten ? `Unterkante ${Math.round(avatarKasten.y + avatarKasten.height)} px` : 'nicht gefunden'
 );
 
 // 95: der Splash liegt buendig am Rand -- der Innenabstand der Seite gilt fuer
 // alles andere, nicht fuer ihn
-const splashKasten = await page.locator('img.splash').boundingBox();
+const splashKasten = await page.locator('img.splashbild').boundingBox();
 pruefe(
   95,
   'der Splash reicht ohne weissen Rand bis an die Fensterkante',
-  splashKasten !== null && splashKasten.x === 0 && Math.round(splashKasten.width) === 390,
+  splashKasten !== null && splashKasten.x <= 1 && Math.round(splashKasten.width) >= 388,
   splashKasten ? `x ${splashKasten.x}, Breite ${Math.round(splashKasten.width)}` : 'nicht gefunden'
 );
 
-// 85: der Avatar ist rund, traegt einen Rahmen und nennt sein Kennzeichen
-const avatarStil = await page.locator('button.avatar').evaluate((el) => {
+// 85: das Avatar ist rund und die Kachel nennt ihr Kennzeichen
+const avatarStil = await kachel('D-EELK').locator('.ring').evaluate((el) => {
   const s = getComputedStyle(el);
-  return { radius: s.borderRadius, breite: s.borderTopWidth, farbe: s.borderTopColor };
+  return { radius: s.borderRadius, breite: Math.round(el.getBoundingClientRect().width) };
 });
 pruefe(
   85,
-  'Avatar ist rund, hat einen Rahmen und die Bildunterschrift D-EELK (FR-005, FR-006)',
+  'das Avatar ist rund und die Kachel traegt die Aufschrift D-EELK (FR-005, FR-006)',
   /50%/.test(avatarStil.radius) &&
-    parseFloat(avatarStil.breite) >= 2 &&
-    avatarStil.farbe !== 'rgba(0, 0, 0, 0)' &&
-    (await page.locator('.kennzeichen').innerText()) === 'D-EELK',
+    avatarStil.breite >= 60 &&
+    (await kachel('D-EELK').locator('.kennzeichen').innerText()) === 'D-EELK',
   JSON.stringify(avatarStil)
+);
+
+// 85a: Wo ein Avatarbild fehlt, steht das Funkrufzeichen — so heisst die
+// Maschine im Funk und im Verein. „MRXS" war nicht falsch, aber es ist
+// niemandes Wort fuer dieses Flugzeug.
+const kurzMotor = (await kachel('D-MRXS').locator('.kurz').innerText()).trim();
+pruefe(
+  152,
+  'ein Motorflugzeug ohne Bild zeigt sein Funkrufzeichen',
+  kurzMotor === 'D-XS',
+  kurzMotor
+);
+
+// 152a: Segelflugzeuge behalten das ganze Kennzeichen — fuer sie gibt es
+// keine gebraeuchliche Kurzform, und „04" liesse sich von einer D-9004 nicht
+// unterscheiden.
+const kurzSegler = (await kachel('D-3004').locator('.kurz').innerText()).trim();
+pruefe(
+  153,
+  'ein Segelflugzeug behaelt sein ganzes Kennzeichen',
+  kurzSegler === 'D-3004',
+  kurzSegler
 );
 
 // 86: das Menue erscheint erst auf Antippen und meldet seinen Zustand (FR-009)
@@ -1767,19 +1796,19 @@ pruefe(
   86,
   'ohne Antippen ist kein Menue offen',
   (await page.locator('[role="menu"]').count()) === 0 &&
-    (await page.locator('button.avatar').getAttribute('aria-expanded')) === 'false'
+    (await kachel('D-EELK').getAttribute('aria-expanded')) === 'false'
 );
 
-await page.locator('button.avatar').click();
+await kachel('D-EELK').click();
 await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
 const eintraege = await page.locator('[role="menuitem"]').allInnerTexts();
 pruefe(
   87,
   'Antippen oeffnet das Menue mit beiden Eintraegen (FR-010)',
   eintraege.length === 2 &&
-    eintraege[0] === 'Reservierung' &&
-    eintraege[1] === 'POH-Rechner' &&
-    (await page.locator('button.avatar').getAttribute('aria-expanded')) === 'true',
+    eintraege[0].trim() === 'Reservierung' &&
+    eintraege[1].trim() === 'POH-Rechner' &&
+    (await kachel('D-EELK').getAttribute('aria-expanded')) === 'true',
   eintraege.join(' | ')
 );
 
@@ -1793,30 +1822,75 @@ pruefe(
   menueKasten ? `${Math.round(menueKasten.x)} bis ${Math.round(menueKasten.x + menueKasten.width)} px` : 'nicht gefunden'
 );
 
-// 96: neben dem Avatar, wenn dort Platz ist -- wie ein Kontextmenue
-const avatarKasten2 = await page.locator('button.avatar').boundingBox();
+// 96: am Beruehrungspunkt, nicht an der Kachel. An der Kachel ausgerichtet
+// stand das Menue weit rechts vom Finger und liess den Nutzer zweimal greifen.
+// Dafuer wird bewusst in die linke obere Ecke der Kachel getippt: In der Mitte
+// getroffen liesse sich beides nicht auseinanderhalten.
+// Erst schliessen: Solange etwas offen ist, liegt das Schliessfeld ueber der
+// Seite und faengt den naechsten Tipp ab.
+await page.keyboard.press('Escape');
+await page.waitForTimeout(200);
+const avatarKasten2 = await kachel('D-EELK').boundingBox();
+await kachel('D-EELK').click({ position: { x: 12, y: 12 } });
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+await page.waitForTimeout(150);
+const zeigerMenue = await page.locator('[role="menu"]').boundingBox();
+const tippX = avatarKasten2 ? avatarKasten2.x + 12 : 0;
+const tippY = avatarKasten2 ? avatarKasten2.y + 12 : 0;
 pruefe(
   96,
-  'das Menue steht neben dem Avatar, solange daneben Platz ist',
-  menueKasten !== null && avatarKasten2 !== null && menueKasten.x >= avatarKasten2.x + avatarKasten2.width,
-  menueKasten && avatarKasten2
-    ? `Avatar bis ${Math.round(avatarKasten2.x + avatarKasten2.width)} px, Menue ab ${Math.round(menueKasten.x)} px`
+  'das Menue erscheint am Beruehrungspunkt',
+  zeigerMenue !== null &&
+    avatarKasten2 !== null &&
+    Math.abs(zeigerMenue.x - (tippX + 8)) <= 2 &&
+    Math.abs(zeigerMenue.y - (tippY + 8)) <= 2,
+  zeigerMenue
+    ? `getippt ${Math.round(tippX)}/${Math.round(tippY)}, Menue ${Math.round(zeigerMenue.x)}/${Math.round(zeigerMenue.y)}`
+    : 'nicht gefunden'
+);
+
+// 154: Mit der Tastatur geoeffnet gibt es keinen Beruehrungspunkt. Die linke
+// obere Fensterecke waere die falsche Antwort -- dann zaehlt wieder die
+// Kachel, neben der das Menue erscheint.
+await page.keyboard.press('Escape');
+await page.waitForTimeout(150);
+await kachel('D-EELK').focus();
+await page.keyboard.press('Enter');
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+await page.waitForTimeout(150);
+const tastenMenue = await page.locator('[role="menu"]').boundingBox();
+pruefe(
+  154,
+  'per Tastatur geoeffnet steht das Menue neben der Kachel, nicht in der Ecke',
+  tastenMenue !== null &&
+    avatarKasten2 !== null &&
+    tastenMenue.x >= avatarKasten2.x + avatarKasten2.width,
+  tastenMenue && avatarKasten2
+    ? `Kachel bis ${Math.round(avatarKasten2.x + avatarKasten2.width)} px, Menue ab ${Math.round(tastenMenue.x)} px`
     : 'nicht gefunden'
 );
 
 // 97: wird es zu eng, weicht es nach unten aus, statt herauszuragen
 await page.setViewportSize({ width: 260, height: 600 });
 await page.waitForTimeout(200);
+// Erst die Kachel ins Bild holen: Auf 260 x 600 steht sie unter dem Splash,
+// und ein Menue, das sich an einer Kachel ausserhalb des Fensters ausrichtet,
+// beantwortet die hier gestellte Frage nicht.
+await kachel('D-EELK').scrollIntoViewIfNeeded();
+await page.waitForTimeout(250);
 const engMenue = await page.locator('[role="menu"]').boundingBox();
-const engAvatar = await page.locator('button.avatar').boundingBox();
+const engAvatar = await kachel('D-EELK').boundingBox();
 pruefe(
   97,
-  'auf 260 px weicht das Menue unter den Avatar aus und bleibt im Fenster',
+  'auf 260 px weicht das Menue aus, statt seitlich herauszuragen',
   engMenue !== null &&
     engAvatar !== null &&
-    engMenue.y >= engAvatar.y + engAvatar.height &&
+    // Nicht mehr rechts daneben: dort ist auf 260 px kein Platz mehr.
+    engMenue.x < engAvatar.x + engAvatar.width &&
     engMenue.x >= 0 &&
-    engMenue.x + engMenue.width <= 260,
+    engMenue.x + engMenue.width <= 260 &&
+    engMenue.y >= 0 &&
+    engMenue.y + engMenue.height <= 600,
   engMenue ? `x ${Math.round(engMenue.x)} bis ${Math.round(engMenue.x + engMenue.width)}, y ${Math.round(engMenue.y)}` : 'nicht gefunden'
 );
 await page.setViewportSize({ width: 390, height: 844 });
@@ -1836,13 +1910,13 @@ await page.waitForTimeout(150);
 const fokusNachEscape = await page.evaluate(() => document.activeElement?.className ?? '');
 pruefe(
   89,
-  'Escape schliesst das Menue und der Fokus kehrt zum Avatar zurueck',
-  (await page.locator('[role="menu"]').count()) === 0 && /avatar/.test(fokusNachEscape),
+  'Escape schliesst das Menue und der Fokus kehrt zur Kachel zurueck',
+  (await page.locator('[role="menu"]').count()) === 0 && /tastenkachel/.test(fokusNachEscape),
   fokusNachEscape
 );
 
 // 90: ein Klick daneben schliesst ebenfalls, ohne etwas auszuloesen (FR-011)
-await page.locator('button.avatar').click();
+await kachel('D-EELK').click();
 await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
 await page.mouse.click(5, 5);
 await page.waitForTimeout(150);
@@ -1858,7 +1932,7 @@ pruefe(
 // Die Frage "ist sie ueberhaupt frei?" kommt vor der Flugplanung, und der
 // erste Eintrag gehoert der Frage, die zuerst kommt.
 await page.setViewportSize({ width: 1024, height: 1366 });
-await page.locator('button.avatar').focus();
+await kachel('D-EELK').focus();
 await page.keyboard.press('Enter');
 await page.locator('[role="menuitem"]').first().waitFor({ timeout: 3000 });
 await page.keyboard.press('ArrowDown');
@@ -1874,7 +1948,7 @@ pruefe(
 // 92: und wieder zurueck zur Auswahl, ohne die Zurueck-Taste des Browsers (FR-016)
 await page.waitForLoadState('networkidle');
 await page.getByRole('link', { name: 'Zurück zur Auswahl' }).first().click();
-await page.locator('button.avatar').waitFor({ timeout: 5000 });
+await kachel('D-EELK').waitFor({ timeout: 5000 });
 pruefe(92, 'Rueckweg vom Rechner zur Auswahl funktioniert', true);
 
 // 93: alte Lesezeichen auf die Tabellenseite laufen nicht ins Leere (FR-014, SC-005)
@@ -2155,6 +2229,974 @@ pruefe(
   ohneLager,
   ohneLager ? 'saubere Adresse' : '(Cache-Buster in der Adresse)'
 );
+
+// ---------------------------------------------------------------------------
+// Feature 054 — Die Uebersicht ueber die ganze Flotte
+// ---------------------------------------------------------------------------
+
+const UEBERSICHT = `${BASE}/`;
+
+// Ein Stand, der beide Faelle traegt: eine laufende Belegung, eine Sperre und
+// eine Maschine ohne jeden Eintrag. Fest verdrahtete Zeiten waeren am naechsten
+// Morgen falsch, deshalb relativ zu jetzt.
+const jetztMs = Date.now();
+const inStunden = (h) => new Date(jetztMs + h * 3600 * 1000).toISOString();
+
+const flottenstand = {
+  stand: 'vorhanden',
+  quelle: 'kalender',
+  abgerufenAm: new Date(jetztMs).toISOString(),
+  veraltet: false,
+  flotte: [
+    { kennung: 'D-EELK', kategorie: 'motor' },
+    { kennung: 'D-EXYZ', kategorie: 'motor' },
+    { kennung: 'D-MRXS', kategorie: 'motor' },
+    { kennung: 'D-3004', kategorie: 'segelflug' },
+    { kennung: 'D-4413', kategorie: 'segelflug' },
+    { kennung: 'D-9021', kategorie: 'segelflug' }
+  ],
+  belegungen: [
+    { kennung: 'D-EELK', beginn: inStunden(-1), ende: inStunden(2), art: 'reservierung' },
+    { kennung: 'D-MRXS', beginn: inStunden(-24), ende: inStunden(72), art: 'sperre' },
+    // Der Abendfall: heute nichts mehr, uebermorgen wieder. Genau hier stand
+    // frueher nur „Frei" — richtig, aber nutzlos.
+    { kennung: 'D-4413', beginn: inStunden(48), ende: inStunden(51), art: 'reservierung' }
+  ]
+};
+
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({ contentType: 'application/json', body: JSON.stringify(flottenstand) })
+);
+
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+
+// 120: Die ganze Flotte erscheint — und jede Maschine genau einmal. Der Fehler,
+// vor dem das schuetzt, ist eine halbe Flotte: Drei der sechs Maschinen tauchen
+// im echten Abzug ausschliesslich als Sperre auf.
+const kacheltexte = await page.locator('.kennzeichen').allInnerTexts();
+const gesehen = kacheltexte.map((t) => t.trim());
+const erwartet = flottenstand.flotte.map((m) => m.kennung);
+pruefe(
+  120,
+  'jede Maschine der Flotte erscheint genau einmal',
+  erwartet.every((k) => gesehen.filter((g) => g === k).length === 1) &&
+    gesehen.length === erwartet.length,
+  gesehen.join(', ')
+);
+
+// 121: Jede Kachel sagt ihren Zustand auch in Worten. Wer Rot und Gruen nicht
+// unterscheidet, liest sonst gar nichts (FR-005, SC-005).
+const saetze = (await page.locator('.satz').allInnerTexts()).map((t) => t.trim());
+pruefe(
+  121,
+  'jede Kachel traegt einen Kurztext, nicht nur eine Farbe',
+  saetze.length === erwartet.length && saetze.every((s) => s.length > 0),
+  saetze.join(' | ')
+);
+
+// 122: Die belegte Maschine sagt es, die ungebuchte auch — und zwar
+// verschieden. Waeren beide Texte gleich, traege der Text nichts bei.
+const flottenText = await page.locator('main').innerText();
+pruefe(
+  122,
+  'eine laufende Belegung wird als belegt benannt',
+  /Belegt bis/.test(flottenText),
+  flottenText.split('\n').find((z) => /Belegt bis/.test(z)) ?? '(nicht gefunden)'
+);
+
+pruefe(
+  123,
+  'eine gesperrte Maschine wird als gesperrt benannt, nicht als belegt',
+  /Gesperrt bis/.test(flottenText),
+  flottenText.split('\n').find((z) => /Gesperrt/.test(z)) ?? '(nicht gefunden)'
+);
+
+// 124: Der Datenstand steht da und altert sichtbar mit (FR-019).
+pruefe(
+  124,
+  'der Datenstand wird genannt',
+  /Stand\s+\w/.test(flottenText),
+  flottenText.split('\n').find((z) => /^Stand/.test(z.trim())) ?? '(nicht gefunden)'
+);
+
+// 125: Kein Personenname verlaesst den Server — und keiner steht auf der Seite.
+pruefe(
+  125,
+  'die Uebersicht nennt keine Personen',
+  !/Pilot|Fluglehrer|reserviert von/i.test(flottenText),
+  ''
+);
+
+await page.unroute('**/api/flotte*');
+
+// 126: Der Fall „kein Stand". Hier entscheidet sich, ob die Anzeige ehrlich
+// ist: Sie muss die Flotte zeigen und trotzdem fuer keine einzige Maschine
+// „frei" behaupten (FR-022, SC-003). Eine stumme Seite saehe aus wie
+// „alles frei" — genau die Verwechslung, um die es geht.
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      stand: 'fehlt',
+      quelle: 'rueckfall',
+      flotte: flottenstand.flotte
+    })
+  })
+);
+
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+const ohneStandText = await page.locator('main').innerText();
+
+pruefe(
+  126,
+  'ohne Stand erscheint die Flotte trotzdem',
+  erwartet.every((k) => ohneStandText.includes(k)),
+  ''
+);
+
+pruefe(
+  127,
+  'ohne Stand behauptet keine Maschine, frei zu sein',
+  !/\bFrei\b/.test(ohneStandText) && /keine Auskunft/i.test(ohneStandText),
+  ohneStandText.split('\n').find((z) => /Auskunft/.test(z)) ?? '(kein Hinweis gefunden)'
+);
+
+// 128: Und kein Statuspunkt taeuscht einen Zustand vor, den es nicht gibt.
+pruefe(
+  128,
+  'ohne Stand traegt keine Kachel einen Statuspunkt',
+  (await page.locator('.punkt').count()) === 3, // nur die drei Legendenpunkte
+  `${await page.locator('.punkt').count()} Punkte`
+);
+
+await page.unroute('**/api/flotte*');
+
+// --- Feature 054, Nachbesserungen: Flugzeugpark, Skelett, Legende ---------
+
+// 129: Solange die Auskunft unterwegs ist, steht die Form schon da — aber
+// ohne jede Aussage. Ein grauer Platzhalter behauptet nichts; ein gruener
+// Vorabring behauptete „frei", bevor jemand nachgesehen hat (FR-022).
+let auskunftFreigeben = () => {};
+const auskunftHaengt = new Promise((aufloesen) => {
+  auskunftFreigeben = aufloesen;
+});
+await page.route('**/api/flotte*', async (route) => {
+  await auskunftHaengt;
+  await route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify(flottenstand)
+  });
+});
+
+await page.goto(UEBERSICHT, { waitUntil: 'domcontentloaded' });
+await page.locator('.kachel .puls').first().waitFor({ timeout: 5000 });
+const skelettZahl = await page.locator('.kachel .ring.puls').count();
+const skelettText = await page.locator('main').innerText();
+pruefe(
+  129,
+  'waehrend des Ladens stehen Platzhalter, die nichts behaupten',
+  skelettZahl === erwartet.length && !/\bFrei\b|\bBelegt\b|\bGesperrt\b/.test(skelettText),
+  `${skelettZahl} Platzhalter`
+);
+
+// 130: Und wenn die Daten da sind, fuellt es sich, statt zu springen.
+auskunftFreigeben();
+await page.locator('.tastenkachel[data-kennung="D-EELK"]').waitFor({ timeout: 5000 });
+pruefe(
+  130,
+  'nach dem Laden stehen dieselben Maschinen als richtige Kacheln da',
+  (await page.locator('.tastenkachel').count()) === erwartet.length &&
+    (await page.locator('.kachel .ring.puls').count()) === 0,
+  `${await page.locator('.tastenkachel').count()} Kacheln`
+);
+await page.unroute('**/api/flotte*');
+
+// 131: Die Legende erklaert Zustaende — der dunkle Nachtanteil des Rings ist
+// keiner. Er stuende dort wie ein vierter Status.
+const legendeText = await page.locator('.legende').innerText();
+pruefe(
+  131,
+  'die Legende erklaert nur Zustaende, keine Nacht',
+  !/Nacht/i.test(legendeText) && /frei/i.test(legendeText) && /gesperrt/i.test(legendeText),
+  legendeText.replace(/\n/g, ' | ')
+);
+
+// 132: Auch ein Flugzeug, das ausser der Reservierung nichts kann, oeffnet
+// jetzt ein Menue -- der Lieblingsschalter steht immer darin, und damit hat
+// jede Maschine mehr als eine Wahl. Frueher sprang so eine Kachel direkt in
+// die Details; das ginge nicht mehr, ohne den Schalter zu verstecken.
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.tastenkachel[data-kennung="D-9021"]').click();
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+await page.getByRole('menuitem', { name: 'Reservierung' }).click();
+await page.waitForURL(/reservierung\/d-9021/, { timeout: 5000 }).catch(() => {});
+await page.waitForLoadState('networkidle');
+pruefe(
+  132,
+  'eine Maschine ohne weitere Faehigkeiten fuehrt ueber ihr Menue in ihre Details',
+  /\/reservierung\/d-9021/.test(page.url()) &&
+    (await page.locator('h1').first().innerText()).trim() === 'D-9021',
+  page.url()
+);
+
+// 133: Von dort geht es ohne Browser-Zurueck wieder in den Flugzeugpark.
+await page.getByRole('link', { name: /Flugzeugpark/ }).first().click();
+await page.locator('.tastenkachel[data-kennung="D-EELK"]').waitFor({ timeout: 5000 });
+pruefe(
+  133,
+  'der Rueckweg aus den Details in den Flugzeugpark ist ausgeschildert',
+  new URL(page.url()).pathname.replace(/\/$/, '') === new URL(BASE).pathname.replace(/\/$/, ''),
+  page.url()
+);
+
+// 134: Drei Maschinen je Reihe. Das ist keine Geschmacksfrage: Bei zwei
+// Kacheln je Reihe reicht die Flotte nicht mehr auf einen Bildschirm, und die
+// Uebersicht ist keine mehr. Geprueft wird an der Oberkante, nicht am Stil --
+// so faellt auch ein Umbruch auf, den eine Randbreite verursacht.
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({ contentType: 'application/json', body: JSON.stringify(flottenstand) })
+);
+await page.setViewportSize({ width: 390, height: 844 });
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.tastenkachel').first().waitFor({ timeout: 5000 });
+const reihen = await page.locator('.halter').evaluateAll((halter) =>
+  halter.slice(0, 3).map((h) => Math.round(h.getBoundingClientRect().top))
+);
+pruefe(
+  134,
+  'drei Maschinen stehen nebeneinander, statt in die naechste Reihe zu brechen',
+  reihen.length === 3 && new Set(reihen).size === 1,
+  reihen.join(' / ')
+);
+
+// 135: Und der Abendfall sagt, ab wann es vorbei ist. „Frei" allein ist um
+// 22 Uhr eine seltsame Auskunft: Frei ist die Maschine dann immer.
+const abendText = await page
+  .locator('.halter', { has: page.locator('.kennzeichen', { hasText: 'D-4413' }) })
+  .innerText();
+pruefe(
+  135,
+  'eine heute freie Maschine nennt ihre naechste Reservierung mit Tag und Uhrzeit',
+  /nächste Reservierung \w+\., \d{2}\.\d{2}\., \d{2}:\d{2}/.test(abendText),
+  abendText.replace(/\n/g, ' | ')
+);
+
+// 136: Jede Maschine nennt ihr Muster. Ein Kennzeichen allein sagt nur dem,
+// der die Flotte ohnehin auswendig kennt, um welches Flugzeug es geht --
+// „ASK 21" beantwortet die Frage, die ein Gast als erste stellt. Geprueft
+// wird die Vollstaendigkeit, nicht ein einzelner Eintrag: Genau eine Kachel
+// mit Muster war der Zustand, den diese Pruefung ausschliessen soll.
+const musterzeilen = await page.locator('.tastenkachel .typ').allInnerTexts();
+pruefe(
+  136,
+  'jede Kachel nennt das Muster ihrer Maschine',
+  musterzeilen.length === erwartet.length && musterzeilen.every((t) => t.trim().length > 0),
+  musterzeilen.join(' / ')
+);
+
+// 137: Und das Muster der D-EELK stimmt. „Cessna F172N" stand hier laenger,
+// als es haette stehen duerfen -- das ist der Reims-Lizenzbau, den das
+// Original-Handbuch mit abdeckt, aber nicht die Maschine im Hangar.
+pruefe(
+  137,
+  'die D-EELK ist eine Cessna 172N, keine F172N',
+  musterzeilen.some((t) => t.trim() === 'Cessna 172N') && !musterzeilen.some((t) => /F172N/.test(t)),
+  musterzeilen.join(' / ')
+);
+
+// --- Feature 054, Phase 4: die Detailansicht ------------------------------
+
+// 138: Ein Tipp auf eine Kachel fuehrt in die Details der **richtigen**
+// Maschine. Die Verwechslung waere hier besonders teuer: Alle Kacheln sehen
+// gleich aus, und wer die Belegung der Nachbarmaschine liest, plant seinen
+// Tag auf einer fremden Auskunft.
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.tastenkachel[data-kennung="D-4413"]').click();
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+await page.getByRole('menuitem', { name: 'Reservierung' }).click();
+await page.waitForURL(/reservierung\/d-4413/, { timeout: 5000 }).catch(() => {});
+await page.waitForLoadState('networkidle');
+const detailText = await page.locator('main').innerText();
+pruefe(
+  138,
+  'ein Tipp auf eine Kachel oeffnet die Details derselben Maschine',
+  /\/reservierung\/d-4413/.test(page.url()) &&
+    (await page.locator('h1').first().innerText()).trim() === 'D-4413',
+  page.url()
+);
+
+// 139: Der heutige Balken steht da, mit Stundenachse. Ohne die Achse ist ein
+// Balken ein farbiger Streifen ohne Aussage.
+pruefe(
+  139,
+  'die Detailansicht zeigt den heutigen Balken mit Stundenachse',
+  (await page.locator('.balken').count()) === 1 &&
+    /\b6\b[\s\S]*\b10\b[\s\S]*\b14\b[\s\S]*\b18\b[\s\S]*\b22\b/.test(detailText),
+  detailText.split('\n').find((z) => /^Heute/.test(z.trim())) ?? '(keine Karte gefunden)'
+);
+
+// 140: Sieben Zeilen, nicht sechs und nicht acht. Die Liste beginnt heute;
+// eine achte Zeile waere der Tag, den das Datenfenster nur zur Sicherheit
+// mitliefert (E-06) und der nicht vollstaendig waere.
+pruefe(
+  140,
+  'die Sieben-Tage-Liste hat sieben Zeilen',
+  (await page.locator('.tage li').count()) === 7,
+  `${await page.locator('.tage li').count()} Zeilen`
+);
+
+// 141: Der freie Tag sagt „frei", der belegte nennt eine Spanne. Stuende
+// ueberall dasselbe, traege die Spalte nichts bei.
+const tagtexte = (await page.locator('.tagtext').allInnerTexts()).map((z) => z.trim());
+pruefe(
+  141,
+  'die Textspalte unterscheidet freie und belegte Tage',
+  tagtexte.length === 7 &&
+    tagtexte.some((z) => z === 'frei') &&
+    tagtexte.some((z) => /\d{2}:\d{2}–\d{2}:\d{2}/.test(z)),
+  tagtexte.join(' | ')
+);
+
+// 142: Der Reiterwechsel tauscht Liste gegen Raster — und zurueck.
+await page.getByRole('tab', { name: 'Woche' }).click();
+pruefe(
+  142,
+  'der Reiter „Woche" zeigt das Raster statt der Liste',
+  (await page.locator('.spalte').count()) === 7 && (await page.locator('.tage li').count()) === 0,
+  `${await page.locator('.spalte').count()} Spalten`
+);
+
+await page.getByRole('tab', { name: '7 Tage' }).click();
+pruefe(
+  143,
+  'der Reiter „7 Tage" bringt die Liste zurueck',
+  (await page.locator('.tage li').count()) === 7 && (await page.locator('.spalte').count()) === 0,
+  `${await page.locator('.tage li').count()} Zeilen`
+);
+
+// 144: Die kommenden Belegungen nennen Zeitraum, Art und Dauer — und keinen
+// Namen. Das ist die Stelle, an der ein Personenname am ehesten durchrutschen
+// wuerde (FR-010, E-11).
+const kommendText = await page.locator('.kommende').innerText();
+pruefe(
+  144,
+  'die kommenden Belegungen nennen Art und Dauer, aber keine Person',
+  /Reserviert/.test(kommendText) &&
+    /\d+(,\d)?\s*h/.test(kommendText) &&
+    !/Pilot|Fluglehrer|Deine Reservierung|Wartung/i.test(kommendText),
+  kommendText.replace(/\n/g, ' | ')
+);
+
+// 145: Der POH-Verweis erscheint nur, wo es einen Rechner gibt (FR-018). Ein
+// Knopf, der ins Leere fuehrt, ist schlimmer als kein Knopf.
+pruefe(
+  145,
+  'ein Segelflugzeug zeigt keinen POH-Verweis',
+  (await page.locator('.poh').count()) === 0,
+  ''
+);
+
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
+pruefe(
+  146,
+  'die D-EELK zeigt ihn',
+  (await page.locator('.poh').count()) === 1,
+  (await page.locator('.poh').first().getAttribute('href')) ?? '(kein Ziel)'
+);
+
+// 147: Und der Weg zurueck in den Flugzeugpark steht im Kopf, nicht nur im
+// Browser. Wer die Seite ueber einen geteilten Verweis oeffnet, hat kein
+// Zurueck.
+await page.locator('.zurueck').click();
+await page.locator('.tastenkachel[data-kennung="D-EELK"]').waitFor({ timeout: 5000 });
+pruefe(
+  147,
+  'der Zurueck-Knopf im Kopf fuehrt in den Flugzeugpark',
+  new URL(page.url()).pathname.replace(/\/$/, '') === new URL(BASE).pathname.replace(/\/$/, ''),
+  page.url()
+);
+
+// 148: Eine Sperre traegt auf dem Balken dasselbe Absperrband wie auf dem
+// Avatar. Glattes Grau war hier vorher keine Aussage, sondern die Farbe, die
+// uebrig bleibt -- man sieht ihr nicht an, dass sie etwas bedeutet. Geprueft
+// wird der gerechnete Stil, nicht die Klasse: Eine Klasse kann dastehen,
+// ohne dass eine Regel greift.
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-mrxs/`, { waitUntil: 'networkidle' });
+await page.locator('.balken .segment .fuellung').first().waitFor({ timeout: 5000 });
+const sperrflaeche = await page
+  .locator('.balken .segment .fuellung')
+  .first()
+  .evaluate((s) => getComputedStyle(s).backgroundImage);
+pruefe(
+  148,
+  'eine Sperre erscheint als Absperrband, nicht als glattes Grau',
+  /repeating-linear-gradient/.test(sperrflaeche),
+  sperrflaeche.slice(0, 90)
+);
+
+// 149: Und eine Reservierung gerade nicht — sonst waeren beide Zustaende
+// wieder ununterscheidbar, nur andersherum.
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
+await page.locator('.balken .segment .fuellung').first().waitFor({ timeout: 5000 });
+const belegtflaeche = await page
+  .locator('.balken .segment .fuellung')
+  .first()
+  .evaluate((s) => getComputedStyle(s).backgroundImage);
+pruefe(
+  149,
+  'eine Reservierung bleibt eine glatte Flaeche',
+  belegtflaeche === 'none',
+  belegtflaeche.slice(0, 90)
+);
+
+// 150/151: Zwei Reservierungen, die lueckenlos aneinander anschliessen, sind
+// zwei Belegungen mit zwei Nutzern. Ein durchgehender Balken behauptet eine —
+// und wer ihn sieht, ruft womoeglich den Falschen an. Feste Ortszeiten, weil
+// das Fenster 06:00–22:00 fest ist und relative Zeiten nachts hinausfielen.
+const heuteIso = new Date(jetztMs).toISOString().slice(0, 10);
+await page.unroute('**/api/flotte*');
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      ...flottenstand,
+      belegungen: [
+        { kennung: 'D-EXYZ', beginn: `${heuteIso}T10:00:00`, ende: `${heuteIso}T13:00:00`, art: 'reservierung' },
+        { kennung: 'D-EXYZ', beginn: `${heuteIso}T13:00:00`, ende: `${heuteIso}T16:00:00`, art: 'reservierung' }
+      ]
+    })
+  })
+);
+
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-exyz/`, { waitUntil: 'networkidle' });
+await page.locator('.balken .segment').first().waitFor({ timeout: 5000 });
+const anzahlSegmente = await page.locator('.balken .segment').count();
+pruefe(
+  150,
+  'zwei aneinanderliegende Reservierungen bleiben zwei Balken',
+  anzahlSegmente === 2,
+  `${anzahlSegmente} Segmente`
+);
+
+// 151: Getrennt in den Daten reicht nicht — pixelgenau aneinanderstossend
+// saehen sie wieder wie eines aus. Das zweite Stueck rueckt deshalb ein.
+const fugeLinks = await page
+  .locator('.balken .segment')
+  .nth(1)
+  .locator('.fuellung')
+  .evaluate((s) => getComputedStyle(s).left);
+pruefe(
+  151,
+  'an der Naht steht eine sichtbare Fuge',
+  fugeLinks === '2px',
+  fugeLinks
+);
+
+// 155–158: Die Sonnenmarker (Phase 5, F-08/F-09, Prinzip V).
+//
+// Zuerst der Fall ohne Sonnenzeiten: Er ist der wichtigere. Ein
+// ausgefallener Wetterdienst darf den Ring nicht beschaedigen -- er wird
+// aermer, nicht falsch.
+await page.unroute('**/api/flotte*');
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({ contentType: 'application/json', body: JSON.stringify(flottenstand) })
+);
+
+// Jeder Versuch, den Wetterdienst aus dem Browser heraus zu fragen, wird hier
+// gezaehlt statt beantwortet. Erwartet werden null.
+let wetterabrufe = 0;
+await page.route('**://api.open-meteo.com/**', (route) => {
+  wetterabrufe += 1;
+  return route.abort();
+});
+
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.ring').first().waitFor({ timeout: 5000 });
+const ohneSonne = await page.locator('.marker').count();
+const ringeOhneSonne = await page.locator('.ring').count();
+pruefe(
+  155,
+  'ohne Sonnenzeiten bleibt der Ring vollstaendig, nur ohne Sonnenmarker',
+  ringeOhneSonne === 6 && ohneSonne === 6,
+  `${ringeOhneSonne} Ringe, ${ohneSonne} Marker (je Maschine nur der Jetzt-Marker)`
+);
+
+// 156: Mit Sonnenzeiten kommen je Maschine zwei Marker hinzu.
+const heuteTag = new Date(jetztMs).toISOString().slice(0, 10);
+await page.unroute('**/api/flotte*');
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      ...flottenstand,
+      sonnenzeiten: [
+        { tag: heuteTag, aufgang: `${heuteTag}T06:05:00+02:00`, untergang: `${heuteTag}T20:48:00+02:00` }
+      ]
+    })
+  })
+);
+
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.ring').first().waitFor({ timeout: 5000 });
+const mitSonne = await page.locator('.marker').count();
+pruefe(
+  156,
+  'mit Sonnenzeiten tragen alle Ringe ihre beiden Sonnenmarker',
+  mitSonne === 18,
+  `${mitSonne} Marker (erwartet 6 x 3)`
+);
+
+// 157: Die Namensnennung nach CC BY 4.0 steht dort, wo die Daten erscheinen
+// -- und nur dann (E-08).
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
+await page.locator('.fussnote').waitFor({ timeout: 5000 });
+const fussnote = await page.locator('.fussnote').innerText();
+pruefe(
+  157,
+  'die Detailansicht nennt Open-Meteo, wenn sie deren Daten zeigt',
+  /Weather data by Open-Meteo\.com/.test(fussnote),
+  fussnote.replace(/\s+/g, ' ').slice(0, 120)
+);
+
+// 158: Nachweis 7 aus quickstart.md -- zehn Seitenaufrufe, null Fremdaufrufe.
+// Die Sonnenzeiten kommen aus dem KV, den der Abruf-Worker hoechstens einmal
+// taeglich schreibt; das Kontingent haengt damit nicht am Besucheraufkommen.
+for (let i = 0; i < 10; i++) {
+  await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+}
+pruefe(
+  158,
+  'zehn Seitenaufrufe erzeugen null Aufrufe an den Wetterdienst',
+  wetterabrufe === 0,
+  `${wetterabrufe} Aufrufe`
+);
+
+await page.unroute('**://api.open-meteo.com/**');
+await page.unroute('**/api/flotte*');
+
+// ---------------------------------------------------------------------------
+// Favoriten (Feature 054, US3) — Nachweis 8 aus quickstart.md
+// ---------------------------------------------------------------------------
+
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({ contentType: 'application/json', body: JSON.stringify(flottenstand) })
+);
+
+// Ein sauberes Geraet: Was ein frueherer Durchgang gemerkt hat, faelschte
+// sonst genau die Pruefung, die "noch nie etwas gesetzt" heisst.
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.evaluate(() => localStorage.removeItem('bucky.favoriten'));
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.tastenkachel[data-kennung="D-EELK"]').waitFor({ timeout: 5000 });
+
+// 159: Ohne je gesetzten Favoriten erscheint keine Reihe -- auch keine leere
+// (FR-007b). Eine Ueberschrift ueber einem leeren Streifen erklaerte eine
+// Funktion, nach der niemand gefragt hat.
+const zaehlerVorher = await page.locator('.zaehler').allInnerTexts();
+pruefe(
+  159,
+  'ohne gesetzten Favoriten gibt es keine Favoritenreihe',
+  (await page.locator('.favoritenreihe').count()) === 0 &&
+    zaehlerVorher.join('/') === '3/3',
+  `Zaehler ${zaehlerVorher.join(' | ')}`
+);
+
+// 160: Der Schalter im Menue heisst "Lieblingsmaschine" und meldet seinen
+// Zustand -- der gefuellte Stern allein sagte einem Vorleser nichts.
+await page.locator('.tastenkachel[data-kennung="D-MRXS"]').click();
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+const schalter = page.getByRole('menuitemcheckbox', { name: 'Lieblingsmaschine' });
+pruefe(
+  160,
+  'jedes Menue traegt den Schalter Lieblingsmaschine, anfangs nicht gesetzt',
+  (await schalter.count()) === 1 && (await schalter.getAttribute('aria-checked')) === 'false',
+  await schalter.getAttribute('aria-checked')
+);
+
+// 161: Markiert steht die Maschine oben -- und **nicht** mehr in ihrer Gruppe
+// (FR-007). Der Gruppenzaehler zaehlt, was die Gruppe zeigt: Er muss also
+// sinken, sonst nennt er eine Zahl, die sich nicht nachzaehlen laesst.
+await schalter.click();
+await page.locator('.favoritenreihe').waitFor({ timeout: 3000 });
+const zaehlerNachher = await page.locator('.zaehler').allInnerTexts();
+const inGruppe = await page.locator('.raster .tastenkachel[data-kennung="D-MRXS"]').count();
+const obenDrin = await page.locator('.favoritenreihe .tastenkachel[data-kennung="D-MRXS"]').count();
+pruefe(
+  161,
+  'ein Favorit steht oben, nicht mehr in seiner Gruppe, und der Zaehler sinkt',
+  obenDrin === 1 && inGruppe === 0 && zaehlerNachher.join('/') === '2/3',
+  `oben ${obenDrin}, in Gruppe ${inGruppe}, Zaehler ${zaehlerNachher.join(' | ')}`
+);
+
+// 162: Und zwar ueber das Neuladen hinweg -- eine Merkliste, die den ersten
+// Seitenwechsel nicht ueberlebt, merkt sich nichts.
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.favoritenreihe').waitFor({ timeout: 5000 });
+pruefe(
+  162,
+  'die Markierung ueberlebt das Neuladen',
+  (await page.locator('.favoritenreihe .tastenkachel[data-kennung="D-MRXS"]').count()) === 1
+);
+
+// 163: Bei hoechstens zwei Favoriten steht die Legende rechts neben der Reihe,
+// sonst als eigene Zeile darunter. Zweimal darf sie nie erscheinen: Wer
+// dieselbe Legende an zwei Stellen sieht, sucht nach dem Unterschied.
+const legendenEins = await page.locator('.legende').count();
+const danebenEins = await page.locator('.legende-daneben .legende').count();
+pruefe(
+  163,
+  'bei einem Favoriten steht die Legende neben der Reihe, und nur einmal',
+  legendenEins === 1 && danebenEins === 1,
+  `${legendenEins} Legenden, davon ${danebenEins} daneben`
+);
+
+// 164: Ab dem dritten Favoriten reicht der Streifen daneben nicht mehr.
+for (const kennzeichen of ['D-EELK', 'D-EXYZ']) {
+  await page.locator(`.raster .tastenkachel[data-kennung="${kennzeichen}"]`).click();
+  await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+  await page.getByRole('menuitemcheckbox', { name: 'Lieblingsmaschine' }).click();
+  await page.waitForTimeout(150);
+}
+const darunter = await page.locator('.legende-darunter .legende').count();
+const legendenDrei = await page.locator('.legende').count();
+pruefe(
+  164,
+  'ab drei Favoriten wandert die Legende in eine eigene Zeile darunter',
+  legendenDrei === 1 && darunter === 1 && (await page.locator('.legende-daneben').count()) === 0,
+  `${legendenDrei} Legenden, ${darunter} darunter`
+);
+
+// 165: Das Menue traegt bei einer bereits gemerkten Maschine den gesetzten
+// Zustand -- und ein zweiter Druck nimmt die Markierung zurueck.
+await page.locator('.favoritenreihe .tastenkachel[data-kennung="D-EELK"]').click();
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+const schalterGesetzt = page.getByRole('menuitemcheckbox', { name: 'Lieblingsmaschine' });
+const warGesetzt = (await schalterGesetzt.getAttribute('aria-checked')) === 'true';
+await schalterGesetzt.click();
+await page.waitForTimeout(200);
+pruefe(
+  165,
+  'ein zweiter Druck nimmt die Markierung zurueck',
+  warGesetzt &&
+    (await page.locator('.favoritenreihe .tastenkachel[data-kennung="D-EELK"]').count()) === 0 &&
+    (await page.locator('.raster .tastenkachel[data-kennung="D-EELK"]').count()) === 1,
+  `vorher gesetzt: ${warGesetzt}`
+);
+
+// 166: Alle Menüeintraege sind gleich hoch und mindestens 44 Pixel (FR-017).
+// Ein Verweis rechnet seine Innenabstaende anders als eine Schaltflaeche --
+// dieselbe Regel ergab 63 Pixel neben 44, und der letzte Eintrag sah gedrueckt
+// aus.
+await page.locator('.raster .tastenkachel[data-kennung="D-EELK"]').click();
+await page.locator('[role="menu"]').waitFor({ timeout: 3000 });
+const eintragshoehen = await page.evaluate(() =>
+  [...document.querySelector('[role="menu"]').children].map((el) =>
+    Math.round(el.getBoundingClientRect().height)
+  )
+);
+pruefe(
+  166,
+  'alle Menueeintraege sind gleich hoch und mindestens 44 Pixel',
+  eintragshoehen.length === 3 &&
+    eintragshoehen.every((h) => h >= 44) &&
+    new Set(eintragshoehen).size === 1,
+  eintragshoehen.join(' | ')
+);
+await page.keyboard.press('Escape');
+
+// 167: In der Detailansicht liegt derselbe Schalter als Stern im Kopf -- und
+// er zeigt, was die Uebersicht gemerkt hat. Zwei Orte, ein Gedaechtnis.
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-mrxs/`, { waitUntil: 'networkidle' });
+const sternDetail = page.locator('.stern');
+await sternDetail.waitFor({ timeout: 5000 });
+const sternKasten = await sternDetail.boundingBox();
+pruefe(
+  167,
+  'die Detailansicht zeigt die Markierung aus der Uebersicht, mit 44er Tippziel',
+  (await sternDetail.getAttribute('aria-pressed')) === 'true' &&
+    sternKasten !== null &&
+    sternKasten.height >= 44 &&
+    sternKasten.width >= 44,
+  sternKasten ? `${Math.round(sternKasten.width)} x ${Math.round(sternKasten.height)} px` : 'nicht gefunden'
+);
+
+// 168: Und er wirkt in beide Richtungen: Was hier abgewaehlt wird, ist in der
+// Uebersicht nicht mehr oben.
+await sternDetail.click();
+await page.waitForTimeout(150);
+const abgewaehlt = (await sternDetail.getAttribute('aria-pressed')) === 'false';
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.tastenkachel[data-kennung="D-MRXS"]').waitFor({ timeout: 5000 });
+pruefe(
+  168,
+  'was in der Detailansicht abgewaehlt wird, steht in der Uebersicht wieder in seiner Gruppe',
+  abgewaehlt &&
+    (await page.locator('.raster .tastenkachel[data-kennung="D-MRXS"]').count()) === 1 &&
+    (await page.locator('.favoritenreihe .tastenkachel[data-kennung="D-MRXS"]').count()) === 0
+);
+
+await page.evaluate(() => localStorage.removeItem('bucky.favoriten'));
+await page.unroute('**/api/flotte*');
+
+// 169–172: Der Weg nach Vereinsflieger (US4).
+//
+// Hier wird nicht gebucht, und genau das muss der Test festhalten: Das Sheet
+// nennt ein Fenster und haelt einen Verweis bereit — mehr passiert nicht,
+// solange niemand ihn antippt.
+//
+// Jeder Aufruf nach Vereinsflieger wird gezaehlt statt beantwortet. Erwartet
+// werden null; ein Sheet, das beim Oeffnen schon hinuebergreift, waere ein
+// stiller Fehler.
+let vereinsfliegeraufrufe = 0;
+await page.route('**://vereinsflieger.de/**', (route) => {
+  vereinsfliegeraufrufe += 1;
+  return route.abort();
+});
+
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ ...flottenstand, belegungen: [] })
+  })
+);
+
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-exyz/`, { waitUntil: 'networkidle' });
+await page.locator('.reservieren').waitFor({ timeout: 5000 });
+const reservierenKasten = await page.locator('.reservieren').boundingBox();
+await page.locator('.reservieren').click();
+await page.locator('[role="dialog"]').waitFor({ timeout: 3000 });
+const vonWert = (await page.locator('.feld').first().locator('.wert').textContent())?.trim() ?? '';
+const bisWert = (await page.locator('.feld').nth(1).locator('.wert').textContent())?.trim() ?? '';
+pruefe(
+  169,
+  'der Knopf oeffnet ein Sheet mit Von und Bis aus der naechsten freien Luecke',
+  reservierenKasten !== null &&
+    reservierenKasten.height >= 44 &&
+    /\d{2}:(00|30)$/.test(vonWert) &&
+    /^\d{2}:(00|30)$/.test(bisWert),
+  `${vonWert} bis ${bisWert}`
+);
+
+// 170: Der Verweis traegt die Nummer dieser Maschine und dieselben Zeiten,
+// die daneben stehen. Zwei verschiedene Fenster -- eines im Text, eines in
+// der Adresse -- waeren schlimmer als gar keine Vorbelegung.
+const ziel = (await page.locator('.weiter').getAttribute('href')) ?? '';
+const zielFenster = [...ziel.matchAll(/frm_date(?:from|to)time=(\d{2}:\d{2})/g)].map((t) => t[1]);
+pruefe(
+  170,
+  'der Verweis traegt die Nummer der Maschine und genau das gezeigte Fenster',
+  ziel.includes('frm_apid=43352') &&
+    zielFenster.length === 2 &&
+    vonWert.endsWith(zielFenster[0]) &&
+    bisWert === zielFenster[1] &&
+    (await page.locator('.weiter').getAttribute('target')) === '_blank' &&
+    ((await page.locator('.weiter').getAttribute('rel')) ?? '').includes('noopener'),
+  ziel
+);
+
+// 171: Tap aufs Overlay schliesst -- ohne dass ein Aufruf nach Vereinsflieger
+// stattgefunden haette (US4-Szenario 2).
+await page.locator('.overlay').click();
+await page.waitForTimeout(200);
+pruefe(
+  171,
+  'das Overlay schliesst das Sheet, ohne dass Vereinsflieger aufgerufen wurde',
+  (await page.locator('[role="dialog"]').count()) === 0 && vereinsfliegeraufrufe === 0,
+  `${vereinsfliegeraufrufe} Aufrufe`
+);
+
+// 172: Bleibt keine Luecke, gibt es keinen Vorschlag -- weder im Text noch in
+// der Adresse (Z-08). Eine Sperre ueber das ganze Suchfenster hinaus ist der
+// klarste Fall davon.
+const sperrbeginn = new Date(jetztMs - 3_600_000).toISOString().slice(0, 19);
+const sperrende = new Date(jetztMs + 8 * 86_400_000).toISOString().slice(0, 19);
+await page.unroute('**/api/flotte*');
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      ...flottenstand,
+      belegungen: [
+        { kennung: 'D-EXYZ', beginn: sperrbeginn, ende: sperrende, art: 'sperre' }
+      ]
+    })
+  })
+);
+
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-exyz/`, { waitUntil: 'networkidle' });
+await page.locator('.reservieren').click();
+await page.locator('[role="dialog"]').waitFor({ timeout: 3000 });
+const leerhinweis = (await page.locator('[role="dialog"] .hinweis').textContent())?.trim() ?? '';
+const leerziel = (await page.locator('.weiter').getAttribute('href')) ?? '';
+pruefe(
+  172,
+  'ohne freie Luecke steht der Statussatz statt eines erfundenen Fensters',
+  (await page.locator('.feld').count()) === 0 &&
+    leerhinweis.length > 0 &&
+    !leerziel.includes('frm_datefrom'),
+  `${leerhinweis} | ${leerziel}`
+);
+
+await page.keyboard.press('Escape');
+await page.unroute('**/api/flotte*');
+await page.unroute('**://vereinsflieger.de/**');
+
+// 175–177: Zugaenglichkeit (SC-005, FR-017).
+//
+// Drei Fragen, die sich am fertigen Bildschirm stellen lassen und am Entwurf
+// nicht: Traegt der Text den Zustand auch ohne Farbe? Sind die Knoepfe echte
+// Knoepfe? Und sieht man, wo der Fokus steht?
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ ...flottenstand, belegungen: [] })
+  })
+);
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
+await page.locator('.statuswort').waitFor({ timeout: 5000 });
+
+// 175: Der Zustand steht als Wort da, nicht nur als Farbe -- und der farbige
+// Punkt daneben bleibt fuer Bildschirmleser stumm, statt dieselbe Auskunft
+// ein zweites Mal anzusagen.
+const statuswortText = (await page.locator('.statuswort').textContent())?.trim() ?? '';
+const punktStumm = await page.locator('.statuswort .punkt').getAttribute('aria-hidden');
+const ringStumm = await page.locator('.kopfavatar .uhr').getAttribute('aria-hidden');
+pruefe(
+  175,
+  'der Zustand steht im Text, Punkt und Ring bleiben stumm',
+  statuswortText.length > 2 && punktStumm === 'true' && ringStumm === 'true',
+  `${statuswortText} | Punkt ${punktStumm} | Ring ${ringStumm}`
+);
+
+// 176: Jedes bedienbare Element ist ein echtes `button` oder `a` und mindestens
+// 44 Pixel hoch. Ein `div` mit Klickhandler waere fuer Tastatur und Vorleser
+// gar nicht da.
+const bedienbar = await page.evaluate(() => {
+  const rollen = [...document.querySelectorAll('[role="button"], [role="tab"], [role="menuitem"]')];
+  const unecht = rollen.filter((el) => !['BUTTON', 'A'].includes(el.tagName));
+  const zuKlein = [...document.querySelectorAll('button, a')]
+    .filter((el) => {
+      const k = el.getBoundingClientRect();
+      // Verweise im Fliesstext (Fussnote) sind keine Tap-Ziele, sondern Text.
+      return k.width > 0 && k.height > 0 && !el.closest('.fussnote');
+    })
+    .filter((el) => el.getBoundingClientRect().height < 44)
+    .map((el) => `${el.tagName}.${el.className} ${Math.round(el.getBoundingClientRect().height)}px`);
+  return { unecht: unecht.length, zuKlein };
+});
+pruefe(
+  176,
+  'alle Bedienelemente sind echte Knoepfe und mindestens 44 Pixel hoch',
+  bedienbar.unecht === 0 && bedienbar.zuKlein.length === 0,
+  bedienbar.zuKlein.join(' | ') || `${bedienbar.unecht} unechte`
+);
+
+// 176a: Dieselbe Frage an die Uebersicht -- sie wird oefter bedient als die
+// Detailansicht.
+await page.goto(UEBERSICHT, { waitUntil: 'networkidle' });
+await page.locator('.tastenkachel').first().waitFor({ timeout: 5000 });
+const bedienbarUebersicht = await page.evaluate(() => {
+  const unecht = [...document.querySelectorAll('[role="button"], [role="tab"], [role="menuitem"]')]
+    .filter((el) => !['BUTTON', 'A'].includes(el.tagName)).length;
+  const zuKlein = [...document.querySelectorAll('button, a')]
+    .filter((el) => {
+      const k = el.getBoundingClientRect();
+      return k.width > 0 && k.height > 0 && !el.closest('.fussnote');
+    })
+    .filter((el) => el.getBoundingClientRect().height < 44)
+    .map((el) => `${el.tagName}.${el.className} ${Math.round(el.getBoundingClientRect().height)}px`);
+  return { unecht, zuKlein };
+});
+pruefe(
+  '176a',
+  'auch in der Uebersicht trifft jeder Knopf 44 Pixel',
+  bedienbarUebersicht.unecht === 0 && bedienbarUebersicht.zuKlein.length === 0,
+  bedienbarUebersicht.zuKlein.join(' | ') || `${bedienbarUebersicht.unecht} unechte`
+);
+
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
+await page.locator('.reservieren').waitFor({ timeout: 5000 });
+
+// 177: Der Fokus bleibt sichtbar -- auch im Sheet, das sich ueber alles legt.
+await page.locator('.reservieren').focus();
+const fokusSichtbar = await page.evaluate(() => {
+  const stil = getComputedStyle(document.activeElement);
+  return stil.outlineStyle !== 'none' || stil.boxShadow !== 'none';
+});
+await page.locator('.reservieren').click();
+await page.locator('[role="dialog"]').waitFor({ timeout: 3000 });
+await page.keyboard.press('Tab');
+const fokusImSheet = await page.evaluate(() => document.activeElement?.closest('[role="dialog"]') !== null);
+pruefe(
+  177,
+  'der Fokus ist sichtbar und bleibt beim Oeffnen im Sheet',
+  fokusSichtbar && fokusImSheet,
+  `sichtbar: ${fokusSichtbar}, im Sheet: ${fokusImSheet}`
+);
+await page.keyboard.press('Escape');
+await page.unroute('**/api/flotte*');
+
+// 173/174: Nachweis 6 -- die Anzeige zieht nach, ohne neu zu fragen
+// (FR-016, E-09).
+//
+// Die Uhr des Browsers wird gestellt, nicht die des Rechners: So laesst sich
+// der Uebergang von "heute noch frei" nach "belegt" beobachten, ohne eine
+// Stunde zu warten. Gezaehlt wird dabei, wie oft die Seite `/api/flotte`
+// fragt -- erwartet wird genau einmal, beim Laden. Eine Anzeige, die jede
+// Minute nachfragt, waere vierzigmal so teuer fuer denselben Nutzen.
+let flottenabrufe = 0;
+const heuteUhr = '2026-08-20';
+await page.route('**/api/flotte*', (route) => {
+  flottenabrufe += 1;
+  return route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      ...flottenstand,
+      abgerufenAm: `${heuteUhr}T08:00:00.000Z`,
+      belegungen: [
+        {
+          kennung: 'D-EXYZ',
+          beginn: `${heuteUhr}T11:00:00`,
+          ende: `${heuteUhr}T13:00:00`,
+          art: 'reservierung'
+        }
+      ]
+    })
+  });
+});
+
+await page.clock.install({ time: new Date(`${heuteUhr}T10:00:00+02:00`) });
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-exyz/`, { waitUntil: 'domcontentloaded' });
+await page.locator('.statuswort').waitFor({ timeout: 5000 });
+await page.waitForFunction(() => document.querySelector('.satz')?.textContent?.trim().length > 0, null, {
+  timeout: 5000
+});
+const wortVorher = (await page.locator('.statuswort').textContent())?.trim() ?? '';
+const satzVorher = (await page.locator('.satz').textContent())?.trim() ?? '';
+const abrufeVorher = flottenabrufe;
+
+// Siebzig Minuten weiter: Die Belegung hat begonnen.
+await page.clock.fastForward(70 * 60 * 1000);
+await page.waitForTimeout(300);
+const wortNachher = (await page.locator('.statuswort').textContent())?.trim() ?? '';
+const satzNachher = (await page.locator('.satz').textContent())?.trim() ?? '';
+
+pruefe(
+  173,
+  'die Anzeige zieht ohne Neuladen nach',
+  wortVorher === 'Heute noch frei' && wortNachher === 'Belegt' && satzVorher !== satzNachher,
+  `${wortVorher} -> ${wortNachher} | ${satzNachher}`
+);
+
+pruefe(
+  174,
+  'und fragt dafuer kein zweites Mal nach',
+  abrufeVorher === 1 && flottenabrufe === 1,
+  `${flottenabrufe} Abrufe`
+);
+
+await page.clock.runFor(0);
+await page.unroute('**/api/flotte*');
 
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 

@@ -18,8 +18,8 @@ Content-Type: application/x-www-form-urlencoded
 accesstoken = {{access_token}} &
 username = {{user-username}} &
 password = {{user-password}} &
-appkey = {{lsv-app-key}} #&
-#cid =
+appkey = {{lsv-app-key}} &
+cid = 169
 
 ### 6.1 Aktuelle Reservierungen auslesen
 POST https://www.vereinsflieger.de/interface/rest/reservation/list/active
@@ -30,3 +30,13 @@ accesstoken = {{access_token}}
 # Hinweise zur response: ist leider numerisch-objektindiziert, PHP-style
 # …also {"0": { …… }, "1": {…} }
 # "prid" ist der identifier der Reservierung, "uid" die ID des users.
+
+### 6.undocumented: Reservierung hinzufügen
+POST https://www.vereinsflieger.de/interface/rest/reservation/add
+Content-Type: application/x-www-form-urlencoded
+
+accesstoken = {{access_token}} &
+callsign = "D-EELK" &
+datefrom = "2026-08-26 14:56" &
+dateto = "2026-08-26 15:43" &
+uid = 48169

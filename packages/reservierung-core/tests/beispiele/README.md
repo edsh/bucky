@@ -102,3 +102,33 @@ unverändert — sie enthalten keinen Personenbezug.
 Abruf gegen `$KALENDER_ABO_URL` (Umgebungsvariable, niemals eine Datei),
 siehe quickstart.md, Nachweis 1. Die Anonymisierung erfolgte unmittelbar nach
 dem Abruf; die Rohdatei wurde danach gelöscht.
+
+### Ab Feature 054 auch Prüfstoff für die Flottenbildung
+
+Derselbe Abzug dient ab Feature 054 als Grundlage für `flotteBilden` — ein
+neuer Abzug ist dafür nicht nötig. Er enthält sechs Luftfahrzeugkennzeichen:
+
+| Kennung | Kommt vor als | Abgeleitete Kategorie (E-02) |
+|---|---|---|
+| `D-EELK` | Reservierung und Sperre | Motor/UL |
+| `D-EXYZ` | Reservierung und Sperre | Motor/UL |
+| `D-MRXS` | **nur** Sperre | Motor/UL |
+| `D-9021` | **nur** Sperre | Segelflug |
+| `D-4413` | **nur** Sperre | Segelflug |
+| `D-3004` | genau eine Reservierung | Segelflug |
+
+Dazu die drei Nicht-Flugzeuge `GRILL`, `LANDEBAR` und `Werkstatt`, die schon
+beim Deuten aussortiert werden.
+
+Zwei Dinge machen den Abzug für diesen Zweck wertvoll:
+
+1. **Drei der sechs Maschinen erscheinen ausschließlich in Sperren.** Wer die
+   Flotte nur aus Reservierungen bildet, verliert sie — und zwar die drei
+   Segelflugzeuge, also fast die halbe Flotte.
+2. **Die Kategorieregel aus E-02 trifft hier sechsmal von sechs**: Ein rein
+   ziffriges Eintragungszeichen bedeutet Segelflug, sonst Motor/UL. Der Abzug
+   ist damit der Beleg, dass die Regel keine Erfindung am Schreibtisch ist.
+
+Was der Abzug **nicht** belegt: dass diese sechs die ganze Flotte sind. Ein
+Flugzeug, das im Abrufzeitraum niemand gebucht hat, steht hier nicht — genau
+deshalb gibt es die Stammliste (E-01).

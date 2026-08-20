@@ -21,7 +21,7 @@ spätere Implementierung, sondern ob die Anforderungen vollständig, eindeutig u
 
 - [x] CHK006 ~~Gibt es eine Anforderung, die Vy-Abweichung anzuzeigen?~~ **Hinfällig 2026-08-06**: entschieden zugunsten des Spaltenwerts (70 KIAS), in der Datengrundlage unter `source_anomalies.resolution` dokumentiert. Vy geht nicht in die Bedarfsrechnung ein.
 - [x] CHK007 ~~Ist die Offenlegung der Abweichung von Anmerkung 2 gefordert?~~ **Erledigt 2026-08-06**: als FR-019 aufgenommen. [Spec §FR-019]
-- [x] CHK008 ~~Ist definiert, wie sich das System verhält, solange Muster und Tankkonfiguration von D-EELK ungeklärt sind?~~ **Erledigt 2026-08-06**: D-EELK ist eine F172N mit Standardtanks. Die Anwendbarkeit ist je Tabelle in der Datengrundlage hinterlegt. [Spec §Scope]
+- [x] CHK008 ~~Ist definiert, wie sich das System verhält, solange Muster und Tankkonfiguration von D-EELK ungeklärt sind?~~ **Erledigt 2026-08-06**: D-EELK ist eine 172N mit Standardtanks (das Original-Handbuch deckt F172N und F172P ab). Die Anwendbarkeit ist je Tabelle in der Datengrundlage hinterlegt. [Spec §Scope]
 - [x] CHK009 ~~Ist gefordert, dass die Wahl von 1089 kg auf "nur Cessna 172P" hinweist?~~ **Hinfällig 2026-08-06**: 1089 kg ist für D-EELK nicht wählbar, die Abflugmasse wird nicht mehr abgefragt. [Spec §FR-015]
 - [x] CHK009a ~~Ist gefordert, dass die Ausgabe kenntlich macht, auf welche Abflugmasse und Tankvariante sich die verwendeten Tabellen beziehen? Ohne das lässt sich nicht prüfen, ob die richtige Tabelle gezogen wurde. [Gap, Spec §FR-015]~~ **Erledigt 2026-08-06**: Der Tabellenname nennt das Abfluggewicht, die Tankvariante steckt in der Tabellenwahl; FR-010 verlangt zusaetzlich den Ausweis der maximalen Abflugmasse.
 

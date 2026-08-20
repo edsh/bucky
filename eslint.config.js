@@ -34,7 +34,13 @@ export default tseslint.config(
       '**/.svelte-kit/**',
       '**/.wrangler/**',
       'data/**',
-      'tools/**'
+      'tools/**',
+      // Der Design-Handoff ist ein Fremdkoerper mit Absicht: unveraenderter
+      // Prototyp-Quellcode, der als visuelle Vorlage dient und nie
+      // ausgeliefert wird. Ihn an unsere Regeln anzupassen hiesse, die
+      // Vorlage zu veraendern, gegen die wir das Ergebnis pruefen.
+      'docs/design_handoff_reservierung/**',
+      'docs/design_handoff_reservierung_v2/**'
     ]
   },
   js.configs.recommended,

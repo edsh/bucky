@@ -16,23 +16,33 @@ ergänzt dessen Funktionsumfang, statt ihn zu ersetzen.
 
 ## Aufbau: Bucky als Kompagnon
 
-Die Startseite ist die Auswahl, nicht der Rechner. Bucky begrüßt dort mit „Hi
-Pilot, was darf's sein?", und darunter steht — vorerst allein — die **D-EELK**
-als runder Avatar mit Bildunterschrift. Ein Tippen darauf öffnet, was sich mit
-dieser Maschine tun lässt: der Reservierungsstand und der POH-Rechner.
+Die Startseite ist der **Flugzeugpark**, nicht der Rechner. Bucky begrüßt dort
+mit „Hi Pilot, was darf's sein?", und darunter steht die ganze Vereinsflotte:
+je Maschine ein runder Avatar, dessen Ring als Tagesuhr zeigt, wann sie heute
+belegt ist, dazu ein Statuspunkt und ein Kurzsatz in Worten. Ein Tippen öffnet,
+was sich mit dieser Maschine tun lässt — Reservierung, bei der D-EELK auch der
+POH-Rechner, und in jedem Fall der Schalter „Lieblingsmaschine", der sie oben
+festhält. Gemerkte Maschinen stehen am Seitenanfang und nicht mehr in ihrer
+Kategoriegruppe; gespeichert wird das allein auf dem Gerät.
 
 Der Einstieg läuft bewusst über das Flugzeug und nicht über eine Liste von
 Funktionen: Wer die App öffnet, hat in aller Regel eine bestimmte Maschine im
-Sinn und sucht erst dann, was er mit ihr tun will. Der Rahmen um den Avatar ist
-heute neutral und bedeutet nichts — er ist so angelegt, dass er später einen
-Zustand tragen kann.
+Sinn und sucht erst dann, was er mit ihr tun will. Dass die Belegung dabei
+schon am Ring ablesbar ist, ist die angenehme Nebenwirkung — nicht der Zweck
+der Seite. Kommen später weitere Fähigkeiten je Flugzeug hinzu, wachsen sie in
+dieses Menü hinein, ohne dass sich der Einstieg ändert.
+
+Solange die Auskunft unterwegs ist, stehen graue Platzhalter in der Form der
+Kacheln. Sie behaupten nichts: Ein vorab grün gezeichneter Ring hieße „frei",
+bevor irgendjemand nachgesehen hat.
 
 Daraus folgt die Gliederung der Adressen: Was zu einem Flugzeug gehört, liegt
 unter ihm.
 
 | Adresse | Inhalt |
 |---|---|
-| `/` | Auswahl |
+| `/` | Der Flugzeugpark — die ganze Flotte mit ihrer Belegung |
+| `/reservierung/<kennung>/` | Details zu einer Maschine |
 | `/d-eelk/reservierung/` | Ist sie gerade frei? |
 | `/d-eelk/poh-rechner/` | Der Rechner |
 | `/d-eelk/poh-rechner/tabellen/` | Die digitalisierten Tabellen |
@@ -342,6 +352,27 @@ cd apps/web && npx wrangler dev --port 8791 --persist-to ../reservierungs-abruf/
 Die Zugangsdaten für den örtlichen Lauf stehen in
 `apps/reservierungs-abruf/.dev.vars` — die Datei ist von der Versionsverwaltung
 ausgenommen.
+
+#### Die zweite Fracht: die Sonnenzeiten (seit Feature 054)
+
+Derselbe Zeitplan füllt einen zweiten Schlüssel im selben Namensraum,
+`sonnenzeiten`: acht Tage Sonnenauf- und -untergang für den Platz, geholt bei
+**Open-Meteo** (`api.open-meteo.com`, kostenfrei für nichtgewerbliche Nutzung,
+keine Anmeldung). Aus ihnen zeichnet die Tagesuhr die Nachtstunden dunkler —
+mehr tun sie nicht.
+
+Geholt wird nur, wenn der abgelegte Satz die kommenden acht Tage **nicht** mehr
+abdeckt, und ein Fehlschlag überschreibt nichts. Sonnenzeiten verschieben sich
+von Tag zu Tag um Minuten; ein Satz von gestern ist deshalb allemal besser als
+ein leerer Ring. Dass sie über denselben zeitgesteuerten Worker kommen und nicht
+je Besucher, ist dieselbe Regel wie bei Vereinsflieger (Prinzip V) — nur dass
+hier kein Kontingent droht, sondern schlicht die Höflichkeit gegenüber einem
+kostenfreien Dienst.
+
+Die Übersicht liest beides in **einer** Antwort von `/api/flotte`: die Belegung
+aller sechs Maschinen und die Sonnenzeiten, zusammen rund 300 Bytes. Namen
+stehen keine darin (FR-023) — die Route reicht nur Zeiträume und Zustände
+weiter.
 
 ### Die erste Quelle: der Kalender-Abo-Link (seit Feature 052)
 

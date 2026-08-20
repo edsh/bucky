@@ -2938,6 +2938,109 @@ pruefe(
 await page.evaluate(() => localStorage.removeItem('bucky.favoriten'));
 await page.unroute('**/api/flotte*');
 
+// 169–172: Der Weg nach Vereinsflieger (US4).
+//
+// Hier wird nicht gebucht, und genau das muss der Test festhalten: Das Sheet
+// nennt ein Fenster und haelt einen Verweis bereit — mehr passiert nicht,
+// solange niemand ihn antippt.
+//
+// Jeder Aufruf nach Vereinsflieger wird gezaehlt statt beantwortet. Erwartet
+// werden null; ein Sheet, das beim Oeffnen schon hinuebergreift, waere ein
+// stiller Fehler.
+let vereinsfliegeraufrufe = 0;
+await page.route('**://vereinsflieger.de/**', (route) => {
+  vereinsfliegeraufrufe += 1;
+  return route.abort();
+});
+
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ ...flottenstand, belegungen: [] })
+  })
+);
+
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-exyz/`, { waitUntil: 'networkidle' });
+await page.locator('.reservieren').waitFor({ timeout: 5000 });
+const reservierenKasten = await page.locator('.reservieren').boundingBox();
+await page.locator('.reservieren').click();
+await page.locator('[role="dialog"]').waitFor({ timeout: 3000 });
+const vonWert = (await page.locator('.feld').first().locator('.wert').textContent())?.trim() ?? '';
+const bisWert = (await page.locator('.feld').nth(1).locator('.wert').textContent())?.trim() ?? '';
+pruefe(
+  169,
+  'der Knopf oeffnet ein Sheet mit Von und Bis aus der naechsten freien Luecke',
+  reservierenKasten !== null &&
+    reservierenKasten.height >= 44 &&
+    /\d{2}:(00|30)$/.test(vonWert) &&
+    /^\d{2}:(00|30)$/.test(bisWert),
+  `${vonWert} bis ${bisWert}`
+);
+
+// 170: Der Verweis traegt die Nummer dieser Maschine und dieselben Zeiten,
+// die daneben stehen. Zwei verschiedene Fenster -- eines im Text, eines in
+// der Adresse -- waeren schlimmer als gar keine Vorbelegung.
+const ziel = (await page.locator('.weiter').getAttribute('href')) ?? '';
+const zielFenster = [...ziel.matchAll(/frm_date(?:from|to)time=(\d{2}:\d{2})/g)].map((t) => t[1]);
+pruefe(
+  170,
+  'der Verweis traegt die Nummer der Maschine und genau das gezeigte Fenster',
+  ziel.includes('frm_apid=43352') &&
+    zielFenster.length === 2 &&
+    vonWert.endsWith(zielFenster[0]) &&
+    bisWert === zielFenster[1] &&
+    (await page.locator('.weiter').getAttribute('target')) === '_blank' &&
+    ((await page.locator('.weiter').getAttribute('rel')) ?? '').includes('noopener'),
+  ziel
+);
+
+// 171: Tap aufs Overlay schliesst -- ohne dass ein Aufruf nach Vereinsflieger
+// stattgefunden haette (US4-Szenario 2).
+await page.locator('.overlay').click();
+await page.waitForTimeout(200);
+pruefe(
+  171,
+  'das Overlay schliesst das Sheet, ohne dass Vereinsflieger aufgerufen wurde',
+  (await page.locator('[role="dialog"]').count()) === 0 && vereinsfliegeraufrufe === 0,
+  `${vereinsfliegeraufrufe} Aufrufe`
+);
+
+// 172: Bleibt keine Luecke, gibt es keinen Vorschlag -- weder im Text noch in
+// der Adresse (Z-08). Eine Sperre ueber das ganze Suchfenster hinaus ist der
+// klarste Fall davon.
+const sperrbeginn = new Date(jetztMs - 3_600_000).toISOString().slice(0, 19);
+const sperrende = new Date(jetztMs + 8 * 86_400_000).toISOString().slice(0, 19);
+await page.unroute('**/api/flotte*');
+await page.route('**/api/flotte*', (route) =>
+  route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      ...flottenstand,
+      belegungen: [
+        { kennung: 'D-EXYZ', beginn: sperrbeginn, ende: sperrende, art: 'sperre' }
+      ]
+    })
+  })
+);
+
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-exyz/`, { waitUntil: 'networkidle' });
+await page.locator('.reservieren').click();
+await page.locator('[role="dialog"]').waitFor({ timeout: 3000 });
+const leerhinweis = (await page.locator('[role="dialog"] .hinweis').textContent())?.trim() ?? '';
+const leerziel = (await page.locator('.weiter').getAttribute('href')) ?? '';
+pruefe(
+  172,
+  'ohne freie Luecke steht der Statussatz statt eines erfundenen Fensters',
+  (await page.locator('.feld').count()) === 0 &&
+    leerhinweis.length > 0 &&
+    !leerziel.includes('frm_datefrom'),
+  `${leerhinweis} | ${leerziel}`
+);
+
+await page.keyboard.press('Escape');
+await page.unroute('**/api/flotte*');
+await page.unroute('**://vereinsflieger.de/**');
+
 pruefe(10, 'keine Konsolenfehler im Browser', konsolenfehler.length === 0, konsolenfehler.join(' | '));
 
 await browser.close();

@@ -535,13 +535,13 @@ antippen und prüfen, ob der Vorschlag der nächsten freien Lücke entspricht
 (auf 30 Minuten aufgerundet, zwei Stunden) und der Verweis in einem neuen Tab
 öffnet.
 
-- [ ] T065 [US4] `apps/web/src/lib/components/ReservierenSheet.svelte` anlegen:
+- [X] T065 [US4] `apps/web/src/lib/components/ReservierenSheet.svelte` anlegen:
       Overlay, Grabber, Titel, Hinweiszeile, zwei Felder „Von"/„Bis" aus
       `naechsteLuecke` (Z-07), primärer Verweis nach Vereinsflieger
       (`rel="noopener noreferrer"`, neuer Tab, **mit** Vorbelegung aus
       T065a — E-13). Die Felder bleiben auch dann sichtbar, wenn die
       Vorbelegung wirkungslos ist
-- [ ] T065a [US4] Verweis-Helfer im Kern
+- [X] T065a [US4] Verweis-Helfer im Kern
       (`packages/reservierung-core/src/reservierungs-verweis.ts`): erzeugt aus
       Kennung und Zeitfenster die Adresse mit `type=0&inline=0`, `frm_apid`,
       `frm_datefrom`, `frm_dateto`, `frm_datefromtime`, `frm_datetotime`
@@ -549,18 +549,18 @@ antippen und prüfen, ob der Vorschlag der nächsten freien Lücke entspricht
       Formate stehen damit an **einer** Stelle (Prinzip IV). Ist keine
       `frm_apid` bekannt, entfällt genau dieser Parameter — nie der ganze
       Verweis
-- [ ] T065b [US4] `STAMMLISTE` in `packages/reservierung-core/src/flotte.ts`
+- [X] T065b [US4] `STAMMLISTE` in `packages/reservierung-core/src/flotte.ts`
       um die Vereinsflieger-Nummer je Maschine erweitern (die sechs Werte
       stehen in E-13). Bestehende Aufrufer, die eine reine Liste von
       Kennzeichen erwarten, mitziehen
-- [ ] T066 [US4] Primären Knopf „Reservieren" in die Sticky Aktionsleiste aus
+- [X] T066 [US4] Primären Knopf „Reservieren" in die Sticky Aktionsleiste aus
       T047 aufnehmen
-- [ ] T067 [US4] Schließen über Tap auf das Overlay, ohne dass ein Aufruf nach
+- [X] T067 [US4] Schließen über Tap auf das Overlay, ohne dass ein Aufruf nach
       Vereinsflieger stattgefunden hat (US4-Szenario 2)
-- [ ] T068 [US4] Fall ohne freie Lücke (`naechsteLuecke === null`, Z-08): kein
+- [X] T068 [US4] Fall ohne freie Lücke (`naechsteLuecke === null`, Z-08): kein
       Vorschlag, stattdessen der Statussatz als Hinweiszeile — nie ein
       erfundenes Zeitfenster
-- [ ] T069 [US4] Animationen nach Handoff: `hoch .3s cubic-bezier(.22,.7,.3,1)`
+- [X] T069 [US4] Animationen nach Handoff: `hoch .3s cubic-bezier(.22,.7,.3,1)`
       für das Sheet, Overlay-Fade `.2s`
 
 ---

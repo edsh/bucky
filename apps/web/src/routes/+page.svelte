@@ -6,7 +6,7 @@
     kategorieFuer,
     ortstag,
     sonnenzeitenFuerTag,
-    STAMMLISTE
+    STAMMKENNUNGEN
   } from '@edsh-bucky/reservierung-core';
   import Flugzeugmenue from '$lib/components/Flugzeugmenue.svelte';
   import Legende from '$lib/components/Legende.svelte';
@@ -153,7 +153,7 @@
    * `/api/flotte` — dieselbe Wahrheit, nur eine Millisekunde früher. Dadurch
    * springt beim Eintreffen der Daten nichts, es füllt sich nur.
    */
-  const skelett = STAMMLISTE.map((kennung) => ({ kennung, kategorie: kategorieFuer(kennung) }));
+  const skelett = STAMMKENNUNGEN.map((kennung) => ({ kennung, kategorie: kategorieFuer(kennung) }));
 
   const maschinen = $derived(stand.flotte.length > 0 ? stand.flotte : skelett);
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { flotteBilden, kategorieFuer, STAMMLISTE } from '../src/flotte.js';
+import { flotteBilden, kategorieFuer, STAMMKENNUNGEN, STAMMLISTE } from '../src/flotte.js';
 import type { Reservierung } from '../src/typen.js';
 
 function res(kennung: string): Reservierung {
@@ -70,7 +70,7 @@ describe('flotteBilden', () => {
 	it('liefert bei leerer Datenlage genau die Stammliste', () => {
 		// Kein Stand heisst nicht "keine Flotte": Die Uebersicht zeigt weiter
 		// alle Maschinen, nur ohne Auskunft ueber ihren Zustand (FR-022).
-		const flotte = flotteBilden(STAMMLISTE, []);
+		const flotte = flotteBilden(STAMMKENNUNGEN, []);
 		expect(flotte).toHaveLength(STAMMLISTE.length);
 	});
 

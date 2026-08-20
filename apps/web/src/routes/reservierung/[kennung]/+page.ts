@@ -1,4 +1,4 @@
-import { STAMMLISTE } from '@edsh-bucky/reservierung-core';
+import { STAMMKENNUNGEN } from '@edsh-bucky/reservierung-core';
 import type { EntryGenerator } from './$types.js';
 
 /**
@@ -11,4 +11,4 @@ import type { EntryGenerator } from './$types.js';
  * seine Detailseite mit dem nächsten Bau von selbst.
  */
 export const entries: EntryGenerator = () =>
-	STAMMLISTE.map((kennung) => ({ kennung: kennung.toLowerCase() }));
+	STAMMKENNUNGEN.map((kennung) => ({ kennung: kennung.toLowerCase() }));

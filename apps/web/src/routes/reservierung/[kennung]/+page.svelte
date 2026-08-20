@@ -25,6 +25,7 @@
   import TagesuhrAvatar from '$lib/components/TagesuhrAvatar.svelte';
   import Tagesbalken from '$lib/components/Tagesbalken.svelte';
   import Wochenraster from '$lib/components/Wochenraster.svelte';
+  import ReservierenSheet from '$lib/components/ReservierenSheet.svelte';
   import Stern from '$lib/components/Stern.svelte';
   import { FARBEN, flaecheFuer, statusfarbe } from '$lib/flotte/farben.js';
   import { darstellungFuer } from '$lib/flotte/darstellung.js';
@@ -180,6 +181,16 @@
     const tagestext = alsTagesdatum(new Date(vonIso));
     return ganztags ? `${tagestext} · ganztägig` : `${tagestext} · ${vonUhr}–${bisUhr}`;
   }
+
+  /**
+   * Ob das Reservieren-Sheet offen ist.
+   *
+   * Es hängt nicht am Zustand der Maschine: Auch bei einer belegten oder
+   * gesperrten Maschine darf jemand nach dem nächsten freien Fenster fragen —
+   * genau dann ist die Frage ja dringend. Was das Sheet zeigt, entscheidet
+   * der Vorschlag aus dem Kern, nicht dieser Schalter.
+   */
+  let sheetOffen = $state(false);
 </script>
 
 <svelte:head>
@@ -354,12 +365,30 @@
       {/if}
     </p>
 
-    {#if darstellung.pohPfad}
-      <div class="aktionen">
+    <div class="aktionen">
+      {#if darstellung.pohPfad}
         <a class="poh" href="{base}{darstellung.pohPfad}">POH-Rechner</a>
-      </div>
-    {/if}
+      {/if}
+      <button class="reservieren" type="button" onclick={() => (sheetOffen = true)}>
+        Reservieren
+      </button>
+    </div>
   </main>
+
+  <!--
+    Das Sheet steht außerhalb des Seitenrumpfs, weil es über allem liegt — auch
+    über der Aktionsleiste, aus der es kommt. Innerhalb von `.aussen` bleibt es
+    trotzdem: Dort stehen Schriftart, Farbtöne und das Dunkel-Schema. Ein Sheet
+    davor sähe aus wie eine fremde Seite, die sich über diese legt.
+  -->
+  {#if sheetOffen}
+    <ReservierenSheet
+      {kennung}
+      luecke={zustand?.naechsteLuecke ?? null}
+      statussatz={satz}
+      schliessen={() => (sheetOffen = false)}
+    />
+  {/if}
 </div>
 
 <style>
@@ -735,9 +764,10 @@
 
   /*
     Die Aktionsleiste haengt am unteren Rand, weil sie dorthin gehoert, wo
-    der Daumen ist. Der „Reservieren"-Knopf kommt in US4 daneben; bis dahin
-    steht hier nur der POH-Verweis -- und auch nur bei den Maschinen, fuer
-    die es einen Rechner gibt (FR-018).
+    der Daumen ist. Der POH-Verweis steht nur bei den Maschinen, fuer die es
+    einen Rechner gibt (FR-018); „Reservieren" steht immer -- die Frage nach
+    dem naechsten freien Fenster ist bei einer belegten Maschine nicht
+    weniger berechtigt als bei einer freien.
   */
   .aktionen {
     position: sticky;
@@ -752,6 +782,8 @@
   }
 
   .poh {
+    display: flex;
+    align-items: center;
     padding: 11px 16px;
     border: 1px solid rgba(127, 127, 127, 0.3);
     border-radius: 10px;
@@ -759,5 +791,24 @@
     text-decoration: none;
     font-size: 13px;
     font-weight: 600;
+  }
+
+  /*
+    Der primaere Weg der Seite -- entsprechend gefuellt und so breit, wie der
+    Platz neben dem POH-Verweis hergibt.
+  */
+  .reservieren {
+    flex: 1;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 11px 16px;
+    border: 0;
+    border-radius: 10px;
+    background: #1f4e79;
+    color: #fff;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 650;
+    cursor: pointer;
   }
 </style>

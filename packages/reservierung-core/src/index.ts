@@ -9,7 +9,14 @@
 
 export { antwortDeuten } from './antwort-deuten.js';
 export { belegungenImFenster, belegungsauskunft, endeDerKette, zeitraeumeFuer, type Zeitraum } from './belegung.js';
-export { flotteBilden, kategorieFuer, STAMMLISTE } from './flotte.js';
+export {
+	flotteBilden,
+	kategorieFuer,
+	STAMMKENNUNGEN,
+	STAMMLISTE,
+	vereinsfliegerNummer,
+	type Stammeintrag
+} from './flotte.js';
 export {
 	alsAltersangabe,
 	alsBelegungsart,
@@ -21,6 +28,7 @@ export {
 	alsZusatzzeile
 } from './formulieren.js';
 export { kalenderDeuten } from './kalender-deuten.js';
+export { RESERVIERUNGSMASKE, reservierungsVerweis } from './reservierungs-verweis.js';
 export { istLuftfahrzeug, kennungVereinheitlichen, KENNZEICHEN } from './kennzeichen.js';
 export {
 	balkensegmente,
@@ -39,6 +47,7 @@ export {
 } from './segmente.js';
 export { alterInWorten, alterMs, istVeraltet, VERFALLSGRENZE_MS } from './verfall.js';
 export {
+	alsDatumZiffern,
 	alsIso,
 	alsIsoMitVersatz,
 	alsKurzdatumUhrzeit,

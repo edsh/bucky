@@ -4,7 +4,7 @@ import {
 	istVeraltet,
 	ortstag,
 	ortszeitZuZeitpunkt,
-	STAMMLISTE,
+	STAMMKENNUNGEN,
 	type Quelle,
 	type Sonnenzeiten
 } from '@edsh-bucky/reservierung-core';
@@ -75,7 +75,7 @@ export async function GET({ platform }: { platform?: App.Platform }): Promise<Re
 		return antwort({
 			stand: 'fehlt',
 			quelle: quelle satisfies Quelle,
-			flotte: flotteBilden(STAMMLISTE, []),
+			flotte: flotteBilden(STAMMKENNUNGEN, []),
 			// Auch ohne Reservierungsstand: Der Ring zeigt dann zwar keine
 			// Belegung, aber Tag und Nacht stimmen trotzdem.
 			...(sonnenzeiten ? { sonnenzeiten } : {})
@@ -92,7 +92,7 @@ export async function GET({ platform }: { platform?: App.Platform }): Promise<Re
 		veraltet: istVeraltet(stand.abgerufenAm, jetzt),
 		// Die Flotte entsteht aus Stammliste **und** Abzug (E-01): Drei der
 		// sechs Maschinen tauchen im Kalender ausschliesslich als Sperre auf.
-		flotte: flotteBilden(STAMMLISTE, stand.reservierungen),
+		flotte: flotteBilden(STAMMKENNUNGEN, stand.reservierungen),
 		belegungen: belegungenImFenster(stand.reservierungen, von, bis),
 		// Fehlen sie, entfaellt allein dieses Feld (F-08). Eine leere Liste
 		// waere von "die Sonne geht nicht auf" nicht zu unterscheiden.

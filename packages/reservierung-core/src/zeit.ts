@@ -191,6 +191,20 @@ export function gleicherTag(a: Date, b: Date): boolean {
 	return NUR_TAG.format(a) === NUR_TAG.format(b);
 }
 
+/**
+ * `13.08.2026` — das Datum in Ziffern, wie ein deutsches Formular es erwartet.
+ *
+ * Anders als `alsTagesdatum` („Samstag, 15. Aug.") ist das kein Text zum
+ * Lesen, sondern ein Wert zum Weiterreichen: Er geht so in die Vorbelegung
+ * der Reservierungsmaske (research.md, E-13). Deshalb steht er hier bei den
+ * uebrigen Formaten und nicht im Verweisbauer — ein zweites `Intl`-Format an
+ * anderer Stelle waere die naechste Gelegenheit, dass zwei Datumsangaben
+ * dieser Anwendung auseinanderlaufen.
+ */
+export function alsDatumZiffern(zeitpunkt: Date): string {
+	return NUR_TAG.format(zeitpunkt);
+}
+
 /* -------------------------------------------------------------------------
  * Feature 054 — Formate und Tagesrechnung fuer die Flottenuebersicht.
  * ---------------------------------------------------------------------- */

@@ -1,5 +1,20 @@
 # Contract: Reservierungsstand nach außen
 
+> **Aufgehoben, Teil B (August 2026).** Die Route `/api/reservierung` und die
+> Seite `/d-eelk/reservierung/` gibt es nicht mehr (Issue #57): Nach Feature
+> 054 beantwortet die Flottenübersicht dieselbe Frage für alle Maschinen, und
+> die Einzelauskunft hatte keinen Nutzer mehr. Abschnitt B beschreibt damit
+> nichts Bestehendes mehr.
+>
+> **Abschnitt A gilt weiter** — der Eintrag im Zwischenspeicher wird vom
+> Abruf-Worker unverändert geschrieben und von `/api/flotte` gelesen. Ebenso
+> gilt die Regel dahinter unverändert fort: Namen und Sachtexte werden so früh
+> wie möglich verworfen und erreichen keine Antwort (FR-006, in Feature 054 als
+> FR-023 fortgeschrieben). Aufgehoben ist eine Adresse, nicht das Versprechen.
+>
+> Dieses Papier bleibt als Protokoll dessen stehen, was Feature 047 zugesagt
+> hat. Es zu löschen hieße, eine Zusage rückwirkend nie gegeben zu haben.
+
 **Feature**: 047 | **Gilt für**: die Server-Route der Web-App und den Eintrag im
 Zwischenspeicher
 

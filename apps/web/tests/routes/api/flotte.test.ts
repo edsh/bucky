@@ -173,6 +173,58 @@ describe('GET /api/flotte — Stand vorhanden', () => {
 		expect(roh).not.toContain('geheim');
 		expect(roh).not.toContain('beispiel.invalid');
 	});
+
+	/*
+	 * Die schärfste der Zusicherungen, und die einzige, die auch das findet,
+	 * woran niemand gedacht hat: Statt einzelne verbotene Felder aufzuzählen,
+	 * wird jedes Feld verboten, das nicht vereinbart ist. Ein versehentlich
+	 * durchgereichtes `bemerkung` fällt damit auf, ohne dass es jemand vorher
+	 * auf eine Verbotsliste setzen musste.
+	 *
+	 * Diese Prüfung stand bis August 2026 im Klickpfad und galt der Route
+	 * `/api/reservierung`. Die Route ist mit Issue #57 entfallen, die Zusage
+	 * nicht — sie ist hierher gewandert.
+	 */
+	it('trägt keine Felder außer den vereinbarten (FR-023)', async () => {
+		const kalender = kalenderMit(
+			ereignis(
+				'Reservierung D-EELK - (Muster, Mia)',
+				tagesstempel(0, '090000'),
+				tagesstempel(0, '110000')
+			)
+		);
+		vi.stubGlobal('fetch', vi.fn(async () => new Response(kalender, { status: 200 })));
+
+		const inhalt = (await (await GET({ platform: platform(null) })).json()) as Record<
+			string,
+			unknown
+		> & {
+			flotte?: Record<string, unknown>[];
+			belegungen?: Record<string, unknown>[];
+		};
+
+		const nurErlaubte = (was: Record<string, unknown>, erlaubt: string[]) =>
+			Object.keys(was).filter((k) => !erlaubt.includes(k));
+
+		expect(
+			nurErlaubte(inhalt, [
+				'stand',
+				'quelle',
+				'abgerufenAm',
+				'veraltet',
+				'flotte',
+				'belegungen',
+				'sonnenzeiten'
+			])
+		).toEqual([]);
+
+		for (const maschine of inhalt.flotte ?? []) {
+			expect(nurErlaubte(maschine, ['kennung', 'kategorie'])).toEqual([]);
+		}
+		for (const belegung of inhalt.belegungen ?? []) {
+			expect(nurErlaubte(belegung, ['kennung', 'beginn', 'ende', 'art'])).toEqual([]);
+		}
+	});
 });
 
 /**

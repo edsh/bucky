@@ -66,10 +66,19 @@ describe('mischen', () => {
 	});
 });
 
-describe('darstellungFuer (E-03, FR-018)', () => {
-	it('gibt nur der D-EELK einen POH-Pfad', () => {
-		expect(darstellungFuer('D-EELK').pohPfad).toBe('/d-eelk/poh-rechner/');
-		expect(darstellungFuer('D-EXYZ').pohPfad).toBeUndefined();
+describe('darstellungFuer (E-03, FR-026)', () => {
+	/*
+	  Bis Feature 058 trug die D-EELK hier einen `pohPfad` fuer den Knopf der
+	  klebenden Aktionsleiste. Die Leiste ist entfallen (FR-023, FR-026); der
+	  einzige Weg zum Rechner fuehrt jetzt ueber `handlungenFuer`, der sein Ziel
+	  selbst kennt. Ein zweiter Ort fuer denselben Pfad waere ein Ort, an dem er
+	  veralten kann.
+	*/
+	it('fuehrt keine Routenpfade mehr', () => {
+		expect(darstellungFuer('D-EELK')).toEqual({
+			typ: 'Cessna 172N',
+			bild: '/d-eelk.gif'
+		});
 	});
 
 	it('kommt mit einer unbekannten Maschine aus, statt zu scheitern', () => {

@@ -286,6 +286,41 @@ export function alsTagUndMonat(zeitpunkt: Date): string {
 	return TAG_UND_MONAT.format(zeitpunkt);
 }
 
+const WOCHENTAG_LANG = new Intl.DateTimeFormat('de-DE', {
+	timeZone: ZONE,
+	weekday: 'long'
+});
+
+const TAG_UND_MONAT_WORT = new Intl.DateTimeFormat('de-DE', {
+	timeZone: ZONE,
+	day: 'numeric',
+	month: 'long'
+});
+
+/**
+ * `Mittwoch` — der ausgeschriebene Wochentag.
+ *
+ * Neben `alsWochentagKurz`, nicht an dessen Stelle: Die Kurzform gehoert in
+ * Spaltenkoepfe von 40 Pixeln Breite, wo jeder Buchstabe zaehlt. Wo eine ganze
+ * Zeile zur Verfuegung steht — die Mitte des Tageswechslers —, gibt es keinen
+ * Grund zu kuerzen. Eine Abkuerzung, die niemand braucht, ist eine Zumutung
+ * ohne Gegenleistung (Auskunft des Auftraggebers, 25.08.2026).
+ */
+export function alsWochentag(zeitpunkt: Date): string {
+	return WOCHENTAG_LANG.format(zeitpunkt);
+}
+
+/**
+ * `31. August` — Tag und Monat als Wort, ohne Jahr.
+ *
+ * Dieselbe Angabe wie `alsTagUndMonat`, in der Form fuer Fliesstext statt fuer
+ * eine schmale Spalte. `31.08.` liest sich als Datenfeld; wo Platz ist, liest
+ * sich `31. August` als Satz.
+ */
+export function alsTagUndMonatWort(zeitpunkt: Date): string {
+	return TAG_UND_MONAT_WORT.format(zeitpunkt);
+}
+
 /**
  * Der Ortstag als `YYYY-MM-DD` — der Schluessel, unter dem Tage verglichen und
  * Sonnenzeiten nachgeschlagen werden.

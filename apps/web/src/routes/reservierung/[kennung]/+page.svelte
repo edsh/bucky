@@ -25,6 +25,7 @@
   import TagesuhrAvatar from '$lib/components/TagesuhrAvatar.svelte';
   import Tagesbalken from '$lib/components/Tagesbalken.svelte';
   import Wochenraster from '$lib/components/Wochenraster.svelte';
+  import Zeitbalken from '$lib/components/Zeitbalken.svelte';
   import ReservierenSheet from '$lib/components/ReservierenSheet.svelte';
   import Stern from '$lib/components/Stern.svelte';
   import { FARBEN, flaecheFuer, statusfarbe } from '$lib/flotte/farben.js';
@@ -137,16 +138,27 @@
     const belegungen = stand.belegungen;
     if (belegungen === null) return [];
 
-    return wochenbalken(belegungen, kennung, stand.jetzt).map((tag) => {
-      const mittag = zeitpunktFuerMinute(tag.tag, 12 * 60);
-      return {
-        tag: tag.tag,
-        wochentag: alsWochentagKurz(mittag),
-        datum: alsTagUndMonat(mittag),
-        segmente: tag.segmente,
-        text: alsTageszeile(tagesbelegungen(belegungen, kennung, tag.tag))
-      };
-    });
+    return (
+      wochenbalken(belegungen, kennung, stand.jetzt)
+        /*
+        Ab morgen: „Heute" steht schon als großer Balken darüber und wird
+        nicht wiederholt (FR-048). Geschnitten wird hier und nicht im Kern —
+        das Wochenraster daneben zeigt weiterhin alle sieben Spalten, weil
+        „heute" dort die Bezugsspalte ist und keine Dublette. Beide Ansichten
+        holen ihre Segmente trotzdem aus derselben Funktion; zwei getrennte
+        Rechnungen könnten auseinanderlaufen.
+      */
+        .slice(1)
+        .map((tag) => {
+          const mittag = zeitpunktFuerMinute(tag.tag, 12 * 60);
+          return {
+            tag: tag.tag,
+            wochentag: alsWochentagKurz(mittag),
+            datum: alsTagUndMonat(mittag),
+            text: alsTageszeile(tagesbelegungen(belegungen, kennung, tag.tag))
+          };
+        })
+    );
   });
 
   const kommend = $derived(
@@ -183,14 +195,21 @@
   }
 
   /**
-   * Ob das Reservieren-Sheet offen ist.
+   * Das Reservieren-Sheet: offen ab welchem Tag und mit welchem Fenster.
    *
-   * Es hängt nicht am Zustand der Maschine: Auch bei einer belegten oder
-   * gesperrten Maschine darf jemand nach dem nächsten freien Fenster fragen —
-   * genau dann ist die Frage ja dringend. Was das Sheet zeigt, entscheidet
-   * der Vorschlag aus dem Kern, nicht dieser Schalter.
+   * Es öffnet ausschließlich durch Tippen auf einen Balken (FR-024) — die
+   * klebende Aktionsleiste ist mit v2 entfallen. Der Tipp bringt zweierlei
+   * mit: den Tag, auf dessen Balken er landete, und die Uhrzeit, sofern er
+   * eine hatte. `null` heißt „kein Ort" (Tastatur oder daneben); dann
+   * entscheidet das Sheet selbst, wo es anfängt.
    */
-  let sheetOffen = $state(false);
+  let sheetTag = $state<string | null>(null);
+  let sheetMinute = $state<number | null>(null);
+
+  function sheetOeffnen(ereignis: { tag: string; minute: number | null }) {
+    sheetTag = ereignis.tag;
+    sheetMinute = ereignis.minute;
+  }
 </script>
 
 <svelte:head>
@@ -275,7 +294,13 @@
         {/if}
       </section>
 
-      <Tagesbalken {kennung} belegungen={stand.belegungen} jetzt={stand.jetzt} />
+      <Tagesbalken
+        {kennung}
+        belegungen={stand.belegungen}
+        jetzt={stand.jetzt}
+        {sonnenzeiten}
+        getippt={sheetOeffnen}
+      />
 
       <div class="umschalter" role="tablist" aria-label="Zeitraum">
         <button
@@ -303,23 +328,29 @@
               <li>
                 <span class="tagname"><b>{zeile.wochentag}</b> {zeile.datum}</span>
                 <span class="tagbalken">
-                  {#each zeile.segmente as segment, i (i)}
-                    <span
-                      class="segment"
-                      class:naht={segment.stoesstAn}
-                      style:left={alsProzent(segment.von)}
-                      style:width={alsProzent(segment.bis - segment.von)}
-                    >
-                      <span class="fuellung" style:background={flaecheFuer(segment.art)}></span>
-                    </span>
-                  {/each}
+                  <Zeitbalken
+                    {kennung}
+                    belegungen={stand.belegungen}
+                    tag={zeile.tag}
+                    jetzt={stand.jetzt}
+                    sonnenzeiten={sonnenzeitenFuerTag(stand.sonnenzeiten, zeile.tag)}
+                    radius={5}
+                    segmentradius={5}
+                    getippt={sheetOeffnen}
+                  />
                 </span>
                 <span class="tagtext" style:color={textfarbeFuer(zeile.text)}>{zeile.text}</span>
               </li>
             {/each}
           </ul>
         {:else}
-          <Wochenraster {kennung} belegungen={stand.belegungen} jetzt={stand.jetzt} />
+          <Wochenraster
+            {kennung}
+            belegungen={stand.belegungen}
+            jetzt={stand.jetzt}
+            sonnenzeiten={stand.sonnenzeiten}
+            getippt={sheetOeffnen}
+          />
         {/if}
       </section>
 
@@ -370,28 +401,23 @@
       {/if}
     </p>
 
-    <div class="aktionen">
-      {#if darstellung.pohPfad}
-        <a class="poh" href="{base}{darstellung.pohPfad}">POH-Rechner</a>
-      {/if}
-      <button class="reservieren" type="button" onclick={() => (sheetOffen = true)}>
-        Reservieren
-      </button>
-    </div>
   </main>
 
   <!--
-    Das Sheet steht außerhalb des Seitenrumpfs, weil es über allem liegt — auch
-    über der Aktionsleiste, aus der es kommt. Innerhalb von `.aussen` bleibt es
-    trotzdem: Dort stehen Schriftart, Farbtöne und das Dunkel-Schema. Ein Sheet
-    davor sähe aus wie eine fremde Seite, die sich über diese legt.
+    Das Sheet steht außerhalb des Seitenrumpfs, weil es über allem liegt.
+    Innerhalb von `.aussen` bleibt es trotzdem: Dort stehen Schriftart,
+    Farbtöne und das Dunkel-Schema. Ein Sheet davor sähe aus wie eine fremde
+    Seite, die sich über diese legt.
   -->
-  {#if sheetOffen}
+  {#if sheetTag !== null && stand.belegungen !== null}
     <ReservierenSheet
       {kennung}
-      luecke={zustand?.naechsteLuecke ?? null}
-      statussatz={satz}
-      schliessen={() => (sheetOffen = false)}
+      tag={sheetTag}
+      minute={sheetMinute}
+      belegungen={stand.belegungen}
+      jetzt={stand.jetzt}
+      sonnenzeiten={stand.sonnenzeiten}
+      schliessen={() => (sheetTag = null)}
     />
   {/if}
 </div>
@@ -661,11 +687,16 @@
     padding: 0;
   }
 
+  /*
+    Die Zeile misst 45 Pixel hoch, damit die 44er Trefferfläche des Balkens
+    hineinpasst, ohne in die Nachbarzeile zu ragen (FR-052). Enger gesetzt
+    öffnete ein Tipp am Zeilenrand den falschen Tag.
+  */
   .tage li {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 9px 0;
+    padding: 15px 0;
     border-bottom: 1px solid rgba(127, 127, 127, 0.14);
   }
 
@@ -675,30 +706,11 @@
     font-size: 12.5px;
   }
 
+  /* Die Hoehe steht hier, das Innenleben in `Zeitbalken`. */
   .tagbalken {
-    position: relative;
     flex: 1;
     min-width: 0;
     height: 14px;
-    border-radius: 5px;
-    background: rgba(127, 127, 127, 0.16);
-  }
-
-  .segment {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-  }
-
-  .fuellung {
-    position: absolute;
-    inset: 0;
-    border-radius: 5px;
-  }
-
-  /* Dieselbe Fuge wie in der Karte „Heute" -- siehe Tagesbalken.svelte. */
-  .segment.naht .fuellung {
-    left: 2px;
   }
 
   .tagtext {
@@ -774,8 +786,15 @@
     opacity: 0.55;
   }
 
+  /*
+    Die Fußnote schließt die Seite ab (B-11). Der reichliche Fuß unten stand
+    früher als Aussparung unter der klebenden Aktionsleiste; er bleibt, weil
+    das Sheet aus dem unteren Rand aufsteigt und der letzte Absatz sonst
+    darunter klebte.
+  */
   .fussnote {
-    margin: 24px 16px 0;
+    margin: 0;
+    padding: 24px 16px 120px;
     font-size: 11.5px;
     line-height: 1.55;
     opacity: 0.45;
@@ -788,52 +807,10 @@
   }
 
   /*
-    Die Aktionsleiste haengt am unteren Rand, weil sie dorthin gehoert, wo
-    der Daumen ist. Der POH-Verweis steht nur bei den Maschinen, fuer die es
-    einen Rechner gibt (FR-018); „Reservieren" steht immer -- die Frage nach
-    dem naechsten freien Fenster ist bei einer belegten Maschine nicht
-    weniger berechtigt als bei einer freien.
+    Hier stand bis v2 die klebende Aktionsleiste mit „Reservieren" und dem
+    POH-Verweis. Beides ist entfallen (FR-023, FR-026, B-11): Das Sheet öffnet
+    jetzt aus jedem Balken heraus, und der POH-Rechner bleibt über das
+    Flugzeugmenü der Übersicht erreichbar — er wird nicht ersetzt, sondern
+    nicht wiederholt.
   */
-  .aktionen {
-    position: sticky;
-    bottom: 0;
-    display: flex;
-    gap: 10px;
-    padding: 12px 16px 16px;
-    margin-top: 24px;
-    background: var(--balken);
-    backdrop-filter: blur(8px);
-    border-top: 1px solid rgba(127, 127, 127, 0.18);
-  }
-
-  .poh {
-    display: flex;
-    align-items: center;
-    padding: 11px 16px;
-    border: 1px solid rgba(127, 127, 127, 0.3);
-    border-radius: 10px;
-    color: inherit;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
-  }
-
-  /*
-    Der primaere Weg der Seite -- entsprechend gefuellt und so breit, wie der
-    Platz neben dem POH-Verweis hergibt.
-  */
-  .reservieren {
-    flex: 1;
-    box-sizing: border-box;
-    min-height: 44px;
-    padding: 11px 16px;
-    border: 0;
-    border-radius: 10px;
-    background: #1f4e79;
-    color: #fff;
-    font-family: inherit;
-    font-size: 13.5px;
-    font-weight: 650;
-    cursor: pointer;
-  }
 </style>

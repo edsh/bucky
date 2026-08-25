@@ -45,6 +45,35 @@ export {
 	type Balkentag,
 	type Tagesbelegung
 } from './segmente.js';
+export { DAEMMERUNG, nachtstops } from './nacht.js';
+export {
+	alsDauerwort,
+	alsLueckensatz,
+	alsUhrzeitAusMinute,
+	alsWahlfenster,
+	aufRaster,
+	ausweichluecke,
+	beginnSetzen,
+	endeSetzen,
+	fensterIn,
+	kachelDauer,
+	kachelMoeglich,
+	kachelZiel,
+	konflikte,
+	luecken,
+	modusFuer,
+	MINDESTDAUER,
+	NACHRUECKDAUER,
+	RAHMEN,
+	RASTER,
+	stundeVon,
+	verschiebeBlock,
+	VORSCHLAGSDAUER,
+	zieheKante,
+	type Kachelart,
+	type Kacheleinheit,
+	type Kante
+} from './zeitwahl.js';
 export { alterInWorten, alterMs, istVeraltet, VERFALLSGRENZE_MS } from './verfall.js';
 export {
 	alsDatumZiffern,
@@ -53,8 +82,10 @@ export {
 	alsKurzdatumUhrzeit,
 	alsTagesdatum,
 	alsTagUndMonat,
+	alsTagUndMonatWort,
 	alsUhrzeit,
 	alsUhrzeitKurz,
+	alsWochentag,
 	alsWochentagDatumUhrzeit,
 	alsWochentagKurz,
 	gleicherTag,
@@ -81,13 +112,19 @@ export type {
 	Belegungsauskunft,
 	Deutungsergebnis,
 	Kategorie,
+	Konflikt,
+	Luecke,
 	Maschine,
 	Maschinenzustand,
+	Nachtstops,
 	Quelle,
+	Rahmen,
 	Reservierung,
 	Ringsegment,
 	Sonnenzeiten,
 	Statuswert,
+	Wahlmodus,
 	Wechselziel,
-	Zeitfenster
+	Zeitfenster,
+	Zeitwahlfenster
 } from './typen.js';

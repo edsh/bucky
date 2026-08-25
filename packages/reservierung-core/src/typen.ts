@@ -225,3 +225,105 @@ export interface Sonnenzeiten {
 	aufgang: string;
 	untergang: string;
 }
+
+/*
+ * ---------------------------------------------------------------------------
+ * Die Groessen der Zeitwahl (Feature 058)
+ *
+ * Sie rechnen in **Tagesminuten** — Minuten seit Ortsmitternacht — und nicht in
+ * Zeitpunkten. Der Waehler ist ein Tagesgeraet: Ein Fenster "09:00–11:00 am
+ * Donnerstag" in zwei ISO-Zeitstempeln zu fuehren hiesse, bei jeder
+ * Zieh-Bewegung Datumsarithmetik zu treiben und an zwei Tagen im Jahr falsch zu
+ * liegen. Welcher Zeitpunkt aus einer Tagesminute wird, weiss
+ * `zeitpunktFuerMinute` — die eine Stelle im Haus, die dafuer geprueft ist
+ * (data-model.md, "Die drei Zeitformen").
+ * ---------------------------------------------------------------------------
+ */
+
+/**
+ * Was jemand gewaehlt hat: eine Uhrzeitspanne, in Tagesminuten.
+ *
+ * Ein Fenster kennt seinen **Tag nicht**. Der Tag wird daneben gefuehrt, weil
+ * er sich unabhaengig aendert (Tageswechsler) und weil ein Fenster ohne Tag
+ * genau das ist, was der Waehler bearbeitet.
+ *
+ * Zugesichert von jeder Funktion in `zeitwahl.ts`: beide Grenzen liegen auf
+ * einem Vielfachen von `RASTER`, `bis - von >= MINDESTDAUER`, und beide liegen
+ * innerhalb des uebergebenen Rahmens.
+ */
+export interface Zeitwahlfenster {
+	von: number;
+	bis: number;
+}
+
+/**
+ * Der Bereich, in dem ein Fenster liegen darf — der Flugtag.
+ *
+ * **Nicht** die freie Luecke. Das ist der Unterschied, der den
+ * Wartelisten-Fall erst moeglich macht: Ein Fenster darf ueber eine Belegung
+ * hinausreichen; was daraus folgt, entscheidet der Modus, nicht der Rahmen
+ * (FR-031).
+ */
+export interface Rahmen {
+	von: number;
+	bis: number;
+}
+
+/**
+ * Ein freier Abschnitt eines Tages.
+ *
+ * Formgleich mit `Zeitwahlfenster` und trotzdem ein eigener Name: Eine Luecke
+ * ist ein **Befund** ueber den Tag, ein Fenster eine **Wahl** des Mitglieds.
+ * Sie gehen ineinander ueber (`fensterIn`), aber sie sind nicht dasselbe — und
+ * die Verwechslung waere die Sorte Fehler, die man nicht sieht.
+ */
+export interface Luecke {
+	von: number;
+	bis: number;
+}
+
+/**
+ * Was im gewaehlten Fenster schon steht.
+ *
+ * Der Text wird im Kern gebildet, nicht in der Oberflaeche: Er ist eine Aussage
+ * ueber Zeiten, und Zeitformate gehoeren zum Kern (dieselbe Begruendung wie bei
+ * `alsTageszeile`).
+ *
+ * Was hier **nicht** drinsteht: kein Name, keine Kennzeichnung eigener
+ * Buchungen. Bucky kennt keine Nutzeridentitaet (FR-010); jeder fremde Eintrag
+ * heisst "reserviert".
+ */
+export interface Konflikt {
+	art: Belegungsart;
+	/** `14:00–17:30: reserviert` oder `ganztaegig gesperrt`. */
+	text: string;
+}
+
+/**
+ * Was aus dem gewaehlten Fenster folgt. Abgeleitet, nie gesetzt.
+ *
+ * Die Rangfolge steht in `modusFuer` und ist Teil des Vertrags: Nachtrag vor
+ * Sperre vor Warteliste. Auf eine Zeit, die vorbei ist, wartet niemand mehr.
+ *
+ * `warteliste` beschreibt die **Lage** (das Fenster ist belegt), nicht eine
+ * Vormerkung: Diese Anwendung fuehrt keine Warteliste und sagt keine
+ * Benachrichtigung zu (research.md, E-04). Der Modus fuehrt zu einem Absprung,
+ * bei dem der Verein ueber die Ueberschneidung entscheidet.
+ */
+export type Wahlmodus = 'frei' | 'nachtrag' | 'warteliste' | 'gesperrt';
+
+/**
+ * Wo die Nachttoenung eines Tages anfaengt und aufhoert, als Anteile 0 … 1.
+ *
+ * `klar` ist die Stelle, ab der es **ganz** hell ist — die Daemmerung ist
+ * bereits eingerechnet. Die Seite `null` bedeutet: An diesem Rand gibt es keine
+ * Nacht im dargestellten Fenster (Sonnenaufgang vor 06:00 bzw. Untergang nach
+ * 22:00).
+ *
+ * Anteile, keine Prozentzeichen und keine Farben — dieselbe Regel wie bei
+ * `balkensegmente` (Prinzip IV).
+ */
+export interface Nachtstops {
+	morgens: { sonne: number; klar: number } | null;
+	abends: { klar: number; sonne: number } | null;
+}

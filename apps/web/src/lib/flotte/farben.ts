@@ -27,6 +27,32 @@ export const FARBEN = {
 } as const;
 
 /**
+ * Der Untergrund eines Zeitbalkens: die Zeit, in der nichts eingetragen ist.
+ *
+ * Gedecktes Grün und nicht das übliche Grau. Grau ist keine Aussage, sondern
+ * die Farbe, die übrig bleibt — auf demselben Balken, auf dem Rot „belegt"
+ * heißt, liest sich der Rest dann als „unbekannt". Frei ist aber eine Auskunft,
+ * und es ist die, wegen der jemand die Seite öffnet.
+ *
+ * Derselbe Ton trug im Sheet die freien Lücken. Dass er dort grün und in der
+ * Übersicht grau war, machte aus einer Farbe zwei Bedeutungen (Auskunft des
+ * Auftraggebers, 25.08.2026).
+ *
+ * Zwanzig Prozent Deckung, damit Nachttönung und Vergangenheits-Schleier
+ * darüber noch etwas zu tönen haben.
+ */
+export const FREIE_FLAECHE = mitDeckung(FARBEN.frei, 0.2);
+
+/**
+ * Der Untergrund, wenn **keine Auskunft** vorliegt.
+ *
+ * Hier bleibt es grau, und zwar genau deshalb, weil Grau nichts behauptet. Ein
+ * grüner Balken ohne Reservierungsstand hieße „alles frei" — die eine Aussage,
+ * die diese Anwendung nie machen darf, wenn sie sie nicht kennt.
+ */
+export const OHNE_AUSKUNFT = 'rgba(127, 127, 127, 0.16)';
+
+/**
  * Der Hintergrund einer belegten Fläche — Balken, Segment, Farbstreifen.
  *
  * Eine Sperre bekommt hier **dasselbe Absperrband** wie der Avatar einer
@@ -88,6 +114,12 @@ export function mischen(von: string, nach: string, anteil: number): string {
 	// POH-Zahlen. Hier braucht sie schlicht niemand: Der Browser stellt
 	// `rgb(31.4 143 69)` selbst dar.
 	return `rgb(${kanal(0)} ${kanal(1)} ${kanal(2)})`;
+}
+
+/** Eine Hexfarbe mit Deckung — damit der Ton an **einer** Stelle festgelegt ist. */
+function mitDeckung(hex: string, deckung: number): string {
+	const [r, g, b] = zerlegen(hex);
+	return `rgba(${r}, ${g}, ${b}, ${deckung})`;
 }
 
 function zerlegen(hex: string): [number, number, number] {

@@ -1,35 +1,33 @@
 /**
  * Was die Oberflaeche ueber eine Maschine weiss, das den Kern nichts angeht.
  *
- * Typbezeichnung, Avatarbild und der Pfad zum POH-Rechner sind Eigenschaften
- * **dieses Zugangswegs**, nicht der Sache (research.md E-03). Der Kern sichert
- * zu, nichts von SvelteKit zu wissen; ein Routenpfad in `flotte.ts` waere der
- * erste Bruch dieser Zusicherung.
+ * Typbezeichnung und Avatarbild sind Eigenschaften **dieses Zugangswegs**,
+ * nicht der Sache (research.md E-03). Der Kern sichert zu, nichts von SvelteKit
+ * zu wissen; ein Routenpfad in `flotte.ts` waere der erste Bruch dieser
+ * Zusicherung.
  *
- * Alle drei Angaben sind **optional**. Fehlen sie, zeigt die Anzeige die
- * vorgesehene Ersatzform: Kurzkennzeichen statt Bild, keinen POH-Knopf, keinen
- * Typ in der Kopfzeile. Eine neue Maschine muss hier also nicht eingetragen
- * werden, damit sie erscheint — sie sieht nur schlichter aus.
+ * Beide Angaben sind **optional**. Fehlen sie, zeigt die Anzeige die
+ * vorgesehene Ersatzform: Kurzkennzeichen statt Bild, keinen Typ in der
+ * Kopfzeile. Eine neue Maschine muss hier also nicht eingetragen werden, damit
+ * sie erscheint — sie sieht nur schlichter aus.
+ *
+ * Hier stand bis Feature 058 auch ein `pohPfad`. Er ist mit der klebenden
+ * Aktionsleiste der Detailansicht entfallen (FR-026, B-11): Der einzige Weg
+ * zum POH-Rechner fuehrt jetzt ueber `handlungenFuer`, und der kennt sein Ziel
+ * selbst. Ein Feld, das niemand mehr liest, sieht aus wie eine Einstellung und
+ * ist keine.
  */
 export interface Darstellung {
 	/** „Cessna 172" — erscheint klein unter dem Kennzeichen. */
 	typ?: string;
 	/** Pfad zum Avatarbild unter `static/`. */
 	bild?: string;
-	/** Ziel des POH-Knopfes; nur wo es einen Rechner gibt (FR-018). */
-	pohPfad?: string;
 }
 
-/**
- * Der POH-Rechner existiert bisher fuer genau eine Maschine — deshalb hat
- * genau ein Eintrag einen `pohPfad`. Ihn pauschal fuer alle zu setzen hiesse,
- * einen Knopf anzubieten, der ins Leere fuehrt.
- */
 const DARSTELLUNGEN: Record<string, Darstellung> = {
 	'D-EELK': {
 		typ: 'Cessna 172N',
-		bild: '/d-eelk.gif',
-		pohPfad: '/d-eelk/poh-rechner/'
+		bild: '/d-eelk.gif'
 	},
 	'D-EXYZ': {
 		typ: 'Aviat Husky A-1',

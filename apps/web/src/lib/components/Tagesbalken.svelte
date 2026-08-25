@@ -1,15 +1,12 @@
 <script lang="ts">
   import {
     alsTagesdatum,
-    balkensegmente,
-    BALKEN_BIS,
-    BALKEN_VON,
-    jetztAnteil,
     ortstag,
     tagesbelegungen,
-    type Reservierung
+    type Reservierung,
+    type Sonnenzeiten
   } from '@edsh-bucky/reservierung-core';
-  import { flaecheFuer } from '$lib/flotte/farben.js';
+  import Zeitbalken from './Zeitbalken.svelte';
 
   /**
    * Die Karte „Heute": ein maßstabsgetreuer Balken von 06:00 bis 22:00.
@@ -19,26 +16,24 @@
    * Ring — wer wissen will, *wie lange genau*, auf den Balken. Deshalb
    * stehen beide auf derselben Seite, ohne einander zu wiederholen.
    *
-   * Gerechnet wird hier nichts: Segmente, Jetzt-Linie und Zeiten kommen aus
-   * dem Kern (Prinzip IV). Diese Datei macht daraus Prozentwerte und Farben,
-   * mehr nicht.
+   * Gerechnet wird hier nichts: Segmente, Nacht, Nadel und Zeiten kommen aus
+   * dem Kern (Prinzip IV) und werden von `Zeitbalken` gezeichnet. Diese Datei
+   * ist nur noch die Karte drumherum — Überschrift, Achse, Chipzeile.
    */
   interface Eigenschaften {
     kennung: string;
     /** `null` heißt „keine Auskunft" — nicht „nichts gebucht". */
     belegungen: Reservierung[] | null;
     jetzt: Date;
+    /** Fehlen sie, bleibt der Balken ohne Nachttönung (SC-009). */
+    sonnenzeiten?: Sonnenzeiten | null;
+    /** Ein Tipp auf den Balken öffnet das Reservieren-Sheet (FR-024). */
+    getippt?: (ereignis: { tag: string; minute: number | null }) => void;
   }
 
-  const { kennung, belegungen, jetzt }: Eigenschaften = $props();
+  const { kennung, belegungen, jetzt, sonnenzeiten = null, getippt }: Eigenschaften = $props();
 
   const tag = $derived(ortstag(jetzt));
-
-  const segmente = $derived(
-    belegungen === null ? [] : balkensegmente(belegungen, kennung, tag)
-  );
-
-  const linie = $derived(jetztAnteil(jetzt, tag));
 
   const zeiten = $derived(belegungen === null ? [] : tagesbelegungen(belegungen, kennung, tag));
 
@@ -48,11 +43,6 @@
    * die Segmente, die sie erklären sollen.
    */
   const achse = [6, 10, 14, 18, 22];
-
-
-  function alsProzent(anteil: number): string {
-    return `${anteil * 100}%`;
-  }
 </script>
 
 <section class="karte">
@@ -61,21 +51,8 @@
     <span class="datum">{alsTagesdatum(jetzt)}</span>
   </header>
 
-  <div class="balken" data-fenster="{BALKEN_VON}-{BALKEN_BIS}">
-    {#each segmente as segment, i (i)}
-      <span
-        class="segment"
-        class:naht={segment.stoesstAn}
-        style:left={alsProzent(segment.von)}
-        style:width={alsProzent(segment.bis - segment.von)}
-      >
-        <span class="fuellung" style:background={flaecheFuer(segment.art)}></span>
-      </span>
-    {/each}
-
-    {#if linie !== null}
-      <span class="jetzt" style:left={alsProzent(linie)}></span>
-    {/if}
+  <div class="balken">
+    <Zeitbalken {kennung} {belegungen} {tag} {jetzt} {sonnenzeiten} {getippt} />
   </div>
 
   <div class="achse">
@@ -126,50 +103,13 @@
     opacity: 0.5;
   }
 
+  /*
+    Die Höhe steht hier, das Innenleben in `Zeitbalken`. Der Rahmen hat keinen
+    `overflow: hidden` -- die Jetzt-Nadel ragt fünf Pixel über den Balken
+    hinaus und darf nicht abgeschnitten werden.
+  */
   .balken {
-    position: relative;
     height: 38px;
-    border-radius: 8px;
-    background: rgba(127, 127, 127, 0.16);
-    overflow: visible;
-  }
-
-  .segment {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-  }
-
-  .fuellung {
-    position: absolute;
-    inset: 0;
-    border-radius: 6px;
-  }
-
-  /*
-    Zwei Reservierungen, die lückenlos aneinander anschließen, sind zwei
-    Belegungen mit zwei Nutzern -- und sähen ohne diese Fuge wie eine aus.
-    Die Füllung rückt zwei Pixel ein, sodass die Spur durchscheint; das
-    Segment selbst behält seine wahre Breite, damit die Zeitachse stimmt.
-  */
-  .segment.naht .fuellung {
-    left: 2px;
-  }
-
-  /*
-    Die Jetzt-Linie steht oben und unten drei Pixel über. Das ist kein
-    Schmuck: Ohne den Überstand verschwindet sie in einem Segment derselben
-    Höhe, und ausgerechnet dann, wenn die Maschine gerade belegt ist -- also
-    in dem Moment, in dem man sie am dringendsten sucht.
-  */
-  .jetzt {
-    position: absolute;
-    top: -3px;
-    bottom: -3px;
-    width: 2px;
-    margin-left: -1px;
-    background: var(--text, currentColor);
-    border-radius: 1px;
   }
 
   .achse {

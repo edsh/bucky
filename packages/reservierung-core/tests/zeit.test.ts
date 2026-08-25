@@ -4,8 +4,12 @@ import {
 	alsIsoMitVersatz,
 	alsKurzdatumUhrzeit,
 	alsTagesdatum,
+	alsTagUndMonat,
+	alsTagUndMonatWort,
 	alsUhrzeit,
+	alsWochentag,
 	alsWochentagDatumUhrzeit,
+	alsWochentagKurz,
 	gleicherTag,
 	minuteDesTages,
 	ortstag,
@@ -201,5 +205,41 @@ describe('alsIsoMitVersatz — Millisekunden', () => {
 			const zeitpunkt = new Date(Date.UTC(2026, 7, 18, 12, 0, 0, ms));
 			expect(Number.isNaN(new Date(alsIsoMitVersatz(zeitpunkt)).getTime())).toBe(false);
 		}
+	});
+});
+
+describe('Wochentag und Datum in kurzer und langer Form', () => {
+	/*
+	  Zwei Formen nebeneinander, und beide sind an ihrem Ort richtig: Die kurze
+	  gehoert in Spaltenkoepfe von 40 Pixeln Breite, die lange in den
+	  Tageswechsler des Sheets, wo eine ganze Zeile zur Verfuegung steht.
+	*/
+	const mittwoch = new Date('2026-08-26T12:00:00+02:00');
+
+	it('kuerzt den Wochentag ohne Punkt fuer schmale Spalten', () => {
+		expect(alsWochentagKurz(mittwoch)).toBe('Mi');
+	});
+
+	it('schreibt den Wochentag aus, wo Platz ist', () => {
+		expect(alsWochentag(mittwoch)).toBe('Mittwoch');
+	});
+
+	it('nennt Tag und Monat in Ziffern fuer die Wochenliste', () => {
+		expect(alsTagUndMonat(mittwoch)).toBe('26.08.');
+	});
+
+	it('nennt den Monat als Wort, wo es sich als Satz liest', () => {
+		expect(alsTagUndMonatWort(mittwoch)).toBe('26. August');
+	});
+
+	/*
+	  Alle vier lesen die Ortszeit, nicht UTC. Um 23:30 Ortszeit ist es in UTC
+	  bereits der Folgetag — eine Anzeige, die das verwechselt, nennt am spaeten
+	  Abend den falschen Wochentag.
+	*/
+	it('rechnet in Ortszeit, nicht in UTC', () => {
+		const spaeterAbend = new Date('2026-08-26T23:30:00+02:00');
+		expect(alsWochentag(spaeterAbend)).toBe('Mittwoch');
+		expect(alsTagUndMonatWort(spaeterAbend)).toBe('26. August');
 	});
 });

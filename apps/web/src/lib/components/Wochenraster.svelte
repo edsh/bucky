@@ -3,13 +3,14 @@
     alsWochentagKurz,
     BALKEN_BIS,
     BALKEN_VON,
-    jetztAnteil,
     ortstag,
+    sonnenzeitenFuerTag,
     wochenbalken,
     zeitpunktFuerMinute,
-    type Reservierung
+    type Reservierung,
+    type Sonnenzeiten
   } from '@edsh-bucky/reservierung-core';
-  import { flaecheFuer } from '$lib/flotte/farben.js';
+  import Zeitbalken from './Zeitbalken.svelte';
 
   /**
    * Sieben Tage nebeneinander, die Zeit läuft nach unten.
@@ -27,9 +28,13 @@
     kennung: string;
     belegungen: Reservierung[] | null;
     jetzt: Date;
+    /** Der ganze Satz; jede Spalte holt sich ihren Tag daraus. */
+    sonnenzeiten?: readonly Sonnenzeiten[] | null;
+    /** Ein Tipp auf eine Spalte öffnet das Reservieren-Sheet (FR-024). */
+    getippt?: (ereignis: { tag: string; minute: number | null }) => void;
   }
 
-  const { kennung, belegungen, jetzt }: Eigenschaften = $props();
+  const { kennung, belegungen, jetzt, sonnenzeiten = null, getippt }: Eigenschaften = $props();
 
   const heute = $derived(ortstag(jetzt));
 
@@ -62,23 +67,19 @@
 
   <div class="spalten">
     {#each tage as tag (tag.tag)}
-      {@const linie = jetztAnteil(jetzt, tag.tag)}
       <div class="spalte">
-        <div class="spur" class:heute={tag.tag === heute} data-tag={tag.tag}>
-          {#each tag.segmente as segment, i (i)}
-            <span
-              class="segment"
-              class:naht={segment.stoesstAn}
-              style:top={alsProzent(segment.von)}
-              style:height={alsProzent(segment.bis - segment.von)}
-            >
-              <span class="fuellung" style:background={flaecheFuer(segment.art)}></span>
-            </span>
-          {/each}
-
-          {#if linie !== null}
-            <span class="jetzt" style:top={alsProzent(linie)}></span>
-          {/if}
+        <div class="spur" class:heute={tag.tag === heute}>
+          <Zeitbalken
+            {kennung}
+            {belegungen}
+            tag={tag.tag}
+            {jetzt}
+            sonnenzeiten={sonnenzeitenFuerTag(sonnenzeiten, tag.tag)}
+            richtung="senkrecht"
+            radius={6}
+            segmentradius={4}
+            {getippt}
+          />
         </div>
         <span class="label" class:istHeute={tag.tag === heute}>{kopf(tag.tag)}</span>
       </div>
@@ -128,42 +129,17 @@
   }
 
   .spur {
-    position: relative;
     width: 100%;
     height: 210px;
-    border-radius: 6px;
-    background: rgba(127, 127, 127, 0.14);
   }
 
-  .spur.heute {
+  /*
+    Die heutige Spalte trägt einen kräftigeren Untergrund. Er steht hier und
+    nicht in `Zeitbalken`, weil er nichts über die Zeit aussagt, sondern über
+    die Ansicht: „diese Spalte ist die, auf der du stehst".
+  */
+  .spur.heute :global(.spur) {
     background: rgba(127, 127, 127, 0.22);
-  }
-
-  .segment {
-    position: absolute;
-    left: 1px;
-    right: 1px;
-  }
-
-  .fuellung {
-    position: absolute;
-    inset: 0;
-    border-radius: 4px;
-  }
-
-  /* Hier läuft die Zeit von oben nach unten -- die Fuge entsprechend. */
-  .segment.naht .fuellung {
-    top: 2px;
-  }
-
-  .jetzt {
-    position: absolute;
-    left: -1px;
-    right: -1px;
-    height: 2px;
-    margin-top: -1px;
-    background: var(--text, currentColor);
-    border-radius: 1px;
   }
 
   .label {

@@ -84,6 +84,14 @@ export function alsRueckfallHinweis(quelle: Quelle): string | null {
  * Ganze Stunden ohne Nachkommastelle, halbe mit. Ein ganzer Tag heisst
  * `24 h` und nicht `1 d`: Auf einem Tagesbalken ist "24 h" die Aussage, die
  * man vergleichen kann.
+ *
+ * **Nicht zu verwechseln mit `alsDauerwort` in `zeitwahl.ts`**, das `3:30 h`
+ * liefert. Die Doppelung ist Absicht und kein Versehen: Diese Form steht in
+ * "Kommende Belegungen", wo Dauern untereinander **verglichen** werden — `3,5 h`
+ * neben `2 h` ist auf einen Blick mehr, `3:30 h` neben `2:00 h` nicht. Die
+ * andere steht als Pille neben `11:30–13:30`, wo dieselbe Uhrzeitform sich
+ * anschliesst. Diese hier darf ausserdem 24 h ueberschreiten (am
+ * Umstellungstag `25 h`); die andere bleibt im Flugtag.
  */
 export function alsDauer(vonIso: string, bisIso: string): string {
 	const stunden = (new Date(bisIso).getTime() - new Date(vonIso).getTime()) / 3_600_000;
@@ -196,6 +204,12 @@ const NUR_UHRZEIT_KURZ = new Intl.DateTimeFormat('de-DE', {
  *
  * Die Spalte ist 112 Pixel breit. Alles, was hier steht, muss in eine Zeile
  * passen — deshalb steht dort ein Zaehler und keine zweite Zeitangabe.
+ *
+ * **Nicht** die Doppelpunktform aus FR-049 (`14:00–17:30: reserviert`).
+ * Feature 058 hat das geprueft und bewusst so gelassen: Jene Form gehoert den
+ * Konflikttexten des Zeitwaehlers, wo die Art die eigentliche Nachricht ist —
+ * hier ist die Art bereits durch die Spalte gesagt, und `reserviert` fuellte
+ * die 112 Pixel mit einer Auskunft, die niemand gesucht hat.
  */
 export function alsTageszeile(belegungen: readonly Tagesbelegung[]): string {
 	if (belegungen.length === 0) return 'frei';

@@ -232,31 +232,27 @@
 <!--
   Die ganze Zeile hört zu, der Balken darin bestimmt nur die Uhrzeit. Deshalb
   liegt der Klickhandler außen und die Messung an `.spur`.
+
+  Ein **echter** Knopf, wo der Balken bedienbar ist, und ein `div`, wo er nur
+  eine Zeichnung ist. Ein `div` mit `role="button"` und `tabindex` sieht für
+  Bildschirmleser aus wie ein Knopf und verhält sich nicht so: Enter und
+  Leertaste muss man dann von Hand nachbauen, den Fokusring auch, und beides
+  vergisst irgendwann jemand. Der Klickpfad prüft genau das (Nummer 176).
+
+  Enter und Leertaste lösen am Knopf ein `click` mit `detail === 0` aus — die
+  Bedienung ohne Zeigegerät kommt also über denselben Weg herein und meldet
+  „kein Ort", statt still auf sechs Uhr früh zu springen.
 -->
-<!--
-  Rolle und `tabindex` hängen beide an derselben Bedingung: Ohne `getippt` ist
-  der Balken eine Zeichnung und bekommt weder das eine noch das andere. Der
-  Prüfer kann das zur Übersetzungszeit nicht sehen und nimmt den schlechteren
-  der beiden Fälle an.
--->
-<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-<div
+<svelte:element
+  this={getippt ? 'button' : 'div'}
+  type={getippt ? 'button' : undefined}
   class="spur"
   class:senkrecht
   bind:this={spur}
   style:border-radius="{radius}px"
   style:background={untergrund}
-  onclick={beiTipp}
-  role={getippt ? 'button' : 'presentation'}
-  tabindex={getippt ? 0 : undefined}
-  onkeydown={getippt
-    ? (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          getippt({ tag, minute: null });
-        }
-      }
-    : undefined}
+  onclick={getippt ? beiTipp : undefined}
+  role={getippt ? undefined : 'presentation'}
 >
   <!-- Ebene 0: Nacht. Ohne Sonnenzeiten gibt es sie gar nicht. -->
   {#if nachtverlauf}
@@ -311,25 +307,64 @@
   {#if nadel !== null}
     <span class="jetzt" aria-hidden="true" style:--von={prozent(nadel)}></span>
   {/if}
-</div>
+</svelte:element>
 
 <style>
   /*
     Kein `overflow: hidden` — die Nadel ragt oben und unten hinaus, und der
     Balken darf sie nicht abschneiden. Die Segmente runden sich deshalb selbst.
   */
+  /*
+    Ein Knopf bringt Rahmen, Schrift und Ausrichtung des Systems mit. Hier
+    zeichnet er eine Zeitachse; nichts davon ist erwünscht.
+  */
   .spur {
     position: relative;
     width: 100%;
     height: 100%;
     overflow: visible;
+    appearance: none;
     border: 0;
     padding: 0;
+    font: inherit;
+    color: inherit;
+    text-align: inherit;
     cursor: inherit;
   }
 
-  .spur[role='button'] {
+  button.spur {
     cursor: pointer;
+  }
+
+  /*
+    Die Trefferfläche wächst auf 44 Pixel, der Balken bleibt so flach, wie er
+    aussehen soll (FR-052, B-10).
+    
+    `min(0px, …)` greift nur, wo der Balken zu flach ist: Eine Tageszeile misst
+    14 Pixel und bekommt fünfzehn dazu, der Sheet-Balken misst 46 und bleibt,
+    wie er ist. Ein fester Zuschlag müsste für den flachsten Fall gewählt sein
+    und ließe die Trefferflächen benachbarter Zeilen ineinanderlaufen — dann
+    öffnete ein Tipp am Zeilenrand den falschen Tag.
+
+    `z-index: -1` hält die Fläche hinter allem, was der Balken zeichnet; sie
+    fängt Tipps nur dort, wo sie über ihn hinausragt.
+  */
+  button.spur::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    right: 0;
+    top: min(0px, calc((100% - 44px) / 2));
+    bottom: min(0px, calc((100% - 44px) / 2));
+  }
+
+  /* Senkrecht misst die Breite, nicht die Höhe. */
+  button.spur.senkrecht::before {
+    top: 0;
+    bottom: 0;
+    left: min(0px, calc((100% - 44px) / 2));
+    right: min(0px, calc((100% - 44px) / 2));
   }
 
   .nacht {

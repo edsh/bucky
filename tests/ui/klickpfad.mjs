@@ -2273,13 +2273,15 @@ pruefe(
   detailText.split('\n').find((z) => /^Heute/.test(z.trim())) ?? '(keine Karte gefunden)'
 );
 
-// 140: Sieben Zeilen, nicht sechs und nicht acht. Die Liste beginnt heute;
-// eine achte Zeile waere der Tag, den das Datenfenster nur zur Sicherheit
-// mitliefert (E-06) und der nicht vollstaendig waere.
+// 140: Sechs Zeilen, nicht sieben. Seit Feature 058 beginnt die Liste bei
+// morgen (FR-048): „Heute" steht schon als grosser Balken darueber und wird
+// nicht wiederholt. Eine siebte Zeile waere die Dublette, eine achte der Tag,
+// den das Datenfenster nur zur Sicherheit mitliefert (E-06) und der nicht
+// vollstaendig waere.
 pruefe(
   140,
-  'die Sieben-Tage-Liste hat sieben Zeilen',
-  (await page.locator('.tage li').count()) === 7,
+  'die Tagesliste beginnt bei morgen und hat sechs Zeilen',
+  (await page.locator('.tage li').count()) === 6,
   `${await page.locator('.tage li').count()} Zeilen`
 );
 
@@ -2289,7 +2291,7 @@ const tagtexte = (await page.locator('.tagtext').allInnerTexts()).map((z) => z.t
 pruefe(
   141,
   'die Textspalte unterscheidet freie und belegte Tage',
-  tagtexte.length === 7 &&
+  tagtexte.length === 6 &&
     tagtexte.some((z) => z === 'frei') &&
     tagtexte.some((z) => /\d{2}:\d{2}–\d{2}:\d{2}/.test(z)),
   tagtexte.join(' | ')
@@ -2308,7 +2310,7 @@ await page.getByRole('tab', { name: '7 Tage' }).click();
 pruefe(
   143,
   'der Reiter „7 Tage" bringt die Liste zurueck',
-  (await page.locator('.tage li').count()) === 7 && (await page.locator('.spalte').count()) === 0,
+  (await page.locator('.tage li').count()) === 6 && (await page.locator('.spalte').count()) === 0,
   `${await page.locator('.tage li').count()} Zeilen`
 );
 
@@ -2325,21 +2327,83 @@ pruefe(
   kommendText.replace(/\n/g, ' | ')
 );
 
-// 145: Der POH-Verweis erscheint nur, wo es einen Rechner gibt (FR-018). Ein
-// Knopf, der ins Leere fuehrt, ist schlimmer als kein Knopf.
+// 145: Die klebende Aktionsleiste ist mit Feature 058 entfallen (FR-023,
+// B-11) — und mit ihr der „Reservieren"-Knopf und der POH-Verweis. Das Sheet
+// oeffnet jetzt aus jedem Balken heraus.
 pruefe(
   145,
-  'ein Segelflugzeug zeigt keinen POH-Verweis',
+  'die Detailansicht traegt keine klebende Aktionsleiste mehr',
+  (await page.locator('.aktionen').count()) === 0 && (await page.locator('.poh').count()) === 0,
+  ''
+);
+
+// 146: Auch bei der D-EELK nicht, der einzigen Maschine mit Rechner. Der
+// Verweis ist nicht verschwunden, sondern umgezogen: Er steht im Flugzeugmenue
+// der Uebersicht (FR-026) — dort prueft ihn Nummer 87.
+await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
+pruefe(
+  146,
+  'auch die D-EELK zeigt ihn hier nicht mehr — er steht im Flugzeugmenue',
   (await page.locator('.poh').count()) === 0,
   ''
 );
 
-await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
+// --- Feature 058: der Zeitwaehler ----------------------------------------
+//
+// Die Nummern springen: Sie sind Kennungen, keine Positionen. 190ff. ist der
+// naechste freie Block.
+//
+// 190: Ein Tipp auf den Tagesbalken oeffnet das Sheet (FR-024). Das ist seit
+// Feature 058 der **einzige** Weg dorthin — die Aktionsleiste, die es vorher
+// oeffnete, gibt es nicht mehr. Geht dieser Tipp verloren, ist das Reservieren
+// von der Seite aus unerreichbar, ohne dass irgendetwas fehlt oder rot wird.
+await page.locator('.balken .spur').first().click();
+const sheet = page.locator('[role="dialog"]');
+await sheet.waitFor({ timeout: 5000 });
 pruefe(
-  146,
-  'die D-EELK zeigt ihn',
-  (await page.locator('.poh').count()) === 1,
-  (await page.locator('.poh').first().getAttribute('href')) ?? '(kein Ziel)'
+  190,
+  'ein Tipp auf den Tagesbalken oeffnet den Zeitwaehler',
+  (await sheet.getAttribute('aria-label')) === 'D-EELK reservieren',
+  (await sheet.getAttribute('aria-label')) ?? '(kein Sheet)'
+);
+
+// 191: Das Sheet nennt ein Fenster, keine Platzhalter. Ein Waehler, der mit
+// leeren Feldern aufgeht, laesst den Nutzer die Arbeit machen, die er ihm
+// abnehmen soll.
+const fenstertext = (await page.locator('.zeitfenster').innerText()).trim();
+pruefe(
+  191,
+  'der Waehler steht auf einem gerasterten Zeitfenster',
+  /^\d{2}:\d{2}–\d{2}:\d{2}$/.test(fenstertext) &&
+    /^(00|15|30|45)$/.test(fenstertext.slice(3, 5)),
+  fenstertext
+);
+
+// 192: Und der Absprung traegt genau dieses Fenster (FR-043, Szenario 1.6).
+// Die Maskenparameter sind beobachtet, nicht zugesichert — deshalb prueft das
+// hier jemand, statt es zu glauben.
+const absprungziel = (await page.locator('.weiter').getAttribute('href')) ?? '';
+const [von, bis] = fenstertext.split('–');
+pruefe(
+  192,
+  'der Absprung belegt Maschine, Datum und beide Uhrzeiten vor',
+  /frm_apid=75132/.test(absprungziel) &&
+    absprungziel.includes(`frm_datefromtime=${von}`) &&
+    absprungziel.includes(`frm_datetotime=${bis}`) &&
+    /frm_datefrom=\d{2}\.\d{2}\.\d{4}/.test(absprungziel),
+  absprungziel.replace(/^[^?]*\?/, '')
+);
+
+// 193: Escape schliesst wieder. Ein Sheet ueber der ganzen Seite, das sich nur
+// mit dem Finger schliessen laesst, sperrt jeden aus, der eine Tastatur
+// benutzt.
+await page.keyboard.press('Escape');
+await sheet.waitFor({ state: 'detached', timeout: 3000 }).catch(() => {});
+pruefe(
+  193,
+  'Escape schliesst den Zeitwaehler wieder',
+  (await page.locator('[role="dialog"]').count()) === 0,
+  ''
 );
 
 // 147: Und der Weg zurueck in den Flugzeugpark steht im Kopf, nicht nur im
@@ -2699,19 +2763,17 @@ await page.route('**/api/flotte*', (route) =>
 );
 
 await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-exyz/`, { waitUntil: 'networkidle' });
-await page.locator('.reservieren').waitFor({ timeout: 5000 });
-const reservierenKasten = await page.locator('.reservieren').boundingBox();
-await page.locator('.reservieren').click();
+await page.locator('.balken .spur').first().click();
 await page.locator('[role="dialog"]').waitFor({ timeout: 3000 });
-const vonWert = (await page.locator('.feld').first().locator('.wert').textContent())?.trim() ?? '';
-const bisWert = (await page.locator('.feld').nth(1).locator('.wert').textContent())?.trim() ?? '';
+const aktionskasten = await page.locator('.weiter').boundingBox();
+const [vonWert, bisWert] = (await page.locator('.zeitfenster').innerText()).trim().split('–');
 pruefe(
   169,
-  'der Knopf oeffnet ein Sheet mit Von und Bis aus der naechsten freien Luecke',
-  reservierenKasten !== null &&
-    reservierenKasten.height >= 44 &&
-    /\d{2}:(00|30)$/.test(vonWert) &&
-    /^\d{2}:(00|30)$/.test(bisWert),
+  'ein Tipp auf den Balken oeffnet den Waehler auf einem gerasterten Fenster',
+  aktionskasten !== null &&
+    aktionskasten.height >= 44 &&
+    /^\d{2}:(00|15|30|45)$/.test(vonWert) &&
+    /^\d{2}:(00|15|30|45)$/.test(bisWert),
   `${vonWert} bis ${bisWert}`
 );
 
@@ -2725,7 +2787,7 @@ pruefe(
   'der Verweis traegt die Nummer der Maschine und genau das gezeigte Fenster',
   ziel.includes('frm_apid=43352') &&
     zielFenster.length === 2 &&
-    vonWert.endsWith(zielFenster[0]) &&
+    vonWert === zielFenster[0] &&
     bisWert === zielFenster[1] &&
     (await page.locator('.weiter').getAttribute('target')) === '_blank' &&
     ((await page.locator('.weiter').getAttribute('rel')) ?? '').includes('noopener'),
@@ -2746,7 +2808,11 @@ pruefe(
 // 172: Bleibt keine Luecke, gibt es keinen Vorschlag -- weder im Text noch in
 // der Adresse (Z-08). Eine Sperre ueber das ganze Suchfenster hinaus ist der
 // klarste Fall davon.
-const sperrbeginn = new Date(jetztMs - 3_600_000).toISOString().slice(0, 19);
+// Vierundzwanzig Stunden zurueck, nicht eine: Der Flugtag muss **ganz**
+// gesperrt sein, sonst haengt das Ergebnis davon ab, zu welcher Uhrzeit der
+// Ablauf laeuft — und ein Test, der nachts etwas anderes prueft als mittags,
+// prueft nichts.
+const sperrbeginn = new Date(jetztMs - 86_400_000).toISOString().slice(0, 19);
 const sperrende = new Date(jetztMs + 8 * 86_400_000).toISOString().slice(0, 19);
 await page.unroute('**/api/flotte*');
 await page.route('**/api/flotte*', (route) =>
@@ -2762,17 +2828,16 @@ await page.route('**/api/flotte*', (route) =>
 );
 
 await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-exyz/`, { waitUntil: 'networkidle' });
-await page.locator('.reservieren').click();
+await page.locator('.balken .spur').first().click();
 await page.locator('[role="dialog"]').waitFor({ timeout: 3000 });
-const leerhinweis = (await page.locator('[role="dialog"] .hinweis').textContent())?.trim() ?? '';
-const leerziel = (await page.locator('.weiter').getAttribute('href')) ?? '';
+const leerhinweis = (await page.locator('[role="dialog"] .leerfall').textContent())?.trim() ?? '';
 pruefe(
   172,
-  'ohne freie Luecke steht der Statussatz statt eines erfundenen Fensters',
-  (await page.locator('.feld').count()) === 0 &&
-    leerhinweis.length > 0 &&
-    !leerziel.includes('frm_datefrom'),
-  `${leerhinweis} | ${leerziel}`
+  'ohne freie Luecke steht ein Hinweis statt eines erfundenen Fensters',
+  leerhinweis.length > 0 &&
+    (await page.locator('.zeitfenster').count()) === 0 &&
+    (await page.locator('.weiter').count()) === 0,
+  leerhinweis
 );
 
 await page.keyboard.press('Escape');
@@ -2810,6 +2875,27 @@ pruefe(
 // 44 Pixel hoch. Ein `div` mit Klickhandler waere fuer Tastatur und Vorleser
 // gar nicht da.
 const bedienbar = await page.evaluate(() => {
+  /*
+    Gemessen wird die **Trefferflaeche**, nicht der Kasten des Elements. Die
+    beiden fallen auseinander, sobald ein Element seine Flaeche ueber ein
+    `::before` erweitert -- so macht es der Zeitbalken, der 14 Pixel hoch
+    aussehen soll und 44 hoch zu treffen sein muss (FR-052, B-10). Der Kasten
+    allein gemessen, faende dieser Test einen Fehler, den es nicht gibt, und
+    die naheliegende Abhilfe waere, den Balken dick zu machen.
+
+    Negative Abstaende des Pseudo-Elements vergroessern die Flaeche; positive
+    verkleinern sie und zaehlen deshalb ebenfalls mit.
+  */
+  const trefferhoehe = (el) => {
+    const k = el.getBoundingClientRect();
+    const vor = getComputedStyle(el, '::before');
+    if (!vor || vor.content === 'none' || vor.position !== 'absolute') return k.height;
+    const oben = Number.parseFloat(vor.top);
+    const unten = Number.parseFloat(vor.bottom);
+    if (!Number.isFinite(oben) || !Number.isFinite(unten)) return k.height;
+    return k.height - oben - unten;
+  };
+
   const rollen = [...document.querySelectorAll('[role="button"], [role="tab"], [role="menuitem"]')];
   const unecht = rollen.filter((el) => !['BUTTON', 'A'].includes(el.tagName));
   const zuKlein = [...document.querySelectorAll('button, a')]
@@ -2818,8 +2904,8 @@ const bedienbar = await page.evaluate(() => {
       // Verweise im Fliesstext (Fussnote) sind keine Tap-Ziele, sondern Text.
       return k.width > 0 && k.height > 0 && !el.closest('.fussnote');
     })
-    .filter((el) => el.getBoundingClientRect().height < 44)
-    .map((el) => `${el.tagName}.${el.className} ${Math.round(el.getBoundingClientRect().height)}px`);
+    .filter((el) => trefferhoehe(el) < 44)
+    .map((el) => `${el.tagName}.${el.className} ${Math.round(trefferhoehe(el))}px`);
   return { unecht: unecht.length, zuKlein };
 });
 pruefe(
@@ -2853,15 +2939,20 @@ pruefe(
 );
 
 await page.goto(`${BASE.replace(/\/$/, '')}/reservierung/d-eelk/`, { waitUntil: 'networkidle' });
-await page.locator('.reservieren').waitFor({ timeout: 5000 });
+await page.locator('.balken .spur').first().waitFor({ timeout: 5000 });
 
 // 177: Der Fokus bleibt sichtbar -- auch im Sheet, das sich ueber alles legt.
-await page.locator('.reservieren').focus();
+// Geprueft wird am Tagesbalken: Seit Feature 058 ist er das Bedienelement,
+// das ins Sheet fuehrt, und zugleich das einzige, das wie eine Zeichnung
+// aussieht. Gerade dort faellt ein fehlender Fokusring niemandem auf, der ihn
+// nicht braucht.
+await page.keyboard.press('Tab');
+await page.locator('.balken .spur').first().focus();
 const fokusSichtbar = await page.evaluate(() => {
   const stil = getComputedStyle(document.activeElement);
   return stil.outlineStyle !== 'none' || stil.boxShadow !== 'none';
 });
-await page.locator('.reservieren').click();
+await page.locator('.balken .spur').first().click();
 await page.locator('[role="dialog"]').waitFor({ timeout: 3000 });
 await page.keyboard.press('Tab');
 const fokusImSheet = await page.evaluate(() => document.activeElement?.closest('[role="dialog"]') !== null);

@@ -687,11 +687,16 @@
     padding: 0;
   }
 
+  /*
+    Die Zeile misst 45 Pixel hoch, damit die 44er Trefferfläche des Balkens
+    hineinpasst, ohne in die Nachbarzeile zu ragen (FR-052). Enger gesetzt
+    öffnete ein Tipp am Zeilenrand den falschen Tag.
+  */
   .tage li {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 9px 0;
+    padding: 15px 0;
     border-bottom: 1px solid rgba(127, 127, 127, 0.14);
   }
 
